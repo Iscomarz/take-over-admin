@@ -15,85 +15,104 @@
 	let fases = [];
 
 	let idUsuario = '';
+	let quitarReqFases = true;
 
 	function agregarFase() {
-		fases.push({ nombreFace, precio, fechaExpira });
+		fases = [...fases, { nombreFace, precio, fechaExpira }]; // Crear nueva referencia del array
 		nombreFace = '';
 		precio = '';
 		fechaExpira = '';
+	}
+
+	$: {
+		if (fases.length > 0) {
+			quitarReqFases = false;
+		}
 	}
 
 	async function insertarEvento(event) {
 		event.preventDefault();
 
 		// Actualizar las fases en el store
-		eventoStore.update((evento) => {
-			return { ...evento, fases };
-		});
+		eventoStore.update((evento) => ({
+			...evento,
+			fases
+		}));
 
-		const eventoCompleto = get(eventoStore);
-		console.log(eventoCompleto);
-
+		// Obtener usuario
 		idUsuario = await traerUsuario();
 
-		const { data: eventoData, error: eventoError } = toast.promise(
-			supabase
+		try {
+			// Inserción del evento en la tabla 'mEvento'
+			const { data: eventoData, error: eventoError } = await supabase
 				.from('mEvento')
-				.insert([{
-					nombreEvento: nombreEvento,
-					venue: venue,
-					direccion: direccion,
-					fechaInicio: fechaInicio,
-					fechaFin: fechaFin,
-					aforo: parseInt(aforo),
-					usuario: idUsuario
-				}])
-				.select(),
-			{
-				loading: 'Guardando...',
-				success: 'Evento creado con éxito',
-				error: 'Error al crear evento'
-			},
-			{
-				duration: 5000
+				.insert([
+					{
+						nombreEvento: nombreEvento,
+						venue: venue,
+						direccion: direccion,
+						fechaInicio: fechaInicio,
+						fechaFin: fechaFin,
+						aforo: parseInt(aforo),
+						usuario: idUsuario
+					}
+				])
+				.select(); // Aseguramos que usamos select() para obtener los datos insertados
+
+			// Manejar errores de inserción
+			if (eventoError) {
+				console.error('Error al insertar el evento:', eventoError.message);
+				toast.error(`Error: ${eventoError.message}`);
+				return; // Salir de la función si hay un error
 			}
-		);
 
-		// Si hay un error en la respuesta de Supabase, también lo manejamos aquí
-		if (eventoError) {
-			console.error('Error al insertar el evento:', error.message);
-			toast.error(`Error: ${error.message}`);
-		} else {
+			// Si el insert fue exitoso, obtener el idEvento y continuar con las fases
 			console.log(eventoData);
-			const eventoId = eventoData[0].idEvento;
+			const eventoId = eventoData[0].idevento;
 
-			if (eventoId !== null) {
+			// Verificar que el evento se haya insertado correctamente antes de agregar fases
+			if (eventoId) {
+				console.log(fases);
 				for (const fase of fases) {
 					const { error: faseError } = await supabase.from('cFaseEvento').insert([
 						{
-							eventoId,
+							idEvento: eventoId,
 							nombreFace: fase.nombreFace,
 							precio: fase.precio,
 							fechaExpira: fase.fechaExpira
 						}
 					]);
 
-					if (faseError) throw faseError;
+					if (faseError) {
+						console.error('Error al insertar la fase:', faseError.message);
+						throw new Error(faseError.message); // Lanzar error si falla la inserción de una fase
+					}
 				}
+
+				// Mostrar mensaje de éxito
+				toast.success('Evento y fases guardados exitosamente');
 			}
 
-			eventoStore.set({
-				nombreEvento: '',
-				venue: '',
-				fechaInicio: '',
-				fechaFin: '',
-				direccion: '',
-				aforo: '',
-				fases: []
-			});
+			// Limpiar el store después de guardar todo
+			limpiarStore();
 			console.log('Evento insertado');
-			goto('/home');
+			goto('/home'); // Redirigir al home después de la inserción exitosa
+		} catch (error) {
+			console.error('Error durante la creación del evento y sus fases:', error.message);
+			toast.error('Error al completar la creación del evento');
 		}
+	}
+
+	function limpiarStore() {
+		eventoStore.set({
+			nombreEvento: '',
+			venue: '',
+			fechaInicio: '',
+			fechaFin: '',
+			direccion: '',
+			aforo: '',
+			fases: []
+		});
 	}
 
 	async function traerUsuario() {
@@ -108,6 +127,7 @@
 	}
 
 	function cancelar() {
+		limpiarStore();
 		goto('/');
 	}
 </script>
@@ -128,12 +148,23 @@
 		</div>
 	{/each}
 
-	<input bind:value={nombreFace} type="text" placeholder="Nombre de la fase" required />
-	<input bind:value={precio} type="number" placeholder="Precio" required />
-	<input bind:value={fechaExpira} type="date" required />
+	<input
+		bind:value={nombreFace}
+		type="text"
+		placeholder="Nombre de la fase"
+		required={quitarReqFases}
+	/>
+	<input bind:value={precio} type="number" placeholder="Precio" required={quitarReqFases} />
+	<input bind:value={fechaExpira} type="date" required={quitarReqFases} />
 
 	<button type="button" on:click={agregarFase}>Agregar Fase</button><br />
 	<button type="submit">Guardar Todo</button><br />
 	<button type="button" on:click={regresarPaso1}>Regresar al Paso 1</button><br />
 	<button type="button" on:click={cancelar}>Cancelar</button>
 </form>
+
+<style>
+	p , h3 , input{
+		color: whitesmoke;
+	}
+</style>

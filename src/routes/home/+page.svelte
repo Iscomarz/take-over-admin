@@ -26,4 +26,9 @@
 
 <h1>HOME</h1>
 <h2>Bienvenido, {email}</h2>
-<button><a href="/newEvent">Nuevo Evento</a></button>
+
+<style>
+	h1, h2{
+		color: aliceblue;
+	}
+</style>

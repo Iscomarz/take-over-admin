@@ -59,7 +59,7 @@
 	function siguientePaso(event) {
 		event.preventDefault();
 
-        if (!nombreEvento || !venue || !fechaInicio || !fechaFin || !direccion || !aforo) {
+		if (!nombreEvento || !venue || !fechaInicio || !fechaFin || !direccion || !aforo) {
 			toast.error('Por favor, completa todos los campos.');
 			return;
 		}
@@ -80,18 +80,20 @@
 	}
 
 	function cancelar() {
-		// Limpiar o redirigir al cancelar
+		limpiarStore();
 		goto('/');
 	}
 
-	function limpiarForm() {
-		nombreEvento = '';
-		venue = '';
-		fechaInicio = null;
-		fechaFin = null;
-		direccion = '';
-		aforo = '';
-		idUsuario = '';
+	function limpiarStore() {
+		eventoStore.set({
+			nombreEvento: '',
+			venue: '',
+			fechaInicio: '',
+			fechaFin: '',
+			direccion: '',
+			aforo: '',
+			fases: []
+		});
 	}
 </script>
 
@@ -137,7 +139,7 @@
 			type="text"
 			id="fechaInicio"
 			name="fechaInicio"
-			class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+			class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer date-pick"
 			placeholder="Fecha de inicio"
 			required
 			bind:value={fechaInicio}
@@ -155,7 +157,7 @@
 			type="text"
 			id="fechaFin"
 			name="fechaFin"
-			class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+			class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer date-pick"
 			placeholder="Fecha de fin"
 			required
 			bind:value={fechaFin}
@@ -202,17 +204,55 @@
 		</div>
 	</div>
 
-	<button
-		type="submit"
-		class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-		>Siguiente
-	</button>
+	<div class="flujo">
+		<button
+			type="submit"
+			class="text-white focus:ring-4 focus:outline-none font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center"
+			>Siguiente
+		</button>
 
-	<button type="button" on:click={cancelar}>Cancelar</button>
+		<button
+			type="button"
+			on:click={cancelar}
+			class="text-white focus:ring-4 focus:outline-none font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center"
+			>Cancelar</button
+		>
+	</div>
 </form>
 
 <style>
 	input {
 		color: black;
+	}
+
+	h1 {
+		width: 100%;
+		color: whitesmoke;
+		text-align: center;
+		padding-bottom: 40px;
+	}
+
+	.flujo {
+		width: 100%;
+		display: flex;
+		justify-content: center;
+		gap: 20px;
+	}
+
+	button {
+		background-color: rgb(63, 248, 186);
+		color: black;
+	}
+
+	button:hover {
+		background-color: rgb(52, 180, 137);
+	}
+
+	.date-pick {
+		color: whitesmoke;
+	}
+
+	input {
+		color: whitesmoke;
 	}
 </style>
