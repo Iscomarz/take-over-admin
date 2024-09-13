@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+    font-family: Blacklisted;
+    src: url(../src/lib/fonts/Blacklisted.ttf) format("truetype");
+  }
+@font-face {
+    font-family: JockeyOne;
+    src: url(../src/lib/fonts/jockey-one.regular.ttf) format("truetype");
+  }
+@font-face {
+    font-family: JostRegular;
+    src: url(../src/lib/fonts/static/Jost-Regular.ttf) format("truetype");
+  }
+
+body {
+	min-height: 100vh;
+	margin: 0;
+	background-attachment: fixed;
+	background-color: var(--color-bg-1);
+	background-size: 100vw 100vh;
+	background-image: radial-gradient(
+			50% 50% at 50% 50%,
+			rgba(34, 33, 33, 0.526) 0%,
+			rgba(22, 22, 22, 0) 100%
+		),
+		linear-gradient(180deg, var(--color-bg-0) 0%, var(--color-bg-1) 15%, var(--color-bg-2) 50%);
+}

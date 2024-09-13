@@ -1,0 +1,29 @@
+<script>
+	import supabase from '$lib/supabase';
+	import { goto } from '$app/navigation';
+
+	let usuario = null;
+    let email = '';
+
+	let token = '';
+	if (typeof window !== 'undefined') {
+		token = localStorage.getItem('token');
+		if (token == null) {
+			goto('/');
+		} else {
+			traerUsuario();
+		}
+	}
+
+	async function traerUsuario() {
+		const { data } = await supabase.auth.getSession();
+		if (data.session) {
+			usuario = data.session.user;
+            email = usuario.email;
+		}
+	}
+</script>
+
+<h1>HOME</h1>
+<h2>Bienvenido, {email}</h2>
+<button><a href="/newEvent">Nuevo Evento</a></button>
