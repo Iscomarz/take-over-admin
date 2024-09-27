@@ -16,6 +16,7 @@ const config = {
 				}
 				throw new Error(`${status} ${path} (linked from ${referrer})`);
 			}
+		}
 	},
 	preprocess: vitePreprocess()
 };
