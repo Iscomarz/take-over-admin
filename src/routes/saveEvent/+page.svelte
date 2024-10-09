@@ -7,7 +7,7 @@
 	import { get } from 'svelte/store';
 
 	const evento = get(eventoStore);
-	let { nombreEvento, venue, fechaInicio, fechaFin, direccion, aforo } = evento;
+	let { nombreEvento, venue, fechaInicio, fechaFin, direccion } = evento;
 	//fases
 	let nombreFace = '';
 	let precio = '';
@@ -55,7 +55,6 @@
 						direccion: direccion,
 						fechaInicio: fechaInicio,
 						fechaFin: fechaFin,
-						aforo: parseInt(aforo),
 						usuario: idUsuario
 					}
 				])
@@ -81,7 +80,8 @@
 							idEvento: eventoId,
 							nombreFace: fase.nombreFace,
 							precio: fase.precio,
-							fechaExpira: fase.fechaExpira
+							fechaExpira: fase.fechaExpira,
+							limite: fase.limite
 						}
 					]);
 
@@ -112,7 +112,6 @@
 			fechaInicio: '',
 			fechaFin: '',
 			direccion: '',
-			aforo: '',
 			fases: []
 		});
 	}
