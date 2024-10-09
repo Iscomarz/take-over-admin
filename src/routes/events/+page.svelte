@@ -10,7 +10,6 @@
 
 		if (mEvento && mEvento.length > 0) {
 			eventos = mEvento;
-			console.log('Select a eventos', eventos);
 		} else if (error || mEvento.length === 0) {
 			console.log('Error al traer eventos o no existen eventos');
 		}
