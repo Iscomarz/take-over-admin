@@ -2,6 +2,8 @@
 	import { onDestroy, onMount } from 'svelte';
 	import { eventoId } from '$lib/stores/eventoId';
 	import supabase from '$lib/supabase';
+	import toast, { Toaster } from 'svelte-french-toast';
+	import { goto } from '$app/navigation';
 
 	let id;
 	let evento = {};
@@ -35,26 +37,62 @@
 	function editarEvent() {
 		editar = true;
 	}
-    function cancelEdit(){
-        editar = false;
-    }
+	function cancelEdit() {
+		editar = false;
+	}
+
+	async function guardarEditar() {
+		const { data, error } = await supabase.from('mEvento').update(evento).eq('idevento', id);
+
+		if (error) {
+			console.log('Error actualizando el evento', error);
+		} else {
+			toast.success('Evento actualizado con exito',
+				{
+					duration: 3000
+				}
+			);
+			console.log('Evento actualizado con exito');
+			editar = false;
+		}
+	}
+
+	function atras(){
+		goto('/events');
+	}
 
 	onDestroy(unsubscribe); // Limpiamos la suscripción al destruir el componente
 </script>
 
-<button on:click={editarEvent}>Editar</button><br>
+<Toaster />
+
+<button on:click={atras} class="text-white focus:ring-4 focus:outline-none font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center">
+	Atras
+</button>
+
+<button
+	on:click={editarEvent}
+	class="text-white focus:ring-4 focus:outline-none font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center"
+	>Editar</button
+><br />
 
 {#if loading}
 	<p>Cargando...</p>
 {:else if editar}
 	<!-- Modo edición -->
-	<input type="text" bind:value={evento.nombreEvento} placeholder="Nombre del evento">
-	<input type="text" bind:value={evento.venue} placeholder="Venue">
-	<input type="text" bind:value={evento.direccion} placeholder="Dirección">
+	<input type="text" bind:value={evento.nombreEvento} placeholder="Nombre del evento" />
+	<input type="text" bind:value={evento.venue} placeholder="Venue" />
+	<input type="text" bind:value={evento.direccion} placeholder="Dirección" />
 	<textarea bind:value={evento.descripcion} placeholder="Descripción"></textarea>
-    <br>
-    <button>Guardar</button>
-    <button on:click={cancelEdit}>Cancelar</button>
+	<br />
+	<button
+		class="text-white focus:ring-4 focus:outline-none font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center"
+		on:click={guardarEditar}>Guardar</button
+	>
+	<button
+		class="text-white focus:ring-4 focus:outline-none font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center"
+		on:click={cancelEdit}>Cancelar</button
+	>
 	<!-- Puedes añadir más campos según lo necesites -->
 {:else}
 	<!-- Mostrar detalles cuando no esté en modo de edición -->
@@ -66,9 +104,16 @@
 {/if}
 
 <style>
+	input, textarea {
+		color: black;
+	}
 
-input{
-    color: black;
-}
+	button {
+		background-color: rgb(63, 248, 186);
+		color: black;
+	}
 
+	button:hover {
+		background-color: rgb(52, 180, 137);
+	}
 </style>
