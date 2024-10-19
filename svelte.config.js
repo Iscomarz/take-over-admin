@@ -8,7 +8,7 @@ const config = {
 		prerender: {
 			handleHttpError: ({ status, path, referrer }) => {
 				// Excluir el logo y otros archivos estáticos del prerender
-				if (status === 404 && path === '/logos/takeover-logo.png') {
+				if (status === 404 && path === '/images/logos/takeover-logo.png') {
 					console.warn(`404 error on prerendering: ${path}`);
 					return;
 				}
