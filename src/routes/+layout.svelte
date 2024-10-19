@@ -1,10 +1,21 @@
 <script>
 	import { page } from '$app/stores';
+	import { onMount } from 'svelte';
 	import Header from './Header.svelte';
 	import LeftSidebar from './LeftSidebar.svelte';
 	import '../app.css';
 	import 'flowbite/dist/flowbite.min.css';
-	import 'flowbite/dist/flowbite.min.js';
+
+	onMount(() => {
+		const script = document.createElement('script');
+		script.src = '/flowbite.min.js';
+		script.async = true;
+		document.head.appendChild(script);
+
+		return () => {
+			document.head.removeChild(script); // Limpiar el script al desmontar
+		};
+	});
 
 	let showHeader = false;
 	$: currentPath = $page.url.pathname;
