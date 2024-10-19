@@ -6,6 +6,7 @@
 	import { eventoStore } from '$lib/stores/eventoStore';
 	import { get } from 'svelte/store';
 	import TicketCard from '../../components/ticketCard.svelte';
+	import 'flatpickr/dist/flatpickr.min.css';
 
 	const evento = get(eventoStore);
 	let { nombreEvento, venue, fechaInicio, fechaFin, direccion } = evento;
