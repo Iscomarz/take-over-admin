@@ -2,8 +2,6 @@ import nodemailer from 'nodemailer';
 //import { generarTicket } from './generarTicket'; // Asegúrate de que está correctamente importado
 
 export async function enviarCorreoConTicket(pdfBuffer, venta) {
-  // Generar el ticket PDF
-  //const pdfBuffer = await generarTicket(venta);
 
   // Crear el transportador de nodemailer
   const transporter = nodemailer.createTransport({

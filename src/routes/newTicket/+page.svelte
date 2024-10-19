@@ -179,7 +179,6 @@
 	}
 
 	async function subirQRASupabase(base64Image, referencia) {
-		console.log(base64Image);
 		// Convertir la imagen base64 a un Blob
 		const base64Data = base64Image.split(',')[1]; // Eliminar el prefijo "data:image/png;base64,"
 		const byteCharacters = atob(base64Data);
@@ -198,7 +197,6 @@
 		if (error) {
 			console.log('Error subiendo el QR a Supabase:', error);
 		} else {
-			console.log('QR subido correctamente:', data);
 			return data.path; // Devolver la ruta del archivo
 		}
 	}

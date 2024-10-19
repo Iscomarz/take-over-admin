@@ -1,28 +1,33 @@
 import { jsPDF } from 'jspdf';
-import QRCode from 'qrcode';
 import supabase from '$lib/supabase';
 
 //Variables de prueba
 
 export async function generarTicket(evento, venta, tickets) {
-	// Generar el código QR como una imagen Base64
-	//`https://example.com/${venta.idVenta}`
-
 	const doc = new jsPDF();
-
 	let altura = 0;
+	const ticketsPorPagina = 2; // Número de tickets por página
+	let contadorTickets = 0;
+	let eventoImageDataUrl = await obtenerImagenEvento(evento.pathImage);
+
 	for (var i = 0; i < tickets.length; i++) {
 		let qrImageDataUrl = await obtenerQR(tickets[i]);
 
-		doc.setFont('helvetica', 'bold');
-		doc.setFontSize(16);
-		doc.text('TAKE-OVER.COM', 10, 20);
+		if (contadorTickets % 2 === 0) {
+			doc.setFont('helvetica', 'bold');
+			doc.setFontSize(16);
+			doc.text('TAKE OVER TICKETS', 10, 20 + altura);
 
-		doc.setFontSize(10);
-		doc.text(new Date().toDateString, 10, 20);
-		doc.text('Payment receipt for ' + venta.nombre, 10, 35);
+			// Formatear la fecha actual en español (dd de mes de yyyy)
+			const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+			const fechaActual = new Date().toLocaleDateString('es-ES', options);
 
-		//titulo del evento
+			doc.setFontSize(10);
+			doc.text(fechaActual.toUpperCase(), 10, 30 + altura);
+			doc.text('Payment receipt for ' + venta.nombre, 10, 35 + altura);
+		}
+
+		// Título del evento
 		doc.setFontSize(12);
 		doc.setFont('helvetica', 'bold');
 		doc.text(
@@ -30,7 +35,7 @@ export async function generarTicket(evento, venta, tickets) {
 				' ' +
 				evento.venue +
 				' - ' +
-				faseEvento.nombreFace +
+				(await obtenerFase(tickets[i].idFase)) +
 				' | TICKET N. ' +
 				(i + 1) +
 				'/' +
@@ -44,28 +49,53 @@ export async function generarTicket(evento, venta, tickets) {
 		doc.setFillColor(200, 200, 200); // Color de fondo gris
 		doc.rect(10, 50 + altura, 90, 8, 'F'); // Rectángulo de descripción
 		doc.rect(100, 50 + altura, 100, 8, 'F'); // Rectángulo de referencia
-		doc.text('Description:' + evento.descripcion, 12, 55 + altura);
-		doc.text('Reference: ' + tickets[i].referencia, 102, 55 + altura);
+		doc.text('Descripción:', 12, 55 + altura);
+		doc.text('Referencia: ' + tickets[i].referencia, 102, 55 + altura);
 
-		const maxWidth = 180;
+		const maxWidth = 125;
 		// Descripción del ticket
 		doc.setFont('helvetica', 'normal');
 		doc.text(doc.splitTextToSize(evento.descripcion, maxWidth), 10, 65 + altura);
 
 		// Información del evento
+		const fechaEvento = new Date(evento.fechaInicio);
+		const optionsFecha = { day: '2-digit', month: '2-digit', year: 'numeric' };
+		const optionsHora = {
+			hour: '2-digit',
+			minute: '2-digit',
+			hour12: false,
+			timeZone: 'America/Mexico_City'
+		};
+		const fechaFormateada = fechaEvento.toLocaleDateString('es-ES', optionsFecha);
+		const horaFormateada = fechaEvento.toLocaleTimeString('es-ES', optionsHora); // Formato 24 horas
+
 		doc.setFont('helvetica', 'bold');
-		doc.text('DATE: ' + evento.fechaInicio, 10, 105 + altura);
-		doc.text('TIME: ' + evento.fechaInicio, 10, 110 + altura);
-		doc.text('VENUE: ' + evento.venue, 10, 115 + altura);
-		doc.text('ADDRESS:' + evento.direccion, 10, 120 + altura);
-		doc.text('*This event is for people over 18 years old.', 10, 130 + altura);
+		doc.text('Día: ' + fechaFormateada, 10, 115 + altura);
+		doc.text('Hora: ' + horaFormateada, 10, 120 + altura);
+		doc.text('Venue: ' + evento.venue, 10, 125 + altura);
+		doc.text('Dirección: ' + evento.direccion, 10, 130 + altura);
+		doc.text('*Este evento es para personas mayores de 18 años.', 10, 140 + altura);
 
-		doc.addImage(qrImageDataUrl, 'PNG', 150, 50 + altura, 50, 50);
+		if (eventoImageDataUrl) {
+			doc.addImage(eventoImageDataUrl, 'PNG', 150, 60 + altura, 45, 45); // Ajusta el tamaño y la posición según sea necesario
+		}
 
-		altura += 100;
+		doc.addImage(qrImageDataUrl, 'PNG', 150, 110 + altura, 45, 45);
+
+		contadorTickets++;
+		altura += 120;
+
+		// Si se han añadido 2 tickets, crear una nueva página para los siguientes
+		if (contadorTickets === ticketsPorPagina && i < tickets.length - 1) {
+			doc.addPage(); // Agregar una nueva página
+			altura = 0; // Reiniciar altura para la nueva página
+			contadorTickets = 0; // Reiniciar contador
+		}
 	}
 
-	return Buffer.from(doc.output('arraybuffer'));
+	// Generar el PDF como un array buffer
+	const pdfArrayBuffer = doc.output('arraybuffer');
+	return pdfArrayBuffer; // Devolver el PDF en formato ArrayBuffer
 }
 
 async function obtenerQR(ticket) {
@@ -75,6 +105,29 @@ async function obtenerQR(ticket) {
 
 	if (error) {
 		console.log('Error al obtener imagen QR:', error);
+	} else {
+		return data.signedUrl;
+	}
+}
+
+async function obtenerFase(idFase) {
+	let { data: dataFase, error: errorFase } = await supabase
+		.from('cFaseEvento')
+		.select('*')
+		.eq('idFase', idFase);
+
+	if (errorFase) {
+		console.log('Error al traer la fase');
+	} else {
+		return dataFase[0].nombreFace;
+	}
+}
+
+async function obtenerImagenEvento(path) {
+	let { data, error } = await supabase.storage.from('imageEventos').createSignedUrl(path, 60 * 60);
+
+	if (error) {
+		console.log('Error al traer imagen de evento', error);
 	} else {
 		return data.signedUrl;
 	}

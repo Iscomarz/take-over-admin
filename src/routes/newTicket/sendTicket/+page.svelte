@@ -6,11 +6,11 @@
 
 	let pdfUrl = ''; // URL del PDF generado para mostrarlo y descargarlo
 	const ticketStore = get(ticket);
+	let pdfBuffer;
 
-    console.log(ticketStore);
 	onMount(async () => {
 		// Generar el ticket en formato PDF (array buffer)
-		const pdfBuffer = await generarTicket(
+		pdfBuffer = await generarTicket(
 			ticketStore.eventoSelec,
 			ticketStore.mVenta,
 			ticketStore.tickets
@@ -22,6 +22,23 @@
 		// Crear una URL para el blob que será usada en el iframe y el enlace de descarga
 		pdfUrl = URL.createObjectURL(blob);
 	});
+
+	async function enviarTicketAlServidor(pdfBufferCorreo,mventa) {
+		const response = await fetch('/api/enviarTicket', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({ pdfBuffer: Array.from(new Uint8Array(pdfBufferCorreo)), venta: mventa })
+		});
+
+		const data = await response.json();
+		if (response.ok) {
+			console.log('Correo enviado con éxito:', data);
+		} else {
+			console.error('Error al enviar el correo:', data);
+		}
+	}
 </script>
 
 <h1>Enviar o Descargar ticket</h1>
@@ -33,4 +50,10 @@
 
 	<!-- Enlace para descargar el PDF -->
 	<a href={pdfUrl} download="ticket.pdf" class="btn-download">Descargar Ticket</a>
+
+	<form>
+		<button on:click={enviarTicketAlServidor(pdfBuffer, ticketStore.mVenta)}> Enviar por correo </button>
+	</form>
+{:else}
+	<p>Generando...</p>
 {/if}
