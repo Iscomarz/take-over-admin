@@ -2,6 +2,7 @@
 	import supabase from '$lib/supabase';
 	import { goto } from '$app/navigation';
 	import toast, { Toaster } from 'svelte-french-toast';
+	import 'flatpickr/dist/flatpickr.min.css';
 
 	let email = '';
 	let pass = '';
