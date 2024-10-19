@@ -3,6 +3,7 @@
 	import { onMount } from 'svelte';
 	import { get } from 'svelte/store';
 	import { generarTicket } from '$lib/utils/generarTicket';
+	import {toast, Toaster} from 'svelte-french-toast';
 
 	let pdfUrl = ''; // URL del PDF generado para mostrarlo y descargarlo
 	const ticketStore = get(ticket);
@@ -35,12 +36,14 @@
 		const data = await response.json();
 		if (response.ok) {
 			console.log('Correo enviado con éxito:', data);
+			toast.success("Correo enviado")
+
 		} else {
 			console.error('Error al enviar el correo:', data);
 		}
 	}
 </script>
-
+<Toaster/>
 <h1>Enviar o Descargar ticket</h1>
 
 <!-- Mostrar el PDF generado -->
