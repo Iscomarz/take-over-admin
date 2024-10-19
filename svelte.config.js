@@ -6,14 +6,19 @@ const config = {
 	kit: {
 		adapter: adapter(),
 		prerender: {
-			handleHttpError: ({ status, path, referrer, referenceType }) => {
+			handleHttpError: ({ status, path, referrer }) => {
+				// Excluir el logo y otros archivos estáticos del prerender
+				if (status === 404 && path === '/logos/takeover-logo.png') {
+					console.warn(`404 error on prerendering: ${path}`);
+					return;
+				}
+				// Lógica para otros 404
 				if (status === 404) {
 					console.warn(`404 error on prerendering: ${path}`);
 					return;
 				}
 				throw new Error(`${status} ${path} (linked from ${referrer})`);
-			},
-			entries: ['*', '!images/logos/takeover-logo.png'] // Excluir el logo del prerender
+			}
 		}
 	},
 	preprocess: vitePreprocess()
