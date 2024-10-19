@@ -3,6 +3,8 @@
 	import Header from './Header.svelte';
 	import LeftSidebar from './LeftSidebar.svelte';
 	import '../app.css';
+	import 'flowbite/dist/flowbite.min.css';
+	import 'flowbite/dist/flowbite.min.js';
 
 	let showHeader = false;
 	$: currentPath = $page.url.pathname;
