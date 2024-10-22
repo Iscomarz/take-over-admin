@@ -41,28 +41,13 @@
 	function toggleDropdown() {
 		showDropdown = !showDropdown; // Cambia el estado al hacer clic
 	}
-
-	function clickFueraDropdown(event){
-		if(dropdownElement && !dropdownElement.contains(event.target)){
-			showDropdown = false;
-		}
-	}
-
-	onMount(() => {
-		document.addEventListener('click', clickFueraDropdown);
-
-		// Desregistrar el evento cuando el componente se desmonte
-		return () => {
-			document.removeEventListener('click', clickFueraDropdown);
-		};
-	});
 </script>
 
 <nav>
 	<div class="nav">
 		<div class="left-nav">
 			<span>
-				<a href="/home"><img src="\logos\takeover-logo.png" alt="" /></a>
+				<a href="/home"><img src="/logos/takeover-logo.png?version=1.0" alt="Takeover Logo" /></a>
 			</span>
 			<p>Take Over Admin</p>
 		</div>
