@@ -46,7 +46,7 @@
 	<div class="nav">
 		<div class="left-nav">
 			<span>
-				<a href="/home"><img src="/logos/takeover-logo.png?version=1.0" alt="Takeover Logo" /></a>
+				<a href="/home"><img src="/logos/takeover-logo.png" alt="Takeover Logo" /></a>
 			</span>
 			<p>Take Over Admin</p>
 		</div>
