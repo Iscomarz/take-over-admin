@@ -8,7 +8,6 @@
 	let salir = false;
 	let token = '';
 	let showDropdown = false; // Estado para controlar la visibilidad del dropdown
-	let dropdownElement;
 
 	if (typeof window !== 'undefined') {
 		token = localStorage.getItem('token');
@@ -52,7 +51,7 @@
 			<p>Take Over Admin</p>
 		</div>
 
-		<div id="dropdownHoverMenu" class="relative inline-block text-left" bind:this={dropdownElement}>
+		<div id="dropdownHoverMenu" class="relative text-left">
 			<div>
 				<button
 					type="button"
