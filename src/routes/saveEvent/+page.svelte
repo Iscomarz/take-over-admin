@@ -16,9 +16,18 @@
 	let fechaExpira = '';
 	let limite;
 	let fases = [];
-
+	let token = '';
 	let idUsuario = '';
 	let quitarReqFases = true;
+
+	onMount(() => {
+		if (typeof window !== 'undefined') {
+			token = localStorage.getItem('token');
+			if (token == null) {
+				goto('/');
+			}
+		}
+	});
 
 	function agregarFase() {
 		fases = [...fases, { nombreFace, precio, fechaExpira, limite }]; // Crear nueva referencia del array
@@ -167,7 +176,7 @@
 	<div class="tickets">
 		<h3>Agregar Fases/Tickets</h3>
 		{#each fases as fase, index}
-			<TicketCard fase={fase} index={index} borrarFase={borrarFase} />
+			<TicketCard {fase} {index} {borrarFase} />
 		{/each}
 
 		<div class="grid grid-cols-4 gap-2 items-center infoTicket">

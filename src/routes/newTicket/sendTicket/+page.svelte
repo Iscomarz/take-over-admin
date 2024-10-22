@@ -3,13 +3,20 @@
 	import { onMount } from 'svelte';
 	import { get } from 'svelte/store';
 	import { generarTicket } from '$lib/utils/generarTicket';
-	import {toast, Toaster} from 'svelte-french-toast';
+	import { toast, Toaster } from 'svelte-french-toast';
+	import { goto } from '$app/navigation';
 
 	let pdfUrl = ''; // URL del PDF generado para mostrarlo y descargarlo
 	const ticketStore = get(ticket);
 	let pdfBuffer;
 
 	onMount(async () => {
+		if (typeof window !== 'undefined') {
+			token = localStorage.getItem('token');
+			if (token == null) {
+				goto('/');
+			}
+		}
 		// Generar el ticket en formato PDF (array buffer)
 		pdfBuffer = await generarTicket(
 			ticketStore.eventoSelec,
@@ -24,26 +31,29 @@
 		pdfUrl = URL.createObjectURL(blob);
 	});
 
-	async function enviarTicketAlServidor(pdfBufferCorreo,mventa) {
+	async function enviarTicketAlServidor(pdfBufferCorreo, mventa) {
 		const response = await fetch('/api/enviarTicket', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json'
 			},
-			body: JSON.stringify({ pdfBuffer: Array.from(new Uint8Array(pdfBufferCorreo)), venta: mventa })
+			body: JSON.stringify({
+				pdfBuffer: Array.from(new Uint8Array(pdfBufferCorreo)),
+				venta: mventa
+			})
 		});
 
 		const data = await response.json();
 		if (response.ok) {
 			console.log('Correo enviado con éxito:', data);
-			toast.success("Correo enviado")
-
+			toast.success('Correo enviado');
 		} else {
 			console.error('Error al enviar el correo:', data);
 		}
 	}
 </script>
-<Toaster/>
+
+<Toaster />
 <h1>Enviar o Descargar ticket</h1>
 
 <!-- Mostrar el PDF generado -->
@@ -55,7 +65,9 @@
 	<a href={pdfUrl} download="ticket.pdf" class="btn-download">Descargar Ticket</a>
 
 	<form>
-		<button on:click={enviarTicketAlServidor(pdfBuffer, ticketStore.mVenta)}> Enviar por correo </button>
+		<button on:click={enviarTicketAlServidor(pdfBuffer, ticketStore.mVenta)}>
+			Enviar por correo
+		</button>
 	</form>
 {:else}
 	<p>Generando...</p>

@@ -44,7 +44,6 @@
 	}
 
 	async function toggleDropdown() {
-		console.log(showDropdown);
 		showDropdown = !showDropdown;
 		await tick(); // Cambia el estado al hacer clic
 	}

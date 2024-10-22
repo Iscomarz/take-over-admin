@@ -19,8 +19,16 @@
 	let idUsuario = '';
 	let mVenta = {};
 	let tickets = [];
+	let token = '';
 
 	onMount(async () => {
+		if (typeof window !== 'undefined') {
+			token = localStorage.getItem('token');
+			if (token == null) {
+				goto('/');
+			}
+		}
+
 		let { data: mEvento, error } = await supabase.from('mEvento').select('*');
 
 		if (mEvento && mEvento.length > 0) {
@@ -127,23 +135,26 @@
 						let pathQR = await subirQRASupabase(base64QR, referencia);
 
 						//paso 3 Guardar en tabla ticket
-						const { data: dataTicket, error: errorTicket } = await supabase.from('ticket').insert([
-							{
-								codigoQR: codigoQR,
-								validado: false,
-								pathStorage: pathQR,
-								idVenta: dataVenta[0].idventa,
-								idFase: faseSelec.idFase,
-								referencia: referencia,
-								fechaValidacion: null
-							}
-						]).select();
+						const { data: dataTicket, error: errorTicket } = await supabase
+							.from('ticket')
+							.insert([
+								{
+									codigoQR: codigoQR,
+									validado: false,
+									pathStorage: pathQR,
+									idVenta: dataVenta[0].idventa,
+									idFase: faseSelec.idFase,
+									referencia: referencia,
+									fechaValidacion: null
+								}
+							])
+							.select();
 						tickets.push(dataTicket[0]);
 
 						if (errorTicket) {
 							console.log('Error al insertar ticket', errorTicket);
 						} else {
-							if ((cantidad == i)) {
+							if (cantidad == i) {
 								cargaCompleta = true;
 							}
 						}
@@ -153,8 +164,10 @@
 
 			if (cargaCompleta) {
 				ticket.set({
-					eventoSelec,mVenta,tickets
-				})
+					eventoSelec,
+					mVenta,
+					tickets
+				});
 				toast.success('Se generaron los tickets');
 				limpiiarForm();
 				cargaCompleta = false;

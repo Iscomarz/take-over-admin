@@ -20,7 +20,6 @@
 
 	async function traerUsuario() {
 		const { data } = await supabase.auth.getSession();
-		console.log(data);
 		if (data.session) {
 			usuario = data.session.user;
             email = usuario.email;

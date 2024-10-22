@@ -2,10 +2,18 @@
 	import supabase from '$lib/supabase';
 	import EventCard from '../../components/eventCard.svelte';
 	import { onMount } from 'svelte';
-
+	import { goto } from '$app/navigation';
+	
 	let eventos = [];
+	let token = '';
 
 	onMount(async () => {
+		if (typeof window !== 'undefined') {
+			token = localStorage.getItem('token');
+			if (token == null) {
+				goto('/');
+			}
+		}
 		let { data: mEvento, error } = await supabase.from('mEvento').select('*');
 
 		if (mEvento && mEvento.length > 0) {

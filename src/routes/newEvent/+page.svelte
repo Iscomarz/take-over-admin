@@ -7,12 +7,6 @@
 	import { get } from 'svelte/store';
 
 	let token = '';
-	if (typeof window !== 'undefined') {
-		token = localStorage.getItem('token');
-		if (token == null) {
-			goto('/');
-		}
-	}
 
 	let nombreEvento = '';
 	let venue = '';
@@ -33,6 +27,12 @@
 	let fechaFinPicker;
 
 	onMount(() => {
+		if (typeof window !== 'undefined') {
+			token = localStorage.getItem('token');
+			if (token == null) {
+				goto('/');
+			}
+		}
 		flatpickr('#fechaInicio', {
 			enableTime: true,
 			dateFormat: 'Y-m-d H:i',
