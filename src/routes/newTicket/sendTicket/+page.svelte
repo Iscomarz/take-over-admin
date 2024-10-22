@@ -9,6 +9,7 @@
 	let pdfUrl = ''; // URL del PDF generado para mostrarlo y descargarlo
 	const ticketStore = get(ticket);
 	let pdfBuffer;
+	token = '';
 
 	onMount(async () => {
 		if (typeof window !== 'undefined') {
