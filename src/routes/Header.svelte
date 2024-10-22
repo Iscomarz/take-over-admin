@@ -6,7 +6,6 @@
 	import { tick } from 'svelte';
 	import { onMount } from 'svelte';
 
-	let token = '';
 	let showDropdown = false; // Estado para controlar la visibilidad del dropdown
 	let dropdownButton;
 
@@ -14,9 +13,6 @@
 		console.log(dropdownButton); // Asegúrate de que el botón exista después de la recarga
 		if (dropdownButton) {
 			console.log('Botón activo y listo para recibir clics');
-		}
-		if (typeof window !== 'undefined') {
-			token = localStorage.getItem('token');
 		}
 	});
 
