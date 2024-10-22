@@ -68,21 +68,21 @@
 	<div class="flex flex-col items-center justify-center px-6 py-8 mx-auto md:h-screen lg:py-0">
 		<a
 			href="/"
-			class="flex items-center mb-6 text-2xl font-semibold text-gray-900 dark:text-white welcome"
+			class="flex items-center mb-6 text-2xl font-semibold welcome"
 		>
-			<img class="mr-2" src="\images\logos\takeover-logo.png" alt="logo" />
+			<img class="mr-2" src="\logos\takeover-logo.png" alt="logo" />
 			Welcome
 		</a>
 		<div class="w-full bg-white rounded-lg shadow md:mt-0 sm:max-w-md xl:p-0 login">
 			<div class="p-6 space-y-4 md:space-y-6 sm:p-8">
 				<h1
-					class="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl dark:text-white"
+					class="text-xl font-bold leading-tight tracking-tight md:text-2xl dark:text-white"
 				>
 					Sign in to your account
 				</h1>
 				<form class="space-y-4 md:space-y-6" on:submit={login}>
 					<div>
-						<label for="email" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+						<label for="email" class="block mb-2 text-sm font-medium dark:text-white"
 							>Your email</label
 						>
 						<input
@@ -98,7 +98,7 @@
 					<div>
 						<label
 							for="password"
-							class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Password</label
+							class="block mb-2 text-sm font-medium dark:text-white">Password</label
 						>
 						<input
 							type="password"
