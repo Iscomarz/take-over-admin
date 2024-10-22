@@ -53,6 +53,12 @@
 		padding: 1rem;
 		border-right: 0.7rem solid rgb(32, 32, 32);
 	}
+	
+	@media (max-width: 768px) {
+		.sidebar {
+			display: none; /* Esto ocultará el elemento en pantallas pequeñas */
+		}
+	}
 
 	.main-content {
 		grid-area: main;
