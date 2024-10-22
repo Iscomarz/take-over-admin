@@ -70,7 +70,7 @@
 			href="/"
 			class="flex items-center mb-6 text-2xl font-semibold welcome"
 		>
-			<img class="mr-2" src="\logos\takeover-logo.png" alt="logo" />
+			<img class="mr-2" src="/logos/takeover-logo.png?version=1.0" alt="logo" />
 			Welcome
 		</a>
 		<div class="w-full bg-white rounded-lg shadow md:mt-0 sm:max-w-md xl:p-0 login">
