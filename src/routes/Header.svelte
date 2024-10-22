@@ -5,9 +5,7 @@
 	import 'flatpickr/dist/flatpickr.min.css';
 	import { tick } from 'svelte';
 	import { onMount } from 'svelte';
-	import { beforeUpdate, afterUpdate } from 'svelte';
 
-	let salir = false;
 	let token = '';
 	let showDropdown = false; // Estado para controlar la visibilidad del dropdown
 	let dropdownButton;
@@ -17,26 +15,12 @@
 		if (dropdownButton) {
 			console.log('Botón activo y listo para recibir clics');
 		}
+		if (typeof window !== 'undefined') {
+			token = localStorage.getItem('token');
+		}
 	});
-
-	beforeUpdate(() => {
-		console.log('Antes de la actualización del DOM',dropdownButton);
-	});
-
-	afterUpdate(() => {
-		console.log('Después de la actualización del DOM',dropdownButton);
-	});
-	
-	if (typeof window !== 'undefined') {
-		token = localStorage.getItem('token');
-	}
-
-	$: {
-		salir = token !== null;
-	}
 
 	async function cerrarSesion() {
-		salir = false;
 		localStorage.removeItem('token');
 		limpiarStore();
 		await supabase.auth.signOut();
@@ -151,9 +135,7 @@
 			{/if}
 		</div>
 
-		{#if salir}
-			<button class="salir" on:click={cerrarSesion}>Salir</button>
-		{/if}
+		<button class="salir" on:click={cerrarSesion}>Salir</button>
 	</div>
 </nav>
 
