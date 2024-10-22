@@ -10,11 +10,19 @@
 	let dropdownButton;
 
 	onMount(() => {
-		console.log(dropdownButton); // Asegúrate de que el botón exista después de la recarga
-		if (dropdownButton) {
-			console.log('Botón activo y listo para recibir clics');
-		}
+		document.addEventListener('click', handleClickOutside);
+
+		// Desregistrar el evento cuando el componente se desmonte
+		return () => {
+			document.removeEventListener('click', handleClickOutside);
+		};
 	});
+
+	function handleClickOutside(event) {
+		if (dropdownButton && !dropdownButton.contains(event.target)) {
+			showDropdown = false;
+		}
+	}
 
 	async function cerrarSesion() {
 		localStorage.removeItem('token');
