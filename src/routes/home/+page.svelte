@@ -1,20 +1,22 @@
 <script>
 	import supabase from '$lib/supabase';
 	import { goto } from '$app/navigation';
+	import { onMount } from 'svelte';
 
 	let usuario = null;
     let email = '';
-
 	let token = '';
 	
-	if (typeof window !== 'undefined') {
-		token = localStorage.getItem('token');
-		if (token == null) {
-			goto('/');
-		} else {
-			traerUsuario();
+	onMount(async () => {
+		if (typeof window !== 'undefined') {
+			token = localStorage.getItem('token');
+			if (token == null) {
+				goto('/');
+			} else {
+				await traerUsuario();
+			}
 		}
-	}
+	});
 
 	async function traerUsuario() {
 		const { data } = await supabase.auth.getSession();
