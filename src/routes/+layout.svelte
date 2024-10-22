@@ -53,18 +53,6 @@
 		padding: 1rem;
 		border-right: 0.7rem solid rgb(32, 32, 32);
 	}
-	
-	@media (max-width: 768px) {
-		.sidebar {
-			display: none; /* Esto ocultará el elemento en pantallas pequeñas */
-		}
-		.app{
-			grid-template-areas:
-			'header header'
-			'main  main'
-			'footer footer';
-		}
-	}
 
 	.main-content {
 		grid-area: main;
@@ -101,5 +89,17 @@
 
 	.login-page .content {
 		width: 100%;
+	}
+
+	@media (max-width: 768px) {
+		.sidebar {
+			display: none; 
+		}
+		.app{
+			grid-template-areas:
+			'header header'
+			'main  main'
+			'footer footer';
+		}
 	}
 </style>

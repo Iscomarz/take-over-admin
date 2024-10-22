@@ -5,6 +5,7 @@
 	import 'flatpickr/dist/flatpickr.min.css';
 	import { tick } from 'svelte';
 	import { onMount } from 'svelte';
+	import { beforeUpdate, afterUpdate } from 'svelte';
 
 	let salir = false;
 	let token = '';
@@ -18,6 +19,14 @@
 		}
 	});
 
+	beforeUpdate(() => {
+		console.log('Antes de la actualización del DOM',dropdownButton);
+	});
+
+	afterUpdate(() => {
+		console.log('Después de la actualización del DOM',dropdownButton);
+	});
+	
 	if (typeof window !== 'undefined') {
 		token = localStorage.getItem('token');
 	}
@@ -184,7 +193,7 @@
 
 	@media (max-width: 768px) {
 		#dropdownHoverMenu {
-			display: block !important;;
+			display: block !important;
 		}
 		.salir {
 			display: none;
