@@ -3,7 +3,7 @@
 	import { goto } from '$app/navigation';
 	import { eventoStore } from '$lib/stores/eventoStore';
 	import 'flatpickr/dist/flatpickr.min.css';
-	import { onMount } from 'svelte';
+	import { tick } from 'svelte';
 
 	let salir = false;
 	let token = '';
@@ -37,8 +37,10 @@
 		});
 	}
 
-	function toggleDropdown() {
-		showDropdown = !showDropdown; // Cambia el estado al hacer clic
+	async function toggleDropdown() {
+		console.log(showDropdown);
+		showDropdown = !showDropdown;
+		await tick(); // Cambia el estado al hacer clic
 	}
 </script>
 
