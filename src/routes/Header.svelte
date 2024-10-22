@@ -4,10 +4,19 @@
 	import { eventoStore } from '$lib/stores/eventoStore';
 	import 'flatpickr/dist/flatpickr.min.css';
 	import { tick } from 'svelte';
+	import { onMount } from 'svelte';
 
 	let salir = false;
 	let token = '';
 	let showDropdown = false; // Estado para controlar la visibilidad del dropdown
+	let dropdownButton;
+
+	onMount(() => {
+		console.log(dropdownButton); // Asegúrate de que el botón exista después de la recarga
+		if (dropdownButton) {
+			console.log('Botón activo y listo para recibir clics');
+		}
+	});
 
 	if (typeof window !== 'undefined') {
 		token = localStorage.getItem('token');
@@ -56,15 +65,25 @@
 		<div id="dropdownHoverMenu" class="relative text-left">
 			<div>
 				<button
+					bind:this={dropdownButton}
 					type="button"
-					class="inline-flex w-full justify-center gap-x-1.5 rounded-md  px-3 py-2 text-sm font-semibold hover:text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 items-center"
+					class="inline-flex w-full justify-center gap-x-1.5 rounded-md px-3 py-2 text-sm font-semibold hover:text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 items-center"
 					id="menu-button"
 					aria-expanded={showDropdown}
 					aria-haspopup="true"
 					on:click={toggleDropdown}
 				>
 					Menu
-					<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#3ff8ba" viewBox="0 0 256 256"><path d="M224,128a8,8,0,0,1-8,8H40a8,8,0,0,1,0-16H216A8,8,0,0,1,224,128ZM40,72H216a8,8,0,0,0,0-16H40a8,8,0,0,0,0,16ZM216,184H40a8,8,0,0,0,0,16H216a8,8,0,0,0,0-16Z"></path></svg>
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						width="32"
+						height="32"
+						fill="#3ff8ba"
+						viewBox="0 0 256 256"
+						><path
+							d="M224,128a8,8,0,0,1-8,8H40a8,8,0,0,1,0-16H216A8,8,0,0,1,224,128ZM40,72H216a8,8,0,0,0,0-16H40a8,8,0,0,0,0,16ZM216,184H40a8,8,0,0,0,0,16H216a8,8,0,0,0,0-16Z"
+						></path></svg
+					>
 				</button>
 			</div>
 
@@ -165,7 +184,7 @@
 
 	@media (max-width: 768px) {
 		#dropdownHoverMenu {
-			display: block;
+			display: block !important;;
 		}
 		.salir {
 			display: none;
