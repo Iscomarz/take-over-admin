@@ -168,7 +168,6 @@
 					mVenta,
 					tickets
 				});
-				toast.success('Se generaron los tickets');
 				limpiiarForm();
 				cargaCompleta = false;
 				goto('/newTicket/sendTicket');

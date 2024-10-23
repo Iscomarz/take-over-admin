@@ -52,6 +52,10 @@
 			console.error('Error al enviar el correo:', data);
 		}
 	}
+
+	function generarOtroTicket(){
+		goto('/newTicket');
+	}
 </script>
 
 <Toaster />
@@ -61,15 +65,40 @@
 {#if pdfUrl}
 	<iframe src={pdfUrl} style="width:100%; height:500px;" title="Vista previa del ticket en PDF"
 	></iframe>
+	<br>
 
 	<!-- Enlace para descargar el PDF -->
-	<a href={pdfUrl} download="ticket.pdf" class="btn-download">Descargar Ticket</a>
-
+	<button class="text-white focus:ring-4 focus:outline-none font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center">
+		<a href={pdfUrl} download="ticket.pdf" class="btn-download">Descargar Ticket</a>
+	</button>
+	<br>
+	<br>
 	<form>
-		<button on:click={enviarTicketAlServidor(pdfBuffer, ticketStore.mVenta)}>
+		<button
+			class="text-white focus:ring-4 focus:outline-none font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center"
+			on:click={enviarTicketAlServidor(pdfBuffer, ticketStore.mVenta)}
+		>
 			Enviar por correo
+		</button>
+		<br>
+		<br>
+		<button
+			class="text-white focus:ring-4 focus:outline-none font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center"
+		>
+		<a href="/newTicket">Generar otro Ticket</a>
 		</button>
 	</form>
 {:else}
 	<p>Generando...</p>
 {/if}
+
+<style>
+	button {
+		background-color: rgb(63, 248, 186);
+		color: black;
+	}
+
+	button:hover {
+		background-color: rgb(52, 180, 137);
+	}
+</style>
