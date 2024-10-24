@@ -38,15 +38,13 @@
 					.eq('codigoQR', qrCodeMessage);
 
 				if (qrNoValido) {
-					toast.error('Este QR no es valido no se encuentra en existencia', {
-						duration: 4000
-					});
+					toast.error('Este QR no es valido no se encuentra en existencia');
+					isScanning = false;
 					return;
 					stopScanner();
 				} else if (qrValido[0].validado === true) {
-					toast.error('Este QR ya fue validado anteriormente', {
-						duration: 4000
-					});
+					toast.error('Este QR ya fue validado anteriormente');
+					isScanning = false;
 					return;
 					stopScanner();
 				} else if (qrValido[0].validado === false) {
