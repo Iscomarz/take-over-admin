@@ -18,6 +18,7 @@
 		if (error) {
 			toast.error('Error al validar ticket');
 			console.error(error);
+            return;
 		} else {
 			toast.success('Referencia Validada con exito', {
 				duration: 4000
@@ -46,6 +47,8 @@
 	}
 
     a{
+        width: 100%;
         color: black;
+        text-align: center;
     }
 </style>
