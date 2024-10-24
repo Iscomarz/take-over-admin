@@ -27,12 +27,12 @@
 
 		// Iniciar el escaneo y manejar el resultado
 		scanner.render(
-			(decodedText, decodedResult) => {
+			async (decodedText, decodedResult) => {
 				qrCodeMessage = decodedText;
 				console.log('QR Code escaneado:', decodedText);
 				// Aquí podrías enviar el código escaneado para validarlo
 
-				let {data: qrValido, error:qrNoValido} = supabase
+				let {data: qrValido, error:qrNoValido} = await supabase
 				.from('ticket')
 				.select('*')
 				.eq('codigoQR',qrCodeMessage);
