@@ -2,6 +2,9 @@
 	import { onMount, onDestroy } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { Html5QrcodeScanner } from 'html5-qrcode';
+	import {toast, Toaster} from 'svelte-french-toast';
+	import supabase from '$lib/supabase'; 
+	import { referenciaValida } from '$lib/stores/qrValidate';
 
 	let qrCodeMessage = ''; // Variable para almacenar el mensaje escaneado
 	let scanner; // Para almacenar el escáner
@@ -28,6 +31,21 @@
 				qrCodeMessage = decodedText;
 				console.log('QR Code escaneado:', decodedText);
 				// Aquí podrías enviar el código escaneado para validarlo
+
+				let {data: qrValido, error:qrNoValido} = supabase
+				.from('ticket')
+				.select('*')
+				.eq('codigoQR',qrCodeMessage);
+
+				if(qrNoValido){
+					toast.error("Este QR no es valido no se encuentra en existencia");
+				}else if(qrValido[0].validado === true){
+					toast.error("Este QR ya fue validado anteriormente");
+				}else if(qrValido[0].validado === false){
+					toast.success("Codigo QR valido");
+					referenciaValida.set(qrValido[0].referencia);
+					goto("/succesValidate");
+				}
 			},
 			(error) => {
 				console.warn(`Error de escaneo: ${error}`);
@@ -45,10 +63,12 @@
 	onDestroy(() => stopScanner());
 </script>
 
+<Toaster />
+
 <h1>Validar Codigo QR</h1>
+<br>
 
 <div id="reader"></div>
-<p>QR Code: {qrCodeMessage}</p>
 
 <style>
 	#reader {
