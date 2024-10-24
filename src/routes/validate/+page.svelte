@@ -9,7 +9,7 @@
 	let qrCodeMessage = ''; // Variable para almacenar el mensaje escaneado
 	let scanner; // Para almacenar el escáner
 	let token = '';
-	let isScanning = true;
+	let isScanning = true; // Flag para controlar el escaneo
 
 	onMount(() => {
 		if (typeof window !== 'undefined') {
@@ -18,6 +18,7 @@
 				goto('/');
 			}
 		}
+
 		// Configurar el escáner al montar el componente
 		scanner = new Html5QrcodeScanner('reader', {
 			fps: 10, // Cuántos frames por segundo procesar
@@ -27,12 +28,12 @@
 		// Iniciar el escaneo y manejar el resultado
 		scanner.render(
 			async (decodedText, decodedResult) => {
-
 				if (!isScanning) return;
+
 				qrCodeMessage = decodedText;
 				console.log('QR Code escaneado:', decodedText);
-				// Aquí podrías enviar el código escaneado para validarlo
 
+				// Aquí podrías enviar el código escaneado para validarlo
 				let { data: qrValido, error: qrNoValido } = await supabase
 					.from('ticket')
 					.select('*')
@@ -41,11 +42,11 @@
 				if (qrNoValido) {
 					toast.error('Este QR no es valido no se encuentra en existencia');
 					isScanning = false;
-					stopScanner();
+					resetScanner();
 				} else if (qrValido[0].validado === true) {
 					toast.error('Este QR ya fue validado anteriormente');
 					isScanning = false;
-					stopScanner();
+					resetScanner(); // Reiniciar escaneo después de un breve intervalo
 				} else if (qrValido[0].validado === false) {
 					isScanning = false;
 					referenciaValida.set(qrValido[0].referencia);
@@ -58,6 +59,13 @@
 			}
 		);
 	});
+
+	function resetScanner() {
+		// Permitir que el escáner vuelva a funcionar después de un intervalo
+		setTimeout(() => {
+			isScanning = true;
+		}, 2000); // Esperar 2 segundos antes de habilitar el siguiente escaneo
+	}
 
 	function stopScanner() {
 		if (scanner) {
