@@ -7,19 +7,22 @@
 
 	let referencia;
 
-	$: {
-		referencia = get(referenciaValida);
-	}
-
 	onMount(async() => {
-		toast.success('Referencia Validada con exito', {
-			duration: 4000
-		});
+        referencia = get(referenciaValida);
 
         const {data, error} = await supabase
         .from('ticket')
-        .update({validado:true})
-        .eq('referencia',referencia)
+        .update({ validado:true })
+        .eq('referencia',referencia);
+
+        if(data){
+            toast.success('Referencia Validada con exito', {
+			duration: 4000
+		});
+        }else{
+            toast.error("Error al validar ticket")
+            console.error(error);
+        }
 	});
 </script>
 
