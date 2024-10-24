@@ -41,17 +41,25 @@
 
 				if (qrNoValido) {
 					toast.error('Este QR no es valido no se encuentra en existencia');
+					toast.dismiss();
 					isScanning = false;
 					resetScanner();
 				} else if (qrValido[0].validado === true) {
 					toast.error('Este QR ya fue validado anteriormente');
+					toast.dismiss();
 					isScanning = false;
 					resetScanner(); // Reiniciar escaneo después de un breve intervalo
 				} else if (qrValido[0].validado === false) {
 					isScanning = false;
 					referenciaValida.set(qrValido[0].referencia);
+					toast.dismiss(); 
 					goto('/validate/succesValidate');
 					stopScanner();
+				}else{
+					toast.error('Este QR no es valido no se encuentra en existencia');
+					toast.dismiss();
+					isScanning = false;
+					resetScanner();
 				}
 			},
 			(error) => {
