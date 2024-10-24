@@ -44,7 +44,8 @@
 				}else if(qrValido[0].validado === false){
 					toast.success("Codigo QR valido");
 					referenciaValida.set(qrValido[0].referencia);
-					goto("/succesValidate");
+					goto("/validate/succesValidate");
+					stopScanner();
 				}
 			},
 			(error) => {
