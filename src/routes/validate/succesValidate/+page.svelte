@@ -12,7 +12,7 @@
 
 		const { data, error } = await supabase
 			.from('ticket')
-			.update({ validado: true })
+			.update({ validado: true, fechaValidacion: new Date() })
 			.eq('referencia', referencia);
 
 		if (error) {
