@@ -3,7 +3,7 @@
 	import EventCard from '../../components/eventCard.svelte';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
-	
+
 	let eventos = [];
 	let token = '';
 
@@ -14,10 +14,29 @@
 				goto('/');
 			}
 		}
+
+		// Obtener eventos
 		let { data: mEvento, error } = await supabase.from('mEvento').select('*');
 
 		if (mEvento && mEvento.length > 0) {
 			eventos = mEvento;
+
+			// Para cada evento, obtener la URL firmada
+			for (let i = 0; i < eventos.length; i++) {
+				eventos[i].loadingImage = true; // Estado de carga inicial
+
+				let { data: image, error: errorImage } = await supabase.storage
+					.from('imageEventos')
+					.createSignedUrl(eventos[i].pathImage, 60 * 60);
+
+				if (errorImage) {
+					console.log('Error al traer imagen de evento', errorImage);
+				} else {
+					eventos[i].pathImage = image.signedUrl;
+				}
+
+				eventos[i].loadingImage = false; // Indicar que la imagen ha cargado
+			}
 		} else if (error || mEvento.length === 0) {
 			console.log('Error al traer eventos o no existen eventos');
 		}
@@ -29,7 +48,13 @@
 {#if eventos.length > 0}
 	<div class="event-grid">
 		{#each eventos as evento}
-			<EventCard id={evento.idevento} nombreEvento={evento.nombreEvento} venue={evento.venue} />
+			<EventCard
+				id={evento.idevento}
+				nombreEvento={evento.nombreEvento}
+				venue={evento.venue}
+				image={evento.pathImage}
+				loadingImage={evento.loadingImage}
+			/>
 		{/each}
 	</div>
 {:else}
@@ -42,24 +67,22 @@
 		text-align: center;
 	}
 
-	/* Estilos para el grid */
 	.event-grid {
 		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Hasta 4 columnas, con tamaño mínimo de 250px */
-		gap: 16px; /* Espacio entre las tarjetas */
+		grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+		gap: 16px;
 		padding: 16px;
 	}
 
-	/* Ajustes para pantallas más pequeñas */
 	@media (max-width: 768px) {
 		.event-grid {
-			grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Reduce el tamaño mínimo en pantallas más pequeñas */
+			grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
 		}
 	}
 
 	@media (max-width: 480px) {
 		.event-grid {
-			grid-template-columns: 1fr; /* Solo una columna en pantallas muy pequeñas */
+			grid-template-columns: 1fr;
 		}
 	}
 </style>

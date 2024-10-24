@@ -18,18 +18,20 @@
 				goto('/');
 			}
 		}
-		// Generar el ticket en formato PDF (array buffer)
-		pdfBuffer = await generarTicket(
-			ticketStore.eventoSelec,
-			ticketStore.mVenta,
-			ticketStore.tickets
-		);
+		if (ticketStore) {
+			// Generar el ticket en formato PDF (array buffer)
+			pdfBuffer = await generarTicket(
+				ticketStore.eventoSelec,
+				ticketStore.mVenta,
+				ticketStore.tickets
+			);
 
-		// Crear un blob a partir del buffer del PDF
-		const blob = new Blob([pdfBuffer], { type: 'application/pdf' });
+			// Crear un blob a partir del buffer del PDF
+			const blob = new Blob([pdfBuffer], { type: 'application/pdf' });
 
-		// Crear una URL para el blob que será usada en el iframe y el enlace de descarga
-		pdfUrl = URL.createObjectURL(blob);
+			// Crear una URL para el blob que será usada en el iframe y el enlace de descarga
+			pdfUrl = URL.createObjectURL(blob);
+		}
 	});
 
 	async function enviarTicketAlServidor(pdfBufferCorreo, mventa) {
@@ -52,10 +54,6 @@
 			console.error('Error al enviar el correo:', data);
 		}
 	}
-
-	function generarOtroTicket(){
-		goto('/newTicket');
-	}
 </script>
 
 <Toaster />
@@ -65,14 +63,16 @@
 {#if pdfUrl}
 	<iframe src={pdfUrl} style="width:100%; height:500px;" title="Vista previa del ticket en PDF"
 	></iframe>
-	<br>
+	<br />
 
 	<!-- Enlace para descargar el PDF -->
-	<button class="text-white focus:ring-4 focus:outline-none font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center">
+	<button
+		class="text-white focus:ring-4 focus:outline-none font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center"
+	>
 		<a href={pdfUrl} download="ticket.pdf" class="btn-download">Descargar Ticket</a>
 	</button>
-	<br>
-	<br>
+	<br />
+	<br />
 	<form>
 		<button
 			class="text-white focus:ring-4 focus:outline-none font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center"
@@ -80,12 +80,12 @@
 		>
 			Enviar por correo
 		</button>
-		<br>
-		<br>
+		<br />
+		<br />
 		<button
 			class="text-white focus:ring-4 focus:outline-none font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center"
 		>
-		<a href="/newTicket">Generar otro Ticket</a>
+			<a href="/newTicket">Generar otro Ticket</a>
 		</button>
 	</form>
 {:else}
