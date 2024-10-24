@@ -2,14 +2,14 @@
 	import { onMount, onDestroy } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { Html5QrcodeScanner } from 'html5-qrcode';
-	import {toast, Toaster} from 'svelte-french-toast';
-	import supabase from '$lib/supabase'; 
+	import toast, { Toaster } from 'svelte-french-toast';
+	import supabase from '$lib/supabase';
 	import { referenciaValida } from '$lib/stores/qrValidate';
 
 	let qrCodeMessage = ''; // Variable para almacenar el mensaje escaneado
 	let scanner; // Para almacenar el escáner
-
 	let token = '';
+	let isScanning = true;
 
 	onMount(() => {
 		if (typeof window !== 'undefined') {
@@ -18,7 +18,6 @@
 				goto('/');
 			}
 		}
-
 		// Configurar el escáner al montar el componente
 		scanner = new Html5QrcodeScanner('reader', {
 			fps: 10, // Cuántos frames por segundo procesar
@@ -28,23 +27,30 @@
 		// Iniciar el escaneo y manejar el resultado
 		scanner.render(
 			async (decodedText, decodedResult) => {
+				if (!isScanning) return;
 				qrCodeMessage = decodedText;
 				console.log('QR Code escaneado:', decodedText);
 				// Aquí podrías enviar el código escaneado para validarlo
 
-				let {data: qrValido, error:qrNoValido} = await supabase
-				.from('ticket')
-				.select('*')
-				.eq('codigoQR',qrCodeMessage);
+				let { data: qrValido, error: qrNoValido } = await supabase
+					.from('ticket')
+					.select('*')
+					.eq('codigoQR', qrCodeMessage);
 
-				if(qrNoValido){
-					toast.error("Este QR no es valido no se encuentra en existencia");
-				}else if(qrValido[0].validado === true){
-					toast.error("Este QR ya fue validado anteriormente");
-				}else if(qrValido[0].validado === false){
-					toast.success("Codigo QR valido");
+				if (qrNoValido) {
+					toast.error('Este QR no es valido no se encuentra en existencia', {
+						duration: 4000
+					});
+					stopScanner();
+				} else if (qrValido[0].validado === true) {
+					toast.error('Este QR ya fue validado anteriormente', {
+						duration: 4000
+					});
+					stopScanner();
+				} else if (qrValido[0].validado === false) {
+					isScanning = false;
 					referenciaValida.set(qrValido[0].referencia);
-					goto("/validate/succesValidate");
+					goto('/validate/succesValidate');
 					stopScanner();
 				}
 			},
@@ -67,7 +73,7 @@
 <Toaster />
 
 <h1>Validar Codigo QR</h1>
-<br>
+<br />
 
 <div id="reader"></div>
 
