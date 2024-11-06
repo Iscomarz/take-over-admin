@@ -8,7 +8,7 @@
 	let referencia;
 
 	onMount(async () => {
-        toast.dismiss();
+        toast.remove();
 		referencia = get(referenciaValida);
 
 		const { data, error } = await supabase

@@ -9,12 +9,16 @@
 	import 'flatpickr/dist/flatpickr.min.css';
 	import { tick } from 'svelte';
 	import { flatpickrAction } from '$lib/utils/flatpickrAction';
+	import DialogConfirm from '../../../../components/DialogConfirm.svelte';
 
 	let id;
 	let evento = {};
 	let fases = [];
 	let loading = true;
 	let editar = false;
+	let mostrarDialogoConfirm = false;
+	let ventas = [];
+	let pagos = [];
 
 	const unsubscribe = eventoId.subscribe((value) => {
 		id = value;
@@ -105,6 +109,88 @@
 		goto('/events');
 	}
 
+	async function eliminarEvento() {
+		const { data: dataVentas, error: errorVentas } = await supabase
+			.from('mVenta')
+			.select('idventa,idPago')
+			.eq('idEvento', id);
+		if (errorVentas) {
+			console.log('Error en la consulta de ventas', errorVentas);
+		} else {
+			if (dataVentas.length !== 0) {
+				//abrir un dialogo para preguntar si esta seguro
+				for (let venta of dataVentas) {
+					ventas.push(venta.idventa);
+					pagos.push(venta.idPago);
+				}
+				mostrarDialogoConfirm = true;
+				console.log('Existen ventas', ventas, pagos);
+			} else {
+				const { error: fasesError } = await supabase
+					.from('cFaseEvento')
+					.delete()
+					.eq('idEvento', id);
+				if (fasesError) {
+					console.log('Ocurrio un error al eliminar fases');
+				}
+
+				const { error: eventoError } = await supabase.from('mEvento').delete().eq('idevento', id);
+				if (eventoError) {
+					console.log('Ocurrio un error al eliminar el evento');
+				} else {
+					toast.success('Evento Eliminado con exito.', {
+						duration: 3000
+					});
+					atras();
+				}
+			}
+		}
+	}
+
+	async function confirmarEliminacion() {
+		const { error: ticketsError } = await supabase.from('ticket').delete().in('idVenta', ventas);
+		if (ticketsError) {
+			console.log('Error al eliminar los tickets');
+		} else {
+			const { error: ventasError } = await supabase.from('mVenta').delete().in('idventa', ventas);
+			if (ventasError) {
+				console.log('Error al eliminar las ventas');
+			} else {
+				const { error: pagosError } = await supabase.from('mPago').delete().in('idpago', pagos);
+				if (pagosError) {
+					console.log('Error al eliminar el pago');
+				} else {
+
+					const { error: fasesError } = await supabase
+						.from('cFaseEvento')
+						.delete()
+						.eq('idEvento', id);
+					if (fasesError) {
+						console.log('Ocurrio un error al eliminar fases');
+					}
+
+					const { error: eventoError } = await supabase.from('mEvento').delete().eq('idevento', id);
+					if (eventoError) {
+						console.log('Ocurrio un error al eliminar el evento');
+					} else {
+						toast.success('Evento Eliminado con exito.', {
+							duration: 3000
+						});
+						atras();
+					}
+				}
+			}
+		}
+
+		mostrarDialogoConfirm = false;
+		// Lógica para eliminar evento y sus ventas
+		toast.success('Evento eliminado exitosamente', { duration: 3000 });
+	}
+
+	function cancelarEliminacion() {
+		mostrarDialogoConfirm = false;
+	}
+
 	onDestroy(unsubscribe);
 </script>
 
@@ -121,7 +207,24 @@
 	class="text-white focus:ring-4 focus:outline-none font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center"
 >
 	{editar ? 'Cancelar Edicion' : 'Editar'}
-</button><br />
+</button>
+
+<button
+	on:click={eliminarEvento}
+	class="text-white focus:ring-4 focus:outline-none font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center delete"
+	>Eliminar Evento</button
+>
+
+{#if mostrarDialogoConfirm}
+	<DialogConfirm
+		titulo="¿Estás seguro de eliminar el evento?"
+		mensaje="Se perderán los datos de ventas, tickets y pagos."
+		onConfirm={confirmarEliminacion}
+		onCancel={cancelarEliminacion}
+	/>
+{/if}
+
+<br />
 
 {#if loading}
 	<p>Cargando...</p>
@@ -195,5 +298,15 @@
 
 	button:hover {
 		background-color: rgb(52, 180, 137);
+	}
+
+	.delete {
+		background-color: brown;
+		color: whitesmoke;
+	}
+
+	.delete:hover {
+		background-color: rgb(159, 8, 8);
+		color: whitesmoke;
 	}
 </style>

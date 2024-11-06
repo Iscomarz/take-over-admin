@@ -5,9 +5,9 @@
 	import 'flatpickr/dist/flatpickr.min.css';
 	import { eventoStore } from '$lib/stores/eventoStore';
 	import { get } from 'svelte/store';
+	import toast, { Toaster } from 'svelte-french-toast';
 
 	let token = '';
-
 	let nombreEvento = '';
 	let venue = '';
 	let fechaInicio = null;
@@ -92,6 +92,8 @@
 		});
 	}
 </script>
+
+<Toaster />
 
 <h1>Datos Generales del Evento</h1>
 
@@ -215,6 +217,7 @@
 		display: flex;
 		justify-content: center;
 		gap: 20px;
+		margin-top: 20px;
 	}
 
 	button {

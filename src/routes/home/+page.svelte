@@ -2,6 +2,7 @@
 	import supabase from '$lib/supabase';
 	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
+	import toast, { Toaster } from 'svelte-french-toast';
 
 	let usuario = null;
     let email = '';
@@ -26,6 +27,8 @@
 		}
 	}
 </script>
+
+<Toaster/>
 
 <h1>HOME</h1>
 <h2>Bienvenido, {email}</h2>

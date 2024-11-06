@@ -3,6 +3,7 @@
 	import EventCard from '../../components/eventCard.svelte';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
+	import toast,{ Toaster } from 'svelte-french-toast';
 
 	let eventos = [];
 	let token = '';
@@ -20,7 +21,7 @@
 
 		if (mEvento && mEvento.length > 0) {
 			eventos = mEvento;
-
+			const id = toast('Cargando Imagenes...', { type: 'loading' });
 			// Para cada evento, obtener la URL firmada
 			for (let i = 0; i < eventos.length; i++) {
 				eventos[i].loadingImage = true; // Estado de carga inicial
@@ -35,13 +36,15 @@
 					eventos[i].pathImage = image.signedUrl;
 				}
 
-				eventos[i].loadingImage = false; // Indicar que la imagen ha cargado
+				eventos[i].loadingImage = false;
+				toast.dismiss(id); // Indicar que la imagen ha cargado
 			}
 		} else if (error || mEvento.length === 0) {
 			console.log('Error al traer eventos o no existen eventos');
 		}
 	});
 </script>
+<Toaster/>
 
 <h1>Administrar Eventos</h1>
 

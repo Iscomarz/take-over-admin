@@ -12,6 +12,7 @@
 	let isScanning = true; // Flag para controlar el escaneo
 
 	onMount(() => {
+		toast.dismiss();
 		if (typeof window !== 'undefined') {
 			token = localStorage.getItem('token');
 			if (token == null) {
@@ -40,23 +41,23 @@
 					.eq('codigoQR', qrCodeMessage);
 
 				if (qrNoValido) {
-					toast.dismiss();
+					toast.remove();
 					toast.error('Este QR no es valido no se encuentra en existencia');
 					isScanning = false;
 					resetScanner();
 				} else if (qrValido[0].validado === true) {
-					toast.dismiss();
+					toast.remove();
 					toast.error('Este QR ya fue validado anteriormente');
 					isScanning = false;
 					resetScanner(); // Reiniciar escaneo después de un breve intervalo
 				} else if (qrValido[0].validado === false) {
 					isScanning = false;
 					referenciaValida.set(qrValido[0].referencia);
-					toast.dismiss(); 
+					toast.remove(); 
 					goto('/validate/succesValidate');
 					stopScanner();
 				}else{
-					toast.dismiss()
+					toast.remove()
 					toast.error('Este QR no es valido o no se encuentra en existencia');;
 					isScanning = false;
 					resetScanner();

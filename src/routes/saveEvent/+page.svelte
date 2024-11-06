@@ -7,6 +7,7 @@
 	import { get } from 'svelte/store';
 	import TicketCard from '../../components/ticketCard.svelte';
 	import 'flatpickr/dist/flatpickr.min.css';
+	import { FileDrop } from 'svelte-droplet';
 
 	const evento = get(eventoStore);
 	let { nombreEvento, venue, fechaInicio, fechaFin, direccion } = evento;
@@ -19,6 +20,10 @@
 	let token = '';
 	let idUsuario = '';
 	let quitarReqFases = true;
+
+	let droppedFiles = [];
+	let imagePreviewUrl = '';
+	let imageName = '';
 
 	onMount(() => {
 		if (typeof window !== 'undefined') {
@@ -66,7 +71,8 @@
 						direccion: direccion,
 						fechaInicio: fechaInicio,
 						fechaFin: fechaFin,
-						usuario: idUsuario
+						usuario: idUsuario,
+						pathImage: `${nombreEvento.replace(/ /g, '')}_img.png`
 					}
 				])
 				.select(); // Aseguramos que usamos select() para obtener los datos insertados
@@ -84,6 +90,7 @@
 
 			// Verificar que el evento se haya insertado correctamente antes de agregar fases
 			if (eventoId) {
+				await subirImagenEvento();
 				console.log(fases);
 				for (const fase of fases) {
 					const { error: faseError } = await supabase.from('cFaseEvento').insert([
@@ -99,11 +106,13 @@
 					if (faseError) {
 						console.error('Error al insertar la fase:', faseError.message);
 						throw new Error(faseError.message); // Lanzar error si falla la inserción de una fase
+					} else {
+						// Mostrar mensaje de éxito
+						toast.success('Evento creado exitosamente',{
+							duration: 3000
+						});
 					}
 				}
-
-				// Mostrar mensaje de éxito
-				toast.success('Evento y fases guardados exitosamente');
 			}
 
 			// Limpiar el store después de guardar todo
@@ -141,6 +150,53 @@
 	function cancelar() {
 		limpiarStore();
 		goto('/');
+	}
+
+	function handleFiles(files) {
+		const validImagesTypes = ['image/png', 'image/jpeg'];
+		const [file] = files;
+
+		//Verificar el tipo de archivo
+		if (validImagesTypes.includes(file.type)) {
+			const img = new Image();
+			img.src = URL.createObjectURL(file);
+
+			img.onload = () => {
+				const { width, height } = img;
+
+				// Verifica si la imagen es cuadrada
+				if (width === height) {
+					imagePreviewUrl = img.src; // Mostrar la imagen
+					droppedFiles = files; // Guarda el archivo solo si es válido
+				} else {
+					toast.error('La imagen debe ser cuadrada (ancho igual a alto).');
+					imagePreviewUrl = null;
+					droppedFiles = [];
+				}
+			};
+
+			console.log(files);
+		} else {
+			toast.error('Selecciona un archivo de imagen valido (PNG o JPG)');
+		}
+	}
+
+	function eliminarImagen() {
+		imagePreviewUrl = '';
+		droppedFiles = [];
+	}
+
+	async function subirImagenEvento() {
+		// Subir el archivo a Supabase Storage
+		const { data, error } = await supabase.storage
+			.from('imageEventos')
+			.upload(`${nombreEvento.replace(/ /g, '')}_img.png`, droppedFiles[0]);
+
+		if (error) {
+			console.log('Error subiendo imagen a Supabase:', error);
+		} else {
+			return data.path; // Devolver la ruta del archivo
+		}
 	}
 </script>
 
@@ -254,6 +310,24 @@
 		</div>
 	</div>
 
+	{#if !imagePreviewUrl}
+		<FileDrop {handleFiles} let:droppable>
+			<div class="zone" class:droppable>Selecciona o suelta una imagen aqui</div>
+		</FileDrop>
+	{:else}
+		<img src={imagePreviewUrl} alt="Vista previa" class="image-preview" />
+	{/if}
+
+	{#if imagePreviewUrl}
+		<button
+			type="button"
+			on:click={eliminarImagen}
+			class="text-white focus:ring-4 focus:outline-none font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center"
+		>
+			Eliminar imagen
+		</button>
+	{/if}
+
 	<div class="guardar">
 		<button
 			type="submit"
@@ -321,5 +395,21 @@
 
 	input {
 		color: black;
+	}
+
+	.zone {
+		background-color: #6d6d82;
+		padding: 30px;
+		border: 2px solid #dddddd;
+		color: black;
+		width: 80%;
+	}
+	.droppable {
+		border-color: #1f79ff;
+	}
+
+	.image-preview {
+		max-width: 80%;
+		margin-top: 10px;
 	}
 </style>
