@@ -1,6 +1,6 @@
 <script>
 	import { goto } from '$app/navigation';
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
 	import flatpickr from 'flatpickr';
 	import 'flatpickr/dist/flatpickr.min.css';
 	import { eventoStore } from '$lib/stores/eventoStore';
@@ -76,12 +76,8 @@
 		goto('/saveEvent');
 	}
 
-	function cancelar() {
-		limpiarStore();
-		goto('/');
-	}
-
 	function limpiarStore() {
+		console.log('limpiar store');
 		eventoStore.set({
 			nombreEvento: '',
 			venue: '',
@@ -90,6 +86,12 @@
 			direccion: '',
 			fases: []
 		});
+		
+		nombreEvento = '';
+		venue = '';
+		fechaInicio = null;
+		fechaFin = null;
+		direccion = '';
 	}
 </script>
 
@@ -187,16 +189,29 @@
 	<div class="flujo">
 		<button
 			type="submit"
-			class="text-white focus:ring-4 focus:outline-none font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center"
+			class="text-white focus:ring-4 focus:outline-none font-medium rounded-lg text-sm w-80 sm:w-auto px-5 py-2.5 text-center"
 			>Siguiente
 		</button>
 
 		<button
-			type="button"
-			on:click={cancelar}
-			class="text-white focus:ring-4 focus:outline-none font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center"
-			>Cancelar</button
+			on:click={(event) => {
+				event.stopPropagation();
+				event.preventDefault();
+				limpiarStore();
+			}}
+			class="text-white focus:ring-4 focus:outline-none font-medium rounded-lg text-sm w-20 sm:w-auto px-5 py-2.5 text-center items-center flex justify-center"
 		>
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
+				width="24"
+				height="24"
+				fill="#000000"
+				viewBox="0 0 256 256"
+				><path
+					d="M224,128a96,96,0,0,1-94.71,96H128A95.38,95.38,0,0,1,62.1,197.8a8,8,0,0,1,11-11.63A80,80,0,1,0,71.43,71.39a3.07,3.07,0,0,1-.26.25L44.59,96H72a8,8,0,0,1,0,16H24a8,8,0,0,1-8-8V56a8,8,0,0,1,16,0V85.8L60.25,60A96,96,0,0,1,224,128Z"
+				></path></svg
+			>
+		</button>
 	</div>
 </form>
 
