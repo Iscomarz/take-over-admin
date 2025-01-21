@@ -83,7 +83,7 @@
 		border: 2px solid gray;
 		border-radius: 10px;
 		gap: 20px;
-		width: 80%;
+		width: 100%;
 		padding: 10px;
 		margin-top: 5px;
 		margin-bottom: 5px;

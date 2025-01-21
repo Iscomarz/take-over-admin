@@ -41,11 +41,30 @@
 			console.log('Error al traer las fases o no existe el id');
 		}
 
+		//traer la imagen del evento
+		let { data: image, error: errorImage } = await supabase.storage
+			.from('imageEventos')
+			.createSignedUrl(evento.pathImage, 60 * 60);
+
+		if (errorImage) {
+			console.log('Error al traer imagen de evento', errorImage);
+		} else {
+			evento.pathImage = image.signedUrl;
+		}
+
 		//console.log(new Date(evento.fechaFin));
 		loading = false;
 
 		await tick();
 	});
+
+	async function switchEditMode() {
+		editar = !editar;
+		if (editar) {
+			await tick(); // Espera a que el DOM se actualice
+			adjustAllTextareas();
+		}
+	}
 
 	function formatoFecha(fechaISO) {
 		const fecha = new Date(fechaISO); // Crea la fecha a partir del valor ISO
@@ -86,7 +105,8 @@
 	}
 
 	async function borrarFase(index) {
-		const { error } = await supabase.from('fasesEvento').delete().eq('idFase', fases[index].idFase);
+		console.log(fases[index].idFase);
+		const { error } = await supabase.from('cFaseEvento').delete().eq('idFase', fases[index].idFase);
 		if (error) {
 			console.error('Error eliminando fase:', error);
 		} else {
@@ -160,7 +180,6 @@
 				if (pagosError) {
 					console.log('Error al eliminar el pago');
 				} else {
-
 					const { error: fasesError } = await supabase
 						.from('cFaseEvento')
 						.delete()
@@ -191,29 +210,111 @@
 		mostrarDialogoConfirm = false;
 	}
 
+	function autoResize(textarea) {
+		console.log('autorezise');
+		textarea.style.height = 'auto'; // Resetea la altura
+		textarea.style.height = `${textarea.scrollHeight}px`; // Ajusta al contenido
+	}
+
+	function adjustAllTextareas() {
+		const textareas = document.querySelectorAll('textarea.auto-resize');
+		textareas.forEach((textarea) => {
+			textarea.style.height = 'auto'; // Restablece la altura
+			textarea.style.height = `${textarea.scrollHeight}px`; // Ajusta al contenido actual
+		});
+	}
+
+	async function desactivaActivaEv() {
+		console.log('funcion activa/desactiva');
+		//validar que no exista otro evento activo
+		if (evento.activo == 1) {
+			//si el evento esta activo desactivar evento
+			const { error: errorActualizacion } = await supabase
+				.from('mEvento')
+				.update({ activo: 0 })
+				.eq('idevento', id);
+
+			if (errorActualizacion) {
+				console.error('Error al desactivar el evento:', errorActualizacion);
+				return;
+			}
+
+			toast.success('Evento desactivado con exito');
+		} else {
+			if (!existeEventoActivo) {
+				//mostrar dialogo de confirmacion para desactivar el evento activo
+				toast.error('Ya exsiste un evento activo');
+			} else {
+				// Si no hay otro evento activo, activa el evento actual
+				const { error: errorActualizacion } = await supabase
+					.from('mEvento')
+					.update({ activo: 1 })
+					.eq('idevento', id);
+
+				if (errorActualizacion) {
+					console.error('Error al activar el evento:', errorActualizacion);
+					return;
+				}
+
+				toast.success('Evento activado con exito');
+			}
+		}
+	}
+
+	async function existeEventoActivo() {
+		const { data, error } = await supabase
+			.from('mEvento') // Tabla mEvento
+			.select('idevento') // Selecciona solo el id para reducir datos transferidos
+			.eq('activo', 1) // Busca eventos activos
+			.limit(1); // Solo necesitamos saber si existe uno
+
+		if (error) {
+			console.error('Error verificando evento activo:', error);
+			return false; // O maneja el error según sea necesario
+		}
+		console.log('Data eventos activos',data.length);
+		return data.length > 0; // Si la lista tiene elementos, existe un evento activo
+	}
+
 	onDestroy(unsubscribe);
 </script>
 
 <Toaster />
 
-<button
-	on:click={atras}
-	class="text-white focus:ring-4 focus:outline-none font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center"
-	>Atras</button
->
+<div class="options">
+	<button
+		on:click={atras}
+		class="text-white focus:ring-4 focus:outline-none font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center"
+		>Atras</button
+	>
+	<button
+		on:click={switchEditMode}
+		class="text-white focus:ring-4 focus:outline-none font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center"
+	>
+		{editar ? 'Cancelar Edicion' : 'Editar'}
+	</button>
 
-<button
-	on:click={() => (editar = !editar)}
-	class="text-white focus:ring-4 focus:outline-none font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center"
->
-	{editar ? 'Cancelar Edicion' : 'Editar'}
-</button>
+	<button
+		on:click={eliminarEvento}
+		class="text-white focus:ring-4 focus:outline-none font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center delete"
+		>Eliminar Evento</button
+	>
 
-<button
-	on:click={eliminarEvento}
-	class="text-white focus:ring-4 focus:outline-none font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center delete"
-	>Eliminar Evento</button
->
+	<label class="inline-flex items-center cursor-pointer">
+		<input
+			type="checkbox"
+			bind:checked={evento.activo}
+			on:click={desactivaActivaEv}
+			class="sr-only peer"
+		/>
+		<div
+			class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 dark:peer-focus:ring-green-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-green-600"
+		></div>
+		<span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300"
+			>{evento.activo == 1 ? 'Desactivar Evento' : 'Activar Evento'}</span
+		>
+	</label>
+</div>
 
 {#if mostrarDialogoConfirm}
 	<DialogConfirm
@@ -225,70 +326,143 @@
 {/if}
 
 <br />
+<div class="contenidoEvento">
+	{#if loading}
+		<p>Cargando...</p>
+	{:else if editar}
+		<form>
+			<div class="edit">
+				<input
+					class="titulo"
+					type="text"
+					bind:value={evento.nombreEvento}
+					placeholder="Nombre del evento"
+				/>
+				<div>
+					<p class="subtitulo">Venue</p>
+					<input type="text" bind:value={evento.venue} placeholder="Venue" />
+				</div>
+				<div>
+					<p class="subtitulo">Direccion</p>
+					<input type="text" bind:value={evento.direccion} placeholder="Dirección" />
+				</div>
 
-{#if loading}
-	<p>Cargando...</p>
-{:else if editar}
-	<form>
-		<input type="text" bind:value={evento.nombreEvento} placeholder="Nombre del evento" />
-		<input type="text" bind:value={evento.venue} placeholder="Venue" />
-		<input type="text" bind:value={evento.direccion} placeholder="Dirección" />
-		<textarea bind:value={evento.descripcion} placeholder="Descripción"></textarea>
-		<input
-			type="text"
-			id="fechaInicio"
-			name="fechaInicio"
-			class="date-pick"
-			placeholder="Fecha de inicio"
-			use:flatpickrAction={{
-				onChange: (selectedDates, dateStr) => {
-					evento.fechaInicio = dateStr;
-				},
-				defaultDate: evento.fechaInicio ? new Date(evento.fechaInicio) : null
-			}}
-		/>
-		<input
-			type="text"
-			id="fechaFin"
-			name="fechaFin"
-			class="date-pick"
-			placeholder="Fecha de fin"
-			use:flatpickrAction={{
-				onChange: (selectedDates, dateStr) => {
-					evento.fechaFin = dateStr;
-				},
-				defaultDate: evento.fechaFin ? new Date(evento.fechaFin) : null
-			}}
-		/>
-	</form>
-{:else}
-	<h1>{evento.nombreEvento}</h1>
-	<p>Venue: {evento.venue}</p>
-	<p>Direccion: {evento.direccion}</p>
-	<p>Descripcion: {evento.descripcion == null ? '' : evento.descripcion}</p>
-	<p>Fecha Inicio: {formatoFecha(evento.fechaInicio)}</p>
-	<p>Fecha Fin: {formatoFecha(evento.fechaFin)}</p>
-{/if}
+				<div>
+					<p class="subtitulo">Descripcion</p>
+					<textarea
+						bind:value={evento.descripcion}
+						placeholder="Descripción"
+						class="auto-resize"
+						on:input={(e) => autoResize(e.target)}
+					></textarea>
+				</div>
 
-{#each fases as fase, index}
-	<TicketCard {fase} {index} {borrarFase} guardarFase={editarFase} {editar} />
-{/each}
+				<div>
+					<p class="subtitulo">Fecha Inicio</p>
+					<input
+						type="text"
+						id="fechaInicio"
+						name="fechaInicio"
+						class="date-pick"
+						placeholder="Fecha de inicio"
+						use:flatpickrAction={{
+							onChange: (selectedDates, dateStr) => {
+								evento.fechaInicio = dateStr;
+							},
+							defaultDate: evento.fechaInicio ? new Date(evento.fechaInicio) : null
+						}}
+					/>
 
-{#if editar}
-	<button
-		on:click={agregarNuevaFase}
-		class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">Agregar nueva fase</button
-	>
-	<button
-		on:click={guardarEditar}
-		class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg">Guardar cambios</button
-	>
-{/if}
+					<input
+						type="text"
+						id="fechaFin"
+						name="fechaFin"
+						class="date-pick"
+						placeholder="Fecha de fin"
+						use:flatpickrAction={{
+							onChange: (selectedDates, dateStr) => {
+								evento.fechaFin = dateStr;
+							},
+							defaultDate: evento.fechaFin ? new Date(evento.fechaFin) : null
+						}}
+					/>
+				</div>
+			</div>
+		</form>
+	{:else}
+		<section class="datosEvento">
+			<h1 class="titulo">{evento.nombreEvento}</h1>
+			<div style="display: flex; width: 100%; justify-content: space-between;">
+				<div style="display: flex;flex-direction: column;gap: 15px;">
+					<div>
+						<p class="subtitulo">Venue</p>
+						<p>{evento.venue}</p>
+					</div>
+					<div>
+						<p class="subtitulo">Direccion</p>
+						<p>{evento.direccion}</p>
+					</div>
+				</div>
+				<div>
+					<img src={evento.pathImage} alt="portada" style="width: 200px;" />
+				</div>
+			</div>
+			<div>
+				<p class="subtitulo">Descripcion</p>
+				<p style="white-space: pre-line;" disabled>
+					{evento.descripcion == null ? '' : evento.descripcion}
+				</p>
+			</div>
+			<div>
+				<p class="subtitulo">Fecha Inicio</p>
+				<p>{formatoFecha(evento.fechaInicio)}</p>
+			</div>
+			<div>
+				<p class="subtitulo">Fecha Fin</p>
+				<p>{formatoFecha(evento.fechaFin)}</p>
+			</div>
+
+			<p class="subtitulo">Tickets</p>
+		</section>
+	{/if}
+
+	{#each fases as fase, index}
+		<TicketCard {fase} {index} {borrarFase} guardarFase={editarFase} {editar} />
+	{/each}
+
+	{#if editar}
+		<button
+			on:click={agregarNuevaFase}
+			class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg"
+			>Agregar nueva fase</button
+		>
+		<button
+			on:click={guardarEditar}
+			class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg"
+			>Guardar cambios</button
+		>
+	{/if}
+</div>
 
 <style>
-	input,
-	textarea {
-		color: black;
+	.auto-resize {
+		width: 100%; /* Ajusta al ancho del contenedor */
+		box-sizing: border-box; /* Incluye padding y border en el cálculo */
+		resize: none; /* Elimina el control de redimensionamiento manual */
+		overflow: hidden; /* Oculta cualquier desbordamiento */
+		background: transparent;
+		color: white;
+		border: 1px solid white;
+		border-radius: 7px;
+		padding: 1px;
+	}
+
+	input {
+		background: transparent;
+		color: white;
+		border: 1px solid white;
+		border-radius: 7px;
+		padding: 1px;
 	}
 
 	button {
@@ -308,5 +482,37 @@
 	.delete:hover {
 		background-color: rgb(159, 8, 8);
 		color: whitesmoke;
+	}
+
+	.titulo {
+		font-size: 2rem;
+	}
+
+	.subtitulo {
+		font-weight: bold;
+	}
+
+	.contenidoEvento {
+		width: 100%;
+		padding: 15px;
+	}
+
+	.datosEvento {
+		display: flex;
+		flex-direction: column;
+		gap: 15px;
+	}
+
+	.edit {
+		display: flex;
+		flex-direction: column;
+		gap: 15px;
+	}
+
+	.options {
+		display: flex;
+		width: 100%;
+		align-items: center;
+		gap: 10px;
 	}
 </style>

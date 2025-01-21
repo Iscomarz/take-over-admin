@@ -48,7 +48,9 @@
 			// Si la respuesta es correcta y contiene la sesión
 			if (data.session) {
 				localStorage.setItem('token', data.session.access_token);
-				toast.success('Sesión Iniciada!');
+				toast.success('Bienvenido!',{
+					duration: 4000
+				});
 				goto('/home');
 			} else {
 				throw new Error('No se pudo obtener la sesión.');
@@ -144,5 +146,8 @@
 
 	img{
 		width: 140px;
+	}
+	button{
+		color: black;
 	}
 </style>
