@@ -20,7 +20,7 @@ export async function enviarCorreoConTicket(pdfBuffer, venta) {
     text: `Hola ${venta.nombre}, adjunto encontrarás tu ticket para el evento.`,
     attachments: [
       {
-        filename: `ticket_${venta.idVenta}.pdf`,   // Nombre del archivo adjunto
+        filename: `ticket_${venta.nombre}.pdf`,   // Nombre del archivo adjunto
         content: pdfBuffer,                        // Contenido del PDF como Buffer
         contentType: 'application/pdf'             // Tipo MIME del archivo
       }
