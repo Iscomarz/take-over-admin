@@ -2,7 +2,6 @@
 	import { ticket } from '$lib/stores/ticketStore';
 	import { onMount } from 'svelte';
 	import { get } from 'svelte/store';
-	import { generarTicket } from '$lib/utils/generarTicket';
 	import { toast, Toaster } from 'svelte-french-toast';
 	import { goto } from '$app/navigation';
 

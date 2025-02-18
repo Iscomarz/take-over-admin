@@ -4,6 +4,7 @@
 	<a href="/events">Eventos</a>
 	<a href="/newTicket">Generar ticket</a>
 	<a href="/validate">Validar QR</a>
+	<a href="/reenviarTickets">Reenviar Tickets</a>
 </section>
 
 <style>
