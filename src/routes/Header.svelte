@@ -125,6 +125,14 @@
 							tabindex="-1"
 							id="menu-item-4">Validar QR</a
 						>
+						<a
+							on:click={toggleDropdown}
+							href="/reenviarTickets"
+							class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+							role="menuitem"
+							tabindex="-1"
+							id="menu-item-4">Reenviar Tickets</a
+						>
 						<button
 							on:click={cerrarSesion}
 							type="submit"

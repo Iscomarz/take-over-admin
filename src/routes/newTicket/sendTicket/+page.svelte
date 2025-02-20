@@ -4,6 +4,7 @@
 	import { get } from 'svelte/store';
 	import { toast, Toaster } from 'svelte-french-toast';
 	import { goto } from '$app/navigation';
+	import { generarTicket } from '$lib/utils/generarTicket';
 
 	let pdfUrl = ''; // URL del PDF generado para mostrarlo y descargarlo
 	const ticketStore = get(ticket);
