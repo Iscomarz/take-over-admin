@@ -70,11 +70,11 @@ export async function generarTicket(evento, venta, tickets) {
 		const horaFormateada = fechaEvento.toLocaleTimeString('es-ES', optionsHora); // Formato 24 horas
 
 		doc.setFont('helvetica', 'bold');
-		doc.text('Día: ' + fechaFormateada, 10, 115 + altura);
-		doc.text('Hora: 5:00 PM', 10, 120 + altura);
-		doc.text('Venue: ' + evento.venue, 10, 125 + altura);
-		doc.text('Dirección: ' + evento.direccion, 10, 130 + altura);
-		doc.text('*Este evento es para personas mayores de 18 años.', 10, 140 + altura);
+		doc.text('Día: ' + fechaFormateada, 10, 125 + altura);
+		doc.text('Hora: 5:00 PM', 10, 130 + altura);
+		doc.text('Venue: ' + evento.venue, 10, 135 + altura);
+		doc.text('Dirección: ' + evento.direccion, 10, 140 + altura);
+		doc.text('*Este evento es para personas mayores de 18 años.', 10, 150 + altura);
 
 		if (eventoImageDataUrl) {
 			doc.addImage(eventoImageDataUrl, 'PNG', 150, 60 + altura, 45, 45); // Ajusta el tamaño y la posición según sea necesario
