@@ -24,7 +24,8 @@
 			const { data, error } = await supabase
 				.from('mVenta')
 				.select('*')
-				.eq('idEvento', selectedEvento.idevento);
+				.eq('idEvento', selectedEvento.idevento)
+				.order('fechaVenta', { ascending: false });
 			if (error) {
 				console.error('Error fetching ventas:', error);
 			} else {
