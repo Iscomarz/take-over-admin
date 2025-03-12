@@ -8,6 +8,7 @@
 	let ventas = [];
 	let selectedEvento;
 	let pdfBuffer;
+	let dataCargada = false;
 
 	onMount(async () => {
 		const { data, error } = await supabase.from('mEvento').select('*');
@@ -30,7 +31,24 @@
 			} else {
 				ventas = data;
 				console.log('Ventas:', ventas);
+
+				for (let i = 0; i < ventas.length; i++) {
+					ventas[i].idFaseEvento = await nombreFaseByID(ventas[i].idFaseEvento);
+				}
+				dataCargada = true;
 			}
+		}
+	}
+
+	async function nombreFaseByID(idFaseTicket) {
+		const {data, error} = await supabase
+		.from('cFaseEvento')
+		.select('nombreFace')
+		.eq('idFase', idFaseTicket);
+		if (error) {
+			console.error('Error fetching nombreFase:', error);
+		} else {
+			return data[0].nombreFace;
 		}
 	}
 
@@ -87,7 +105,7 @@
 		</select>
 	</div>
 
-	{#if ventas.length > 0}
+	{#if dataCargada}
 		<table>
 			<thead>
 				<tr>
@@ -96,6 +114,7 @@
                     <th>Correo</th>
 					<th>Fecha</th>
 					<th>Cantidad</th>
+					<th>Ticket</th>
 					<th>Acciones</th>
 				</tr>
 			</thead>
@@ -107,6 +126,7 @@
                         <td>{venta.correo}</td>
 						<td>{venta.fechaVenta}</td>
 						<td>{venta.cantidadTickets}</td>
+						<td>{venta.idFaseEvento}</td>
 						<td>
 							<button on:click={() => reenviarTickets(venta)}>Reenviar Tickets</button>
 						</td>
