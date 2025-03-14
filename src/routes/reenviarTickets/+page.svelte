@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import supabase from '$lib/supabase';
 	import { generarTicket } from '$lib/utils/generarTicket';
-    import { toast, Toaster } from 'svelte-french-toast';
+	import { toast, Toaster } from 'svelte-french-toast';
 
 	let eventos = [];
 	let ventas = [];
@@ -24,32 +24,27 @@
 		if (selectedEvento.idevento) {
 			const { data, error } = await supabase
 				.from('mVenta')
-				.select('*')
+				.select(
+					`
+						*,
+						idFaseEvento ( nombreFace ),
+						idPago ( cantidad ) 
+					`
+				)
 				.eq('idEvento', selectedEvento.idevento)
 				.order('fechaVenta', { ascending: false });
+
 			if (error) {
 				console.error('Error fetching ventas:', error);
 			} else {
-				ventas = data;
+				ventas = data.map((venta) => ({
+					...venta,
+					idFaseEvento: venta.idFaseEvento?.nombreFace || null, // Extraer solo el nombre
+					idPago: venta.idPago?.cantidad || null // Extraer solo el monto
+				}));
 				console.log('Ventas:', ventas);
-
-				for (let i = 0; i < ventas.length; i++) {
-					ventas[i].idFaseEvento = await nombreFaseByID(ventas[i].idFaseEvento);
-				}
 				dataCargada = true;
 			}
-		}
-	}
-
-	async function nombreFaseByID(idFaseTicket) {
-		const {data, error} = await supabase
-		.from('cFaseEvento')
-		.select('nombreFace')
-		.eq('idFase', idFaseTicket);
-		if (error) {
-			console.error('Error fetching nombreFase:', error);
-		} else {
-			return data[0].nombreFace;
 		}
 	}
 
@@ -67,12 +62,11 @@
 
 			// Send email with tickets
 			pdfBuffer = await generarTicket(selectedEvento, venta, tickets);
-            await enviarTicketAlServidor(pdfBuffer, venta);
-
+			await enviarTicketAlServidor(pdfBuffer, venta);
 		}
 	}
 
-    async function enviarTicketAlServidor(pdfBufferCorreo, mventa) {
+	async function enviarTicketAlServidor(pdfBufferCorreo, mventa) {
 		const response = await fetch('/api/enviarTicket', {
 			method: 'POST',
 			headers: {
@@ -93,6 +87,7 @@
 		}
 	}
 </script>
+
 <Toaster />
 <main>
 	<h1>Reenviar Tickets</h1>
@@ -110,24 +105,24 @@
 		<table>
 			<thead>
 				<tr>
-					<th>ID Venta</th>
 					<th>Cliente</th>
-                    <th>Correo</th>
+					<th>Correo</th>
 					<th>Fecha</th>
 					<th>Cantidad</th>
 					<th>Ticket</th>
+					<th>Monto</th>
 					<th>Acciones</th>
 				</tr>
 			</thead>
 			<tbody>
 				{#each ventas as venta}
 					<tr>
-						<td>{venta.idventa}</td>
 						<td>{venta.nombre}</td>
-                        <td>{venta.correo}</td>
+						<td>{venta.correo}</td>
 						<td>{venta.fechaVenta}</td>
 						<td>{venta.cantidadTickets}</td>
 						<td>{venta.idFaseEvento}</td>
+						<td>{venta.idPago}</td>
 						<td>
 							<button on:click={() => reenviarTickets(venta)}>Reenviar Tickets</button>
 						</td>
