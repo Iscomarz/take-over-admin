@@ -19,6 +19,7 @@
 	let mostrarDialogoConfirm = false;
 	let ventas = [];
 	let pagos = [];
+	let rutaImagen = null;
 
 	const unsubscribe = eventoId.subscribe((value) => {
 		id = value;
@@ -49,7 +50,7 @@
 		if (errorImage) {
 			console.log('Error al traer imagen de evento', errorImage);
 		} else {
-			evento.pathImage = image.signedUrl;
+			rutaImagen = image.signedUrl;
 		}
 
 		//console.log(new Date(evento.fechaFin));
@@ -404,7 +405,7 @@
 					</div>
 				</div>
 				<div>
-					<img src={evento.pathImage} alt="portada" style="width: 200px;" />
+					<img src={rutaImagen} alt="portada" style="width: 200px;" />
 				</div>
 			</div>
 			<div>
