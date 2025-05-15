@@ -71,7 +71,7 @@ export async function generarTicket(evento, venta, tickets) {
 
 		doc.setFont('helvetica', 'bold');
 		doc.text('Día: ' + fechaFormateada, 10, 125 + altura);
-		doc.text('Hora: 5:00 PM', 10, 130 + altura);
+		doc.text('Hora: 9:00 PM', 10, 130 + altura);
 		doc.text('Venue: ' + evento.venue, 10, 135 + altura);
 		doc.text('Dirección: ' + evento.direccion, 10, 140 + altura);
 		doc.text('*Este evento es para personas mayores de 18 años.', 10, 150 + altura);
