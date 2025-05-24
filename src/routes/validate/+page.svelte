@@ -20,6 +20,8 @@
 
 	onMount(async () => {
 		toast.dismiss();
+		await traerEventoMasCercano();
+
 		if (typeof window !== 'undefined') {
 			token = localStorage.getItem('token');
 			if (token == null) {
@@ -119,7 +121,28 @@
 			fetchTickets();
 			resetScanner();
 		}
-		
+	}
+
+	async function traerEventoMasCercano() {
+		const { data, error } = await supabase
+			.from('mEvento')
+			.select('*')
+			.gt('fechaInicio', new Date().toISOString())
+			.order('fechaInicio', {
+				ascending: true
+			})
+			.limit(1);
+
+		if (error) {
+			console.error('Error fetching eventos:', error);
+		} else {
+			if (data.length > 0) {
+				selectedEvento = data[0];
+				fetchTickets();
+			} else {
+				toast.error('No hay eventos disponibles');
+			}
+		}
 	}
 
 	// Variable reactiva para filtrar los tickets en el cliente sin volver a consultar a la BD
@@ -211,8 +234,7 @@
 								>
 							{/if}
 						</td>
-						<td><button 
-							 on:click={validarTicket(ticket.idTicket)}>Validar</button></td>
+						<td><button on:click={validarTicket(ticket.idTicket)}>Validar</button></td>
 					</tr>
 				{/each}
 			</tbody>
