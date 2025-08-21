@@ -16,7 +16,7 @@ export async function generarTicket(evento, venta, tickets) {
 		if (contadorTickets % 2 === 0) {
 			doc.setFont('helvetica', 'bold');
 			doc.setFontSize(16);
-			doc.text('NATIVO - S.M.L.XL - MOISX', 10, 20 + altura);
+			doc.text('Take Over Tickets', 10, 20 + altura);
 
 			// Formatear la fecha actual en español (dd de mes de yyyy)
 			const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
@@ -71,7 +71,7 @@ export async function generarTicket(evento, venta, tickets) {
 
 		doc.setFont('helvetica', 'bold');
 		doc.text('Día: ' + fechaFormateada, 10, 125 + altura);
-		doc.text('Hora: 5:00 PM', 10, 130 + altura);
+		doc.text('Hora: 9:00 PM', 10, 130 + altura);
 		doc.text('Venue: ' + evento.venue, 10, 135 + altura);
 		doc.setTextColor(0, 0, 255);
 		doc.textWithLink('Dirección: ' + evento.direccion, 10, 140 + altura, {
