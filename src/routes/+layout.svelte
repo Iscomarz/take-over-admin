@@ -56,7 +56,7 @@
 
 	.main-content {
 		grid-area: main;
-		padding: 1rem;
+		padding: 0.3rem;
 	}
 
 	.content {
