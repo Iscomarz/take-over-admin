@@ -3,13 +3,15 @@
 	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
 	import toast, { Toaster } from 'svelte-french-toast';
-	import { obtenerVentasDelDia, obtenerVentasPorEventoActivo } from '../../services/ventas-service';
+	import { obtenerVentasDelDia, obtenerVentasPorEventoActivo, obtenerUltimasTransacciones } from '../../services/ventas-service';
 
 	let usuario = null;
 	let email = '';
 	let loading = true;
 	let ventasHoy = { totalVentas: 0, montoTotal: 0 };
 	let ventasEventoActivo = { totalTickets: 0, totalMonto: 0, fases: [] };
+	let ultimasTransacciones = [];
+	let isValidator = false;
 
 	onMount(async () => {
 		// verificar la sesion real en supabase
@@ -27,10 +29,13 @@
 		usuario = data.session.user;
 		email = usuario?.email ?? '';
 
+		isValidator = email === 'validaciones@takeover.com';
+
 		// Obtener ventas del día y evento activo
 		try {
 			ventasHoy = await obtenerVentasDelDia();
 			ventasEventoActivo = await obtenerVentasPorEventoActivo();
+			ultimasTransacciones = await obtenerUltimasTransacciones();
 		} catch (error) {
 			console.error('Error al obtener datos:', error);
 			toast.error('Error al cargar datos del dashboard');
@@ -44,6 +49,25 @@
 			style: 'currency',
 			currency: 'MXN'
 		}).format(value || 0);
+	}
+
+	function formatDate(dateStr) {
+		const date = new Date(dateStr);
+		return new Intl.DateTimeFormat('es-MX', {
+			day: '2-digit',
+			month: '2-digit',
+			year: 'numeric',
+			hour: '2-digit',
+			minute: '2-digit'
+		}).format(date);
+	}
+
+	function parseMoney(value) {
+		if (value == null) return 0;
+		if (typeof value === 'number') return value;
+		const cleaned = String(value).replace(/[^0-9.-]+/g, '');
+		const n = parseFloat(cleaned);
+		return Number.isNaN(n) ? 0 : n;
 	}
 </script>
 
@@ -66,6 +90,7 @@
 			</div>
 		{:else}
 			<!-- Cards Grid -->
+			 {#if !isValidator}
 			<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 				<!-- Card: Ventas del Día -->
 				<div class="bg-stone-800/50 rounded-2xl p-6 border border-stone-700">
@@ -176,6 +201,83 @@
 					{/if}
 				</div>
 			</div>
+
+			<!-- Tabla: Últimas Transacciones -->
+			<div class="mt-6 bg-stone-800/50 rounded-2xl p-6 border border-stone-700">
+				<div class="flex items-center gap-3 mb-6">
+					<div class="bg-purple-900/30 p-3 rounded-xl">
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							class="w-6 h-6 text-purple-400"
+							fill="currentColor"
+							viewBox="0 0 256 256"
+						>
+							<path
+								d="M224,48H32a8,8,0,0,0-8,8V192a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A8,8,0,0,0,224,48ZM40,112H80v32H40Zm56,0H216v32H96ZM216,64V96H40V64ZM40,160H80v32H40Zm176,32H96V160H216v32Z"
+							></path>
+						</svg>
+					</div>
+					<h2 class="text-xl font-semibold">Últimas Transacciones</h2>
+				</div>
+
+				{#if ultimasTransacciones.length > 0}
+					<div class="overflow-x-auto">
+						<table class="w-full">
+							<thead class="bg-stone-700/50">
+								<tr>
+									<th class="px-4 py-3 text-left text-sm font-semibold text-stone-300">Fecha</th>
+									<th class="px-4 py-3 text-left text-sm font-semibold text-stone-300">Cliente</th>
+									<th class="px-4 py-3 text-left text-sm font-semibold text-stone-300">Correo</th>
+									<th class="px-4 py-3 text-left text-sm font-semibold text-stone-300">Evento</th>
+									<th class="px-4 py-3 text-left text-sm font-semibold text-stone-300">Tickets</th>
+									<th class="px-4 py-3 text-left text-sm font-semibold text-stone-300">Monto</th>
+									<th class="px-4 py-3 text-left text-sm font-semibold text-stone-300">Forma de pago</th>
+								</tr>
+							</thead>
+							<tbody class="divide-y divide-stone-700">
+								{#each ultimasTransacciones as transaccion}
+									<tr class="hover:bg-stone-700/30 transition-colors">
+										<td class="px-4 py-3 text-sm text-stone-400">
+											{formatDate(transaccion.fechaVenta)}
+										</td>
+										<td class="px-4 py-3 text-sm font-medium">{transaccion.nombre}</td>
+										<td class="px-4 py-3 text-sm text-stone-400">{transaccion.correo}</td>
+										<td class="px-4 py-3 text-sm">{transaccion.mEvento?.nombreEvento}</td>
+										<td class="px-4 py-3 text-sm">
+											<span
+												class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-900/30 text-blue-400"
+											>
+												{transaccion.cantidadTickets}
+											</span>
+										</td>
+										<td class="px-4 py-3 text-sm font-semibold text-green-400">
+											{formatMoney(parseMoney(transaccion.mPago?.cantidad))}
+										</td>
+										<td class="px-4 py-3 text-sm text-stone-400">
+											{transaccion.mPago?.cFormaPago?.nombre || 'N/A'}
+										</td>
+									</tr>
+								{/each}
+							</tbody>
+						</table>
+					</div>
+				{:else}
+					<div class="text-center py-8">
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							class="w-12 h-12 mx-auto mb-3 text-stone-600"
+							fill="currentColor"
+							viewBox="0 0 256 256"
+						>
+							<path
+								d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm-8,56a8,8,0,0,1,16,0v56a8,8,0,0,1-16,0Zm8,104a12,12,0,1,1,12-12A12,12,0,0,1,128,184Z"
+							></path>
+						</svg>
+						<p class="text-stone-400 text-sm">No hay transacciones recientes</p>
+					</div>
+				{/if}
+			</div>
+			{/if}
 		{/if}
 	</div>
 </div>

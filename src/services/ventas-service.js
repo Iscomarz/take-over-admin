@@ -70,8 +70,6 @@ export async function obtenerVentasPorEventoActivo() {
         { totalTickets: 0, totalMonto: 0, fases: [] }
     );
 
-    console.log(result)
-
     return result;
 }
 
@@ -85,6 +83,20 @@ export async function obtenerEventoActivo() {
     if (error) {
         console.error('Error al obtener evento activo:', error);
         return null;
+    }
+    return data;
+}
+
+// Ultimas 10 transacciones
+export async function obtenerUltimasTransacciones() {
+    const { data, error } = await supabase
+        .from('mVenta')
+        .select('idventa, fechaVenta, nombre, correo, cantidadTickets, mPago(cantidad, cFormaPago(nombre)), mEvento(nombreEvento)')
+        .order('fechaVenta', { ascending: false })
+        .limit(10);
+    if (error) {
+        console.error('Error al obtener últimas transacciones:', error);
+        return [];
     }
     return data;
 }
