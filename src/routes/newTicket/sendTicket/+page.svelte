@@ -57,48 +57,81 @@
 </script>
 
 <Toaster />
-<h1>Enviar o Descargar ticket</h1>
 
-<!-- Mostrar el PDF generado -->
-{#if pdfUrl}
-	<iframe src={pdfUrl} style="width:100%; height:500px;" title="Vista previa del ticket en PDF"
-	></iframe>
-	<br />
+<div class="min-h-screen bg-gradient-to-b from-black-900 to-stone-800 text-white p-6 pb-20">
+	<div class="max-w-4xl mx-auto">
+		<!-- Header -->
+		<div class="text-center mb-8">
+			<h1 class="text-3xl font-bold mb-2">Enviar o Descargar Ticket</h1>
+			<p class="text-stone-400 text-sm">Tu ticket ha sido generado exitosamente</p>
+		</div>
 
-	<!-- Enlace para descargar el PDF -->
-	<button
-		class="text-white focus:ring-4 focus:outline-none font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center"
-	>
-		<a href={pdfUrl} download="ticket.pdf" class="btn-download">Descargar Ticket</a>
-	</button>
-	<br />
-	<br />
-	<form>
-		<button
-			class="text-white focus:ring-4 focus:outline-none font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center"
-			on:click={enviarTicketAlServidor(pdfBuffer, ticketStore.mVenta)}
-		>
-			Enviar por correo
-		</button>
-		<br />
-		<br />
-		<button
-			class="text-white focus:ring-4 focus:outline-none font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center"
-		>
-			<a href="/newTicket">Generar otro Ticket</a>
-		</button>
-	</form>
-{:else}
-	<p>Generando...</p>
-{/if}
+		<!-- Mostrar el PDF generado -->
+		{#if pdfUrl}
+			<div class="bg-stone-800/50 rounded-2xl p-6 border border-stone-700 mb-6">
+				<div class="mb-4">
+					<iframe
+						src={pdfUrl}
+						class="w-full rounded-xl border-2 border-stone-600"
+						style="height:500px;"
+						title="Vista previa del ticket en PDF"
+					></iframe>
+				</div>
 
-<style>
-	button {
-		background-color: rgb(63, 248, 186);
-		color: black;
-	}
+				<!-- Botones de acci\u00f3n -->\n\t\t\t<div class="flex flex-col sm:flex-row gap-4">
+					<a
+						href={pdfUrl}
+						download="ticket.pdf"
+						class="flex-1 bg-stone-700 hover:bg-stone-600 text-white py-3 px-6 rounded-xl font-semibold transition-colors border border-stone-600 flex items-center justify-center gap-2 no-underline"
+					>
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							width="20"
+							height="20"
+							fill="currentColor"
+							viewBox="0 0 256 256"
+						>
+							<path
+								d="M224,144v64a8,8,0,0,1-8,8H40a8,8,0,0,1-8-8V144a8,8,0,0,1,16,0v56H208V144a8,8,0,0,1,16,0Zm-101.66,5.66a8,8,0,0,0,11.32,0l40-40a8,8,0,0,0-11.32-11.32L136,124.69V40a8,8,0,0,0-16,0v84.69L93.66,98.34a8,8,0,0,0-11.32,11.32Z"
+							></path>
+						</svg>
+						Descargar Ticket
+					</a>
 
-	button:hover {
-		background-color: rgb(52, 180, 137);
-	}
-</style>
+					<button
+						class="flex-1 bg-green-900/30 hover:bg-green-900/50 text-green-400 py-3 px-6 rounded-xl font-semibold transition-colors border border-green-500/50 flex items-center justify-center gap-2"
+						on:click={enviarTicketAlServidor(pdfBuffer, ticketStore.mVenta)}
+					>
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							width="20"
+							height="20"
+							fill="currentColor"
+							viewBox="0 0 256 256"
+						>
+							<path
+								d="M224,48H32a8,8,0,0,0-8,8V192a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A8,8,0,0,0,224,48ZM98.71,128,40,181.81V74.19Zm11.84,10.85,12,11.05a8,8,0,0,0,10.82,0l12-11.05,58,53.15H52.57ZM157.29,128,216,74.18V181.82Z"
+							></path>
+						</svg>
+						Enviar por Correo
+					</button>
+				</div>
+
+				<!-- Bot\u00f3n para generar otro ticket -->
+				<a
+					href="/newTicket"
+					class="mt-4 block bg-stone-800/70 hover:bg-stone-700/90 text-white py-3 px-6 rounded-xl font-semibold transition-colors border border-stone-600 text-center no-underline"
+				>
+					Generar otro Ticket
+				</a>
+			</div>
+		{:else}
+			<div class="text-center py-12">
+				<div class="animate-pulse">
+					<div class="w-16 h-16 bg-stone-700 rounded-full mx-auto mb-4"></div>
+					<p class="text-stone-400">Generando ticket...</p>
+				</div>
+			</div>
+		{/if}
+	</div>
+</div>

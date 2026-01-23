@@ -282,238 +282,314 @@
 
 <Toaster />
 
-<div class="options">
-	<button
-		on:click={atras}
-		class="text-white focus:ring-4 focus:outline-none font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center"
-		>Atras</button
-	>
-	<button
-		on:click={switchEditMode}
-		class="text-white focus:ring-4 focus:outline-none font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center"
-	>
-		{editar ? 'Cancelar Edicion' : 'Editar'}
-	</button>
+<div class="min-h-screen bg-gradient-to-b from-black-900 to-stone-800 text-white p-6 pb-20">
+	<div class="max-w-6xl mx-auto">
+		<!-- Header con botones de acción -->
+		<div class="flex flex-wrap gap-3 mb-6">
+			<button
+				on:click={atras}
+				class="bg-stone-800/70 hover:bg-stone-700/90 text-white py-2 px-4 rounded-xl font-semibold transition-colors border border-stone-600 flex items-center gap-2"
+			>
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					width="18"
+					height="18"
+					fill="currentColor"
+					viewBox="0 0 256 256"
+				>
+					<path
+						d="M224,128a8,8,0,0,1-8,8H59.31l58.35,58.34a8,8,0,0,1-11.32,11.32l-72-72a8,8,0,0,1,0-11.32l72-72a8,8,0,0,1,11.32,11.32L59.31,120H216A8,8,0,0,1,224,128Z"
+					></path>
+				</svg>
+				Atrás
+			</button>
 
-	<button
-		on:click={eliminarEvento}
-		class="text-white focus:ring-4 focus:outline-none font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center delete"
-		>Eliminar Evento</button
-	>
+			<button
+				on:click={switchEditMode}
+				class="bg-stone-700 hover:bg-stone-600 text-white py-2 px-4 rounded-xl font-semibold transition-colors border border-stone-600 flex items-center gap-2"
+			>
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					width="18"
+					height="18"
+					fill="currentColor"
+					viewBox="0 0 256 256"
+				>
+					<path
+						d="M227.31,73.37,182.63,28.68a16,16,0,0,0-22.63,0L36.69,152A15.86,15.86,0,0,0,32,163.31V208a16,16,0,0,0,16,16H92.69A15.86,15.86,0,0,0,104,219.31L227.31,96a16,16,0,0,0,0-22.63ZM92.69,208H48V163.31l88-88L180.69,120ZM192,108.68,147.31,64l24-24L216,84.68Z"
+					></path>
+				</svg>
+				{editar ? 'Cancelar' : 'Editar'}
+			</button>
 
-	<label class="inline-flex items-center cursor-pointer">
-		<input
-			type="checkbox"
-			bind:checked={evento.activo}
-			on:click={desactivaActivaEv}
-			class="sr-only peer"
-		/>
-		<div
-			class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 dark:peer-focus:ring-green-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-green-600"
-		></div>
-		<span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300"
-			>{evento.activo == 1 ? 'Desactivar Evento' : 'Activar Evento'}</span
-		>
-	</label>
-</div>
+			<button
+				on:click={eliminarEvento}
+				class="bg-red-900/30 hover:bg-red-900/50 text-red-400 py-2 px-4 rounded-xl font-semibold transition-colors border border-red-500/50 flex items-center gap-2"
+			>
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					width="18"
+					height="18"
+					fill="currentColor"
+					viewBox="0 0 256 256"
+				>
+					<path
+						d="M216,48H176V40a24,24,0,0,0-24-24H104A24,24,0,0,0,80,40v8H40a8,8,0,0,0,0,16h8V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V64h8a8,8,0,0,0,0-16ZM96,40a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96Zm96,168H64V64H192ZM112,104v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Zm48,0v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Z"
+					></path>
+				</svg>
+				Eliminar
+			</button>
 
-{#if mostrarDialogoConfirm}
-	<DialogConfirm
-		titulo="¿Estás seguro de eliminar el evento?"
-		mensaje="Se perderán los datos de ventas, tickets y pagos."
-		onConfirm={confirmarEliminacion}
-		onCancel={cancelarEliminacion}
-	/>
-{/if}
-
-<br />
-<div class="contenidoEvento">
-	{#if loading}
-		<p>Cargando...</p>
-	{:else if editar}
-		<form>
-			<div class="edit">
+			<label class="inline-flex items-center cursor-pointer ml-auto">
 				<input
-					class="titulo"
-					type="text"
-					bind:value={evento.nombreEvento}
-					placeholder="Nombre del evento"
+					type="checkbox"
+					bind:checked={evento.activo}
+					on:click={desactivaActivaEv}
+					class="sr-only peer"
 				/>
-				<div>
-					<p class="subtitulo">Venue</p>
-					<input type="text" bind:value={evento.venue} placeholder="Venue" />
-				</div>
-				<div>
-					<p class="subtitulo">Direccion</p>
-					<input type="text" bind:value={evento.direccion} placeholder="Dirección" />
-				</div>
+				<div
+					class="relative w-11 h-6 bg-stone-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-stone-500 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-stone-600 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"
+				></div>
+				<span class="ms-3 text-sm font-medium text-stone-300"
+					>{evento.activo == 1 ? 'Desactivar' : 'Activar'}</span
+				>
+			</label>
+		</div>
 
-				<div>
-					<p class="subtitulo">Descripcion</p>
-					<textarea
-						bind:value={evento.descripcion}
-						placeholder="Descripción"
-						class="auto-resize"
-						on:input={(e) => autoResize(e.target)}
-					></textarea>
-				</div>
+		{#if mostrarDialogoConfirm}
+			<DialogConfirm
+				titulo="¿Estás seguro de eliminar el evento?"
+				mensaje="Se perderán los datos de ventas, tickets y pagos."
+				onConfirm={confirmarEliminacion}
+				onCancel={cancelarEliminacion}
+			/>
+		{/if}
 
-				<div>
-					<p class="subtitulo">Fecha Inicio</p>
-					<input
-						type="text"
-						id="fechaInicio"
-						name="fechaInicio"
-						class="date-pick"
-						placeholder="Fecha de inicio"
-						use:flatpickrAction={{
-							onChange: (selectedDates, dateStr) => {
-								evento.fechaInicio = dateStr;
-							},
-							defaultDate: evento.fechaInicio ? new Date(evento.fechaInicio) : null
-						}}
-					/>
-
-					<input
-						type="text"
-						id="fechaFin"
-						name="fechaFin"
-						class="date-pick"
-						placeholder="Fecha de fin"
-						use:flatpickrAction={{
-							onChange: (selectedDates, dateStr) => {
-								evento.fechaFin = dateStr;
-							},
-							defaultDate: evento.fechaFin ? new Date(evento.fechaFin) : null
-						}}
-					/>
+		{#if loading}
+			<div class="text-center py-12">
+				<div class="animate-pulse">
+					<div class="w-16 h-16 bg-stone-700 rounded-full mx-auto mb-4"></div>
+					<p class="text-stone-400">Cargando...</p>
 				</div>
 			</div>
-		</form>
-	{:else}
-		<section class="datosEvento">
-			<h1 class="titulo">{evento.nombreEvento}</h1>
-			<div style="display: flex; width: 100%; justify-content: space-between;">
-				<div style="display: flex;flex-direction: column;gap: 15px;">
-					<div>
-						<p class="subtitulo">Venue</p>
-						<p>{evento.venue}</p>
+		{:else if editar}
+			<!-- Modo edición -->
+			<div class="bg-stone-800/50 rounded-2xl p-6 border border-stone-700 space-y-6">
+				<form>
+					<div class="space-y-4">
+						<div>
+							<label class="block text-sm font-medium mb-2 text-stone-300"
+								>Nombre del evento</label
+							>
+							<input
+								type="text"
+								bind:value={evento.nombreEvento}
+								placeholder="Nombre del evento"
+								class="w-full bg-stone-700 text-white border border-stone-600 rounded-xl p-3 focus:ring-2 focus:ring-stone-500 focus:border-transparent text-xl font-bold"
+							/>
+						</div>
+
+						<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+							<div>
+								<label class="block text-sm font-medium mb-2 text-stone-300">Venue</label>
+								<input
+									type="text"
+									bind:value={evento.venue}
+									placeholder="Venue"
+									class="w-full bg-stone-700 text-white border border-stone-600 rounded-xl p-3 focus:ring-2 focus:ring-stone-500 focus:border-transparent"
+								/>
+							</div>
+							<div>
+								<label class="block text-sm font-medium mb-2 text-stone-300">Dirección</label>
+								<input
+									type="text"
+									bind:value={evento.direccion}
+									placeholder="Dirección"
+									class="w-full bg-stone-700 text-white border border-stone-600 rounded-xl p-3 focus:ring-2 focus:ring-stone-500 focus:border-transparent"
+								/>
+							</div>
+						</div>
+
+						<div>
+							<label class="block text-sm font-medium mb-2 text-stone-300">Descripción</label>
+							<textarea
+								bind:value={evento.descripcion}
+								placeholder="Descripción del evento"
+								class="w-full bg-stone-700 text-white border border-stone-600 rounded-xl p-3 focus:ring-2 focus:ring-stone-500 focus:border-transparent min-h-24"
+								on:input={(e) => autoResize(e.target)}
+							></textarea>
+						</div>
+
+						<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+							<div>
+								<label class="block text-sm font-medium mb-2 text-stone-300">Fecha Inicio</label>
+								<input
+									type="text"
+									id="fechaInicio"
+									name="fechaInicio"
+									class="w-full bg-stone-700 text-white border border-stone-600 rounded-xl p-3 focus:ring-2 focus:ring-stone-500 focus:border-transparent"
+									placeholder="Fecha de inicio"
+									use:flatpickrAction={{
+										onChange: (selectedDates, dateStr) => {
+											evento.fechaInicio = dateStr;
+										},
+										defaultDate: evento.fechaInicio ? new Date(evento.fechaInicio) : null
+									}}
+								/>
+							</div>
+							<div>
+								<label class="block text-sm font-medium mb-2 text-stone-300">Fecha Fin</label>
+								<input
+									type="text"
+									id="fechaFin"
+									name="fechaFin"
+									class="w-full bg-stone-700 text-white border border-stone-600 rounded-xl p-3 focus:ring-2 focus:ring-stone-500 focus:border-transparent"
+									placeholder="Fecha de fin"
+									use:flatpickrAction={{
+										onChange: (selectedDates, dateStr) => {
+											evento.fechaFin = dateStr;
+										},
+										defaultDate: evento.fechaFin ? new Date(evento.fechaFin) : null
+									}}
+								/>
+							</div>
+						</div>
 					</div>
+				</form>
+			</div>
+		{:else}
+			<!-- Modo vista -->
+			<div class="bg-stone-800/50 rounded-2xl p-6 border border-stone-700">
+				<h1 class="text-3xl font-bold mb-6">{evento.nombreEvento}</h1>
+
+				<div class="flex flex-col md:flex-row gap-6 mb-6">
+					<div class="flex-1 space-y-4">
+						<div>
+							<p class="text-sm font-semibold text-stone-400 mb-1">Venue</p>
+							<p class="text-lg">{evento.venue}</p>
+						</div>
+						<div>
+							<p class="text-sm font-semibold text-stone-400 mb-1">Dirección</p>
+							<p class="text-lg">{evento.direccion}</p>
+						</div>
+					</div>
+					{#if rutaImagen}
+						<div class="flex-shrink-0">
+							<img
+								src={rutaImagen}
+								alt="Portada del evento"
+								class="w-full md:w-64 rounded-xl border-2 border-stone-600"
+							/>
+						</div>
+					{/if}
+				</div>
+
+				<div class="space-y-4">
 					<div>
-						<p class="subtitulo">Direccion</p>
-						<p>{evento.direccion}</p>
+						<p class="text-sm font-semibold text-stone-400 mb-1">Descripción</p>
+						<p class="text-base whitespace-pre-line">
+							{evento.descripcion == null ? 'Sin descripción' : evento.descripcion}
+						</p>
+					</div>
+					<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+						<div>
+							<p class="text-sm font-semibold text-stone-400 mb-1">Fecha Inicio</p>
+							<p class="text-base">{formatoFecha(evento.fechaInicio)}</p>
+						</div>
+						<div>
+							<p class="text-sm font-semibold text-stone-400 mb-1">Fecha Fin</p>
+							<p class="text-base">{formatoFecha(evento.fechaFin)}</p>
+						</div>
 					</div>
 				</div>
-				<div>
-					<img src={rutaImagen} alt="portada" style="width: 200px;" />
+			</div>
+		{/if}
+
+		<!-- Secci\u00f3n de fases/tickets -->
+		<div class="mt-6">
+			<h2 class="text-xl font-semibold mb-4">Fases del Evento</h2>
+			<div class="space-y-3">
+				{#each fases as fase, index}
+					<TicketCard {fase} {index} {borrarFase} guardarFase={editarFase} {editar} />
+				{/each}
+			</div>
+
+			{#if editar}
+				<div class="flex gap-3 mt-6">
+					<button
+						on:click={agregarNuevaFase}
+						class="flex-1 bg-stone-700 hover:bg-stone-600 text-white py-3 px-6 rounded-xl font-semibold transition-colors border border-stone-600 flex items-center justify-center gap-2"
+					>
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							width="20"
+							height="20"
+							fill="currentColor"
+							viewBox="0 0 256 256"
+						>
+							<path
+								d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z"
+							></path>
+						</svg>
+						Agregar Fase
+					</button>
+
+					<button
+						on:click={guardarEditar}
+						class="flex-1 bg-green-900/30 hover:bg-green-900/50 text-green-400 py-3 px-6 rounded-xl font-semibold transition-colors border border-green-500/50 flex items-center justify-center gap-2"
+					>
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							width="20"
+							height="20"
+							fill="currentColor"
+							viewBox="0 0 256 256"
+						>
+							<path
+								d="M229.66,77.66l-128,128a8,8,0,0,1-11.32,0l-56-56a8,8,0,0,1,11.32-11.32L96,188.69,218.34,66.34a8,8,0,0,1,11.32,11.32Z"
+							></path>
+						</svg>
+						Guardar Cambios
+					</button>
 				</div>
-			</div>
-			<div>
-				<p class="subtitulo">Descripcion</p>
-				<p style="white-space: pre-line;" disabled>
-					{evento.descripcion == null ? '' : evento.descripcion}
-				</p>
-			</div>
-			<div>
-				<p class="subtitulo">Fecha Inicio</p>
-				<p>{formatoFecha(evento.fechaInicio)}</p>
-			</div>
-			<div>
-				<p class="subtitulo">Fecha Fin</p>
-				<p>{formatoFecha(evento.fechaFin)}</p>
-			</div>
-
-			<p class="subtitulo">Tickets</p>
-		</section>
-	{/if}
-
-	{#each fases as fase, index}
-		<TicketCard {fase} {index} {borrarFase} guardarFase={editarFase} {editar} />
-	{/each}
-
-	{#if editar}
-		<button
-			on:click={agregarNuevaFase}
-			class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg"
-			>Agregar nueva fase</button
-		>
-		<button
-			on:click={guardarEditar}
-			class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg"
-			>Guardar cambios</button
-		>
-	{/if}
+			{/if}
+		</div>
+	</div>
 </div>
 
 <style>
-	.auto-resize {
-		width: 100%; /* Ajusta al ancho del contenedor */
-		box-sizing: border-box; /* Incluye padding y border en el cálculo */
-		resize: none; /* Elimina el control de redimensionamiento manual */
-		overflow: hidden; /* Oculta cualquier desbordamiento */
-		background: transparent;
-		color: white;
-		border: 1px solid white;
-		border-radius: 7px;
-		padding: 1px;
+	textarea {
+		resize: vertical;
+		overflow: hidden;
 	}
 
-	input {
-		background: transparent;
-		color: white;
-		border: 1px solid white;
-		border-radius: 7px;
-		padding: 1px;
+	:global(.flatpickr-calendar) {
+		background-color: #292524 !important;
+		border-color: #57534e !important;
 	}
 
-	button {
-		background-color: rgb(63, 248, 186);
-		color: black;
+	:global(.flatpickr-day) {
+		color: white !important;
 	}
 
-	button:hover {
-		background-color: rgb(52, 180, 137);
+	:global(.flatpickr-day.selected) {
+		background-color: #57534e !important;
+		border-color: #57534e !important;
 	}
 
-	.delete {
-		background-color: brown;
-		color: whitesmoke;
+	:global(.flatpickr-day:hover) {
+		background-color: #44403c !important;
 	}
 
-	.delete:hover {
-		background-color: rgb(159, 8, 8);
-		color: whitesmoke;
+	:global(.flatpickr-current-month) {
+		color: white !important;
 	}
 
-	.titulo {
-		font-size: 2rem;
+	:global(.flatpickr-months .flatpickr-month) {
+		color: white !important;
 	}
 
-	.subtitulo {
-		font-weight: bold;
-	}
-
-	.contenidoEvento {
-		width: 100%;
-		padding: 15px;
-	}
-
-	.datosEvento {
-		display: flex;
-		flex-direction: column;
-		gap: 15px;
-	}
-
-	.edit {
-		display: flex;
-		flex-direction: column;
-		gap: 15px;
-	}
-
-	.options {
-		display: flex;
-		width: 100%;
-		align-items: center;
-		gap: 10px;
+	:global(.flatpickr-weekday) {
+		color: #a8a29e !important;
 	}
 </style>

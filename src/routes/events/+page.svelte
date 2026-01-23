@@ -44,48 +44,35 @@
 		}
 	});
 </script>
-<Toaster/>
+<Toaster />
 
-<h1>Administrar Eventos</h1>
+<div class="min-h-screen bg-gradient-to-b from-black-900 to-stone-800 text-white p-6 pb-20">
+	<div class="max-w-7xl mx-auto">
+		<!-- Header -->
+		<div class="text-center mb-8">
+			<h1 class="text-3xl font-bold mb-2">Administrar Eventos</h1>
+			<p class="text-stone-400 text-sm">Gestiona tus eventos y su configuración</p>
+		</div>
 
-{#if eventos.length > 0}
-	<div class="event-grid">
-		{#each eventos as evento}
-			<EventCard
-				id={evento.idevento}
-				nombreEvento={evento.nombreEvento}
-				venue={evento.venue}
-				image={evento.pathImage}
-				loadingImage={evento.loadingImage}
-			/>
-		{/each}
+		{#if eventos.length > 0}
+			<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+				{#each eventos as evento}
+					<EventCard
+						id={evento.idevento}
+						nombreEvento={evento.nombreEvento}
+						venue={evento.venue}
+						image={evento.pathImage}
+						loadingImage={evento.loadingImage}
+					/>
+				{/each}
+			</div>
+		{:else}
+			<div class="text-center py-12">
+				<div class="animate-pulse">
+					<div class="w-16 h-16 bg-stone-700 rounded-full mx-auto mb-4"></div>
+					<p class="text-stone-400">Cargando eventos...</p>
+				</div>
+			</div>
+		{/if}
 	</div>
-{:else}
-	<p>Cargando...</p>
-{/if}
-
-<style>
-	h1 {
-		color: whitesmoke;
-		text-align: center;
-	}
-
-	.event-grid {
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-		gap: 16px;
-		padding: 16px;
-	}
-
-	@media (max-width: 768px) {
-		.event-grid {
-			grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-		}
-	}
-
-	@media (max-width: 480px) {
-		.event-grid {
-			grid-template-columns: 1fr;
-		}
-	}
-</style>
+</div>

@@ -9,14 +9,33 @@
 	let showDropdown = false; // Estado para controlar la visibilidad del dropdown
 	let dropdownButton;
 
+	//control de email
+	let userEmail = '';
+	let isValidator = false;
+
 	onMount(() => {
 		document.addEventListener('click', handleClickOutside);
+		checkSession();
 
 		// Desregistrar el evento cuando el componente se desmonte
 		return () => {
 			document.removeEventListener('click', handleClickOutside);
 		};
 	});
+
+	 async function checkSession() {
+        try {
+            const { data, error } = await supabase.auth.getSession();
+            if (error) {
+                console.error('Error al obtener sesión:', error);
+                return;
+            }
+            userEmail = data?.session?.user?.email ?? '';
+            isValidator = userEmail === 'validaciones@takeover.com';
+        } catch (e) {
+            console.error(e);
+        }
+    }
 
 	function handleClickOutside(event) {
 		if (dropdownButton && !dropdownButton.contains(event.target)) {
@@ -93,6 +112,25 @@
 					tabindex="-1"
 				>
 					<div class="py-1" role="none">
+						{#if isValidator}
+						<a
+							on:click={toggleDropdown}
+							href="/validate"
+							class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+							role="menuitem"
+							tabindex="-1"
+							id="menu-item-4">Validar QR</a
+						>
+						<button
+							on:click={cerrarSesion}
+							type="submit"
+							class="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
+							role="menuitem"
+							tabindex="-1"
+							id="menu-item-3">Salir</button
+						>
+						
+						{:else}
 						<a
 							on:click={toggleDropdown}
 							href="/newEvent"
@@ -133,6 +171,7 @@
 							tabindex="-1"
 							id="menu-item-4">Reenviar Tickets</a
 						>
+
 						<button
 							on:click={cerrarSesion}
 							type="submit"
@@ -141,6 +180,7 @@
 							tabindex="-1"
 							id="menu-item-3">Salir</button
 						>
+						{/if}
 					</div>
 				</div>
 			{/if}

@@ -7,43 +7,45 @@
 </script>
 
 <div
-	class="max-w-sm bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700"
+	class="bg-stone-800/70 border border-stone-700 rounded-2xl shadow-lg overflow-hidden hover:border-stone-600 transition-all duration-300 hover:shadow-xl hover:scale-105"
 >
 	{#if loadingImage}
-		<p></p>
+		<div class="w-full h-48 bg-stone-700 animate-pulse"></div>
 	{:else}
-		<a href={`/events/event/${id}`}>
-			<img class="rounded-t-lg" src={image} alt="" />
+		<a href={`/events/event/${id}`} class="block">
+			<img class="w-full h-48 object-cover" src={image} alt={nombreEvento} />
 		</a>
 	{/if}
 
 	<div class="p-5">
-		<a href={`/events/event/${id}`}>
-			<h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
+		<a href={`/events/event/${id}`} class="block">
+			<h5 class="mb-2 text-xl font-bold tracking-tight text-white hover:text-stone-300 transition-colors">
 				{nombreEvento}
 			</h5>
 		</a>
-		<p class="mb-3 font-normal text-gray-700 dark:text-gray-400">{venue}</p>
+		<p class="mb-4 font-normal text-stone-400">{venue}</p>
 		<a
 			href={`/events/event/${id}`}
-			class="inline-flex items-center px-3 py-2 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+			class="inline-flex items-center px-4 py-2 text-sm font-semibold text-white bg-stone-700 rounded-xl hover:bg-stone-600 focus:ring-4 focus:outline-none focus:ring-stone-500 border border-stone-600 transition-colors gap-2 no-underline"
 		>
-			Administrar
 			<svg
-				class="rtl:rotate-180 w-3.5 h-3.5 ms-2"
-				aria-hidden="true"
 				xmlns="http://www.w3.org/2000/svg"
-				fill="none"
-				viewBox="0 0 14 10"
+				width="16"
+				height="16"
+				fill="currentColor"
+				viewBox="0 0 256 256"
 			>
 				<path
-					stroke="currentColor"
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					stroke-width="2"
-					d="M1 5h12m0 0L9 1m4 4L9 9"
-				/>
+					d="M200,64V168a8,8,0,0,1-16,0V83.31L69.66,197.66a8,8,0,0,1-11.32-11.32L172.69,72H88a8,8,0,0,1,0-16H192A8,8,0,0,1,200,64Z"
+				></path>
 			</svg>
+			Administrar
 		</a>
 	</div>
 </div>
+
+<style>
+	a {
+		text-decoration: none;
+	}
+</style>

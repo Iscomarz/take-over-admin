@@ -89,69 +89,93 @@
 </script>
 
 <Toaster />
-<main>
-	<h1>Reenviar Tickets</h1>
-	<div>
-		<label for="evento">Seleccionar Evento:</label>
-		<select id="evento" bind:value={selectedEvento} on:change={fetchVentas}>
-			<option value="" disabled selected>Seleccione un evento</option>
-			{#each eventos as evento}
-				<option value={evento}>{evento.nombreEvento}</option>
-			{/each}
-		</select>
-	</div>
 
-	{#if dataCargada}
-		<table>
-			<thead>
-				<tr>
-					<th>Cliente</th>
-					<th>Correo</th>
-					<th>Fecha</th>
-					<th>Cantidad</th>
-					<th>Ticket</th>
-					<th>Monto</th>
-					<th>Acciones</th>
-				</tr>
-			</thead>
-			<tbody>
-				{#each ventas as venta}
-					<tr>
-						<td>{venta.nombre}</td>
-						<td>{venta.correo}</td>
-						<td>{venta.fechaVenta}</td>
-						<td>{venta.cantidadTickets}</td>
-						<td>{venta.idFaseEvento}</td>
-						<td>{venta.idPago}</td>
-						<td>
-							<button on:click={() => reenviarTickets(venta)}>Reenviar Tickets</button>
-						</td>
-					</tr>
+<div class="min-h-screen bg-gradient-to-b from-black-900 to-stone-800 text-white p-6 pb-20">
+	<div class="max-w-6xl mx-auto">
+		<!-- Header -->
+		<div class="text-center mb-8">
+			<h1 class="text-3xl font-bold mb-2">Reenviar Tickets</h1>
+			<p class="text-stone-400 text-sm">Selecciona un evento para reenviar los tickets de una venta</p>
+		</div>
+
+		<!-- Selector de evento -->
+		<div class="bg-stone-800/50 rounded-2xl p-6 border border-stone-700 mb-6">
+			<label for="evento" class="block text-sm font-medium mb-2 text-stone-300"
+				>Seleccionar Evento:</label
+			>
+			<select
+				id="evento"
+				bind:value={selectedEvento}
+				on:change={fetchVentas}
+				class="w-full bg-stone-700 text-white border border-stone-600 rounded-xl p-3 focus:ring-2 focus:ring-stone-500 focus:border-transparent"
+			>
+				<option value="" disabled selected>Seleccione un evento</option>
+				{#each eventos as evento}
+					<option value={evento}>{evento.nombreEvento}</option>
 				{/each}
-			</tbody>
-		</table>
-	{/if}
-</main>
+			</select>
+		</div>
+
+		<!-- Tabla de ventas -->
+		{#if dataCargada}
+			<div class="bg-stone-800/50 rounded-2xl border border-stone-700 overflow-hidden">
+				<div class="overflow-x-auto">
+					<table class="w-full">
+						<thead class="bg-stone-700/50">
+							<tr>
+								<th class="px-4 py-3 text-left text-sm font-semibold text-stone-300">Cliente</th>
+								<th class="px-4 py-3 text-left text-sm font-semibold text-stone-300">Correo</th>
+								<th class="px-4 py-3 text-left text-sm font-semibold text-stone-300">Fecha</th>
+								<th class="px-4 py-3 text-left text-sm font-semibold text-stone-300">Cantidad</th>
+								<th class="px-4 py-3 text-left text-sm font-semibold text-stone-300">Ticket</th>
+								<th class="px-4 py-3 text-left text-sm font-semibold text-stone-300">Monto</th>
+								<th class="px-4 py-3 text-left text-sm font-semibold text-stone-300">Acciones</th>
+							</tr>
+						</thead>
+						<tbody class="divide-y divide-stone-700">
+							{#each ventas as venta}
+								<tr class="hover:bg-stone-700/30 transition-colors">
+									<td class="px-4 py-3 text-sm">{venta.nombre}</td>
+									<td class="px-4 py-3 text-sm text-stone-400">{venta.correo}</td>
+									<td class="px-4 py-3 text-sm text-stone-400">
+										{new Date(venta.fechaVenta).toLocaleDateString()}
+									</td>
+									<td class="px-4 py-3 text-sm">{venta.cantidadTickets}</td>
+									<td class="px-4 py-3 text-sm">{venta.idFaseEvento || 'N/A'}</td>
+									<td class="px-4 py-3 text-sm font-semibold text-green-400">
+										${venta.idPago || '0.00'}
+									</td>
+									<td class="px-4 py-3">
+										<button
+											on:click={() => reenviarTickets(venta)}
+											class="bg-stone-700 hover:bg-stone-600 text-white py-2 px-4 rounded-xl font-semibold transition-colors border border-stone-600 flex items-center gap-2 text-sm"
+										>
+											<svg
+												xmlns="http://www.w3.org/2000/svg"
+												width="16"
+												height="16"
+												fill="currentColor"
+												viewBox="0 0 256 256"
+											>
+												<path
+													d="M224,48H32a8,8,0,0,0-8,8V192a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A8,8,0,0,0,224,48ZM98.71,128,40,181.81V74.19Zm11.84,10.85,12,11.05a8,8,0,0,0,10.82,0l12-11.05,58,53.15H52.57ZM157.29,128,216,74.18V181.82Z"
+												></path>
+											</svg>
+											Reenviar
+										</button>
+									</td>
+								</tr>
+							{/each}
+						</tbody>
+					</table>
+				</div>
+			</div>
+		{/if}
+	</div>
+</div>
 
 <style>
-	main {
-		padding: 1rem;
-	}
 	table {
-		width: 100%;
 		border-collapse: collapse;
-		margin-top: 1rem;
-	}
-	th,
-	td {
-		border: 1px solid #ddd;
-		padding: 0.5rem;
-	}
-	th {
-		background-color: #f4f4f4;
-		color: #000000;
-	}
-	select {
-		color: #000000;
 	}
 </style>

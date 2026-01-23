@@ -225,111 +225,128 @@
 
 <Toaster />
 
-<h1>Nuevo Ticket</h1>
-<br />
-<form class="max-w-sm mx-auto">
-	<label for="events" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-		>Evento</label
-	>
-	<select
-		on:change={(event) => {
-			eventoSelec = eventos.find((e) => e.idevento == event.target.value);
-			traerFases();
-		}}
-		required
-		id="events"
-		class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-	>
-		<option value={null} selected>Seleccionar Evento</option>
-		{#each eventos as evento}
-			<option value={evento.idevento}>{evento.nombreEvento}</option>
-		{/each}
-	</select>
-	<label for="events" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-		>Fase</label
-	>
-	<select
-		on:change={(event) => {
-			faseSelec = fasesEvento.find((e) => e.idFase == event.target.value);
-		}}
-		required
-		id="fases"
-		class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-	>
-		<option value={null} selected>Seleccionar fase</option>
-		{#each fasesEvento as fase}
-			<option value={fase.idFase}>{fase.nombreFace} ${fase.precio}</option>
-		{/each}
-	</select>
+<div class="min-h-screen bg-gradient-to-b from-black-900 to-stone-800 text-white p-6 pb-20">
+	<div class="max-w-2xl mx-auto">
+		<!-- Header -->
+		<div class="text-center mb-8">
+			<h1 class="text-3xl font-bold mb-2">Generar Nuevo Ticket</h1>
+			<p class="text-stone-400 text-sm">Completa la información para crear tickets</p>
+		</div>
 
-	<div>
-		<label for="nombre" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-			>Nombre</label
-		>
-		<input
-			bind:value={nombre}
-			type="text"
-			id="nombre"
-			class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-			placeholder="Nombre"
-			required
-		/>
-	</div>
-	<div>
-		<label for="correo" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-			>Correo</label
-		>
-		<input
-			bind:value={correo}
-			type="email"
-			id="correo"
-			class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-			placeholder="Mail"
-		/>
-	</div>
-	<div>
-		<label for="cantidad" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-			>Cantidad</label
-		>
-		<input
-			bind:value={cantidad}
-			type="number"
-			id="cantidad"
-			class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-			placeholder="Qty"
-			required
-			min="0"
-		/>
-	</div>
-	<label for="events" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-		>Forma de pago</label
-	>
-	<select
-		on:change={(event) => {
-			formaPagoSelect = formasPago.find((e) => e.idformapago == event.target.value);
-		}}
-		required
-		id="formasPago"
-		class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-	>
-		<option value={null} selected>Seleccionar forma de pago</option>
-		{#each formasPago as formaPago}
-			<option value={formaPago.idformapago}>{formaPago.nombre}</option>
-		{/each}
-	</select>
-	<br />
-	<button
-		on:click={generarTicket}
-		type="submit"
-		class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-		>Generar</button
-	>
-</form>
+		<form class="bg-stone-800/50 rounded-2xl p-6 border border-stone-700 space-y-6">
+			<!-- Evento -->
+			<div>
+				<label for="events" class="block text-sm font-medium mb-2 text-stone-300">Evento</label>
+				<select
+					on:change={(event) => {
+						eventoSelec = eventos.find((e) => e.idevento == event.target.value);
+						traerFases();
+					}}
+					required
+					id="events"
+					class="w-full bg-stone-700 text-white border border-stone-600 rounded-xl p-3 focus:ring-2 focus:ring-stone-500 focus:border-transparent"
+				>
+					<option value={null} selected>Seleccionar Evento</option>
+					{#each eventos as evento}
+						<option value={evento.idevento}>{evento.nombreEvento}</option>
+					{/each}
+				</select>
+			</div>
 
-<style>
-	h1 {
-		width: 100%;
-		color: whitesmoke;
-		text-align: center;
-	}
-</style>
+			<!-- Fase -->
+			<div>
+				<label for="fases" class="block text-sm font-medium mb-2 text-stone-300">Fase</label>
+				<select
+					on:change={(event) => {
+						faseSelec = fasesEvento.find((e) => e.idFase == event.target.value);
+					}}
+					required
+					id="fases"
+					class="w-full bg-stone-700 text-white border border-stone-600 rounded-xl p-3 focus:ring-2 focus:ring-stone-500 focus:border-transparent"
+				>
+					<option value={null} selected>Seleccionar fase</option>
+					{#each fasesEvento as fase}
+						<option value={fase.idFase}>{fase.nombreFace} ${fase.precio}</option>
+					{/each}
+				</select>
+			</div>
+			<!-- Nombre -->
+			<div>
+				<label for="nombre" class="block text-sm font-medium mb-2 text-stone-300">Nombre</label>
+				<input
+					bind:value={nombre}
+					type="text"
+					id="nombre"
+					class="w-full bg-stone-700 text-white border border-stone-600 rounded-xl p-3 focus:ring-2 focus:ring-stone-500 focus:border-transparent"
+					placeholder="Nombre del cliente"
+					required
+				/>
+			</div>
+
+			<!-- Correo -->
+			<div>
+				<label for="correo" class="block text-sm font-medium mb-2 text-stone-300">Correo</label>
+				<input
+					bind:value={correo}
+					type="email"
+					id="correo"
+					class="w-full bg-stone-700 text-white border border-stone-600 rounded-xl p-3 focus:ring-2 focus:ring-stone-500 focus:border-transparent"
+					placeholder="correo@ejemplo.com"
+				/>
+			</div>
+
+			<!-- Cantidad -->
+			<div>
+				<label for="cantidad" class="block text-sm font-medium mb-2 text-stone-300">Cantidad</label>
+				<input
+					bind:value={cantidad}
+					type="number"
+					id="cantidad"
+					class="w-full bg-stone-700 text-white border border-stone-600 rounded-xl p-3 focus:ring-2 focus:ring-stone-500 focus:border-transparent"
+					placeholder="Número de tickets"
+					required
+					min="1"
+				/>
+			</div>
+
+			<!-- Forma de pago -->
+			<div>
+				<label for="formasPago" class="block text-sm font-medium mb-2 text-stone-300"
+					>Forma de pago</label
+				>
+				<select
+					on:change={(event) => {
+						formaPagoSelect = formasPago.find((e) => e.idformapago == event.target.value);
+					}}
+					required
+					id="formasPago"
+					class="w-full bg-stone-700 text-white border border-stone-600 rounded-xl p-3 focus:ring-2 focus:ring-stone-500 focus:border-transparent"
+				>
+					<option value={null} selected>Seleccionar forma de pago</option>
+					{#each formasPago as formaPago}
+						<option value={formaPago.idformapago}>{formaPago.nombre}</option>
+					{/each}
+				</select>
+			</div>
+			<!-- Botón generar -->
+			<button
+				on:click={generarTicket}
+				type="submit"
+				class="w-full bg-stone-700 hover:bg-stone-600 text-white py-3 px-6 rounded-xl font-semibold transition-colors border border-stone-600 flex items-center justify-center gap-2"
+			>
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					width="20"
+					height="20"
+					fill="currentColor"
+					viewBox="0 0 256 256"
+				>
+					<path
+						d="M232,96a8,8,0,0,1-8,8H176v16h32a8,8,0,0,1,0,16H176v16h48a8,8,0,0,1,0,16H176v16h32a8,8,0,0,1,0,16H176v16a8,8,0,0,1-16,0V56a8,8,0,0,1,16,0V88h48A8,8,0,0,1,232,96ZM64,120H96v16H64a8,8,0,0,0,0,16H96v16H80a8,8,0,0,0,0,16H96v16a8,8,0,0,0,16,0V56a8,8,0,0,0-16,0V88H64a8,8,0,0,0,0,16H96v16H64a8,8,0,0,0,0,16Z"
+					></path>
+				</svg>
+				Generar Tickets
+			</button>
+		</form>
+	</div>
+</div>

@@ -97,158 +97,154 @@
 
 <Toaster />
 
-<h1>Datos Generales del Evento</h1>
+<div class="min-h-screen bg-gradient-to-b from-black-900 to-stone-800 text-white p-6 pb-20">
+	<div class="max-w-2xl mx-auto">
+		<!-- Header -->
+		<div class="text-center mb-8">
+			<h1 class="text-3xl font-bold mb-2">Datos Generales del Evento</h1>
+			<p class="text-stone-400 text-sm">Completa la información básica del evento</p>
+		</div>
 
-<form on:submit={siguientePaso} class="max-w-md mx-auto">
-	<div class="relative z-0 w-full mb-5 group">
-		<input
-			type="text"
-			name="floating_nombre"
-			id="floating_nombre"
-			class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
-			placeholder=" "
-			required
-			bind:value={nombreEvento}
-		/>
-		<label
-			for="floating_nombre"
-			class="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6"
-			>Nombre del evento</label
-		>
-	</div>
-	<div class="relative z-0 w-full mb-5 group">
-		<input
-			type="text"
-			name="floating_venue"
-			id="floating_venue"
-			class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
-			placeholder=" "
-			required
-			bind:value={venue}
-		/>
-		<label
-			for="floating_venue"
-			class="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 rtl:peer-focus:translate-x-1/4 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6"
-			>Venue/Lugar</label
-		>
-	</div>
+		<form on:submit={siguientePaso} class="bg-stone-800/50 rounded-2xl p-6 border border-stone-700">
+			<div class="mb-6">
+				<label for="floating_nombre" class="block text-sm font-medium mb-2 text-stone-300"
+					>Nombre del evento</label
+				>
+				<input
+					type="text"
+					name="floating_nombre"
+					id="floating_nombre"
+					class="w-full bg-stone-700 text-white border border-stone-600 rounded-xl p-3 focus:ring-2 focus:ring-stone-500 focus:border-transparent"
+					placeholder="Ingresa el nombre del evento"
+					required
+					bind:value={nombreEvento}
+				/>
+			</div>
 
-	<!-- Datepicker para fecha de inicio -->
-	<div class="relative z-0 w-full mb-5 group">
-		<input
-			type="text"
-			id="fechaInicio"
-			name="fechaInicio"
-			class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer date-pick"
-			placeholder="Fecha de inicio"
-			required
-			bind:value={fechaInicio}
-		/>
-		<label
-			for="fechaInicio"
-			class="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 peer-focus:scale-75 peer-focus:-translate-y-6"
-			>Fecha de Inicio</label
-		>
-	</div>
+			<div class="mb-6">
+				<label for="floating_venue" class="block text-sm font-medium mb-2 text-stone-300"
+					>Venue/Lugar</label
+				>
+				<input
+					type="text"
+					name="floating_venue"
+					id="floating_venue"
+					class="w-full bg-stone-700 text-white border border-stone-600 rounded-xl p-3 focus:ring-2 focus:ring-stone-500 focus:border-transparent"
+					placeholder="Ingresa el lugar del evento"
+					required
+					bind:value={venue}
+				/>
+			</div>
 
-	<!-- Datepicker para fecha de fin -->
-	<div class="relative z-0 w-full mb-5 group">
-		<input
-			type="text"
-			id="fechaFin"
-			name="fechaFin"
-			class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer date-pick"
-			placeholder="Fecha de fin"
-			required
-			bind:value={fechaFin}
-		/>
-		<label
-			for="fechaFin"
-			class="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 peer-focus:scale-75 peer-focus:-translate-y-6"
-			>Fecha de Fin</label
-		>
-	</div>
+			<!-- Datepicker para fecha de inicio -->
+			<div class="mb-6">
+				<label for="fechaInicio" class="block text-sm font-medium mb-2 text-stone-300"
+					>Fecha de Inicio</label
+				>
+				<input
+					type="text"
+					id="fechaInicio"
+					name="fechaInicio"
+					class="w-full bg-stone-700 text-white border border-stone-600 rounded-xl p-3 focus:ring-2 focus:ring-stone-500 focus:border-transparent"
+					placeholder="Selecciona la fecha de inicio"
+					required
+					bind:value={fechaInicio}
+				/>
+			</div>
 
-	<div class="relative z-0 w-full mb-5 group">
-		<input
-			type="text"
-			name="floating_direccion"
-			id="floating_direccion"
-			class="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
-			placeholder=""
-			required
-			bind:value={direccion}
-		/>
-		<label
-			for="floating_direccion"
-			class="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 rtl:peer-focus:translate-x-1/4 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6"
-			>Direccion</label
-		>
-	</div>
+			<!-- Datepicker para fecha de fin -->
+			<div class="mb-6">
+				<label for="fechaFin" class="block text-sm font-medium mb-2 text-stone-300"
+					>Fecha de Fin</label
+				>
+				<input
+					type="text"
+					id="fechaFin"
+					name="fechaFin"
+					class="w-full bg-stone-700 text-white border border-stone-600 rounded-xl p-3 focus:ring-2 focus:ring-stone-500 focus:border-transparent"
+					placeholder="Selecciona la fecha de fin"
+					required
+					bind:value={fechaFin}
+				/>
+			</div>
 
-	<div class="flujo">
-		<button
-			type="submit"
-			class="text-white focus:ring-4 focus:outline-none font-medium rounded-lg text-sm w-80 sm:w-auto px-5 py-2.5 text-center"
-			>Siguiente
-		</button>
+			<div class="mb-6">
+				<label for="floating_direccion" class="block text-sm font-medium mb-2 text-stone-300"
+					>Dirección</label
+				>
+				<input
+					type="text"
+					name="floating_direccion"
+					id="floating_direccion"
+					class="w-full bg-stone-700 text-white border border-stone-600 rounded-xl p-3 focus:ring-2 focus:ring-stone-500 focus:border-transparent"
+					placeholder="Ingresa la dirección"
+					required
+					bind:value={direccion}
+				/>
+			</div>
 
-		<button
-			on:click={(event) => {
-				event.stopPropagation();
-				event.preventDefault();
+			<div class="flex gap-4 mt-8">
+				<button
+					type="submit"
+					class="flex-1 bg-stone-700 hover:bg-stone-600 text-white py-3 px-6 rounded-xl font-semibold transition-colors border border-stone-600"
+					>Siguiente
+				</button>
+
+				<button
+					on:click={(event) => {
+						event.stopPropagation();
+						event.preventDefault();
+						limpiarStore();
 				limpiarStore();
 			}}
-			class="text-white focus:ring-4 focus:outline-none font-medium rounded-lg text-sm w-20 sm:w-auto px-5 py-2.5 text-center items-center flex justify-center"
+			class="bg-red-900/30 hover:bg-red-900/50 text-red-400 py-3 px-6 rounded-xl font-semibold transition-colors border border-red-500/50 flex items-center justify-center gap-2"
 		>
 			<svg
 				xmlns="http://www.w3.org/2000/svg"
-				width="24"
-				height="24"
-				fill="#000000"
+				width="20"
+				height="20"
+				fill="currentColor"
 				viewBox="0 0 256 256"
-				><path
-					d="M224,128a96,96,0,0,1-94.71,96H128A95.38,95.38,0,0,1,62.1,197.8a8,8,0,0,1,11-11.63A80,80,0,1,0,71.43,71.39a3.07,3.07,0,0,1-.26.25L44.59,96H72a8,8,0,0,1,0,16H24a8,8,0,0,1-8-8V56a8,8,0,0,1,16,0V85.8L60.25,60A96,96,0,0,1,224,128Z"
-				></path></svg
 			>
+				<path
+					d="M224,128a96,96,0,0,1-94.71,96H128A95.38,95.38,0,0,1,62.1,197.8a8,8,0,0,1,11-11.63A80,80,0,1,0,71.43,71.39a3.07,3.07,0,0,1-.26.25L44.59,96H72a8,8,0,0,1,0,16H24a8,8,0,0,1-8-8V56a8,8,0,0,1,16,0V85.8L60.25,60A96,96,0,0,1,224,128Z"
+				></path>
+			</svg>
+			Limpiar
 		</button>
+			</div>
+		</form>
 	</div>
-</form>
+</div>
 
 <style>
-	input {
-		color: black;
+	:global(.flatpickr-calendar) {
+		background-color: #292524 !important;
+		border-color: #57534e !important;
 	}
 
-	h1 {
-		width: 100%;
-		color: whitesmoke;
-		text-align: center;
-		padding-bottom: 40px;
+	:global(.flatpickr-day) {
+		color: white !important;
 	}
 
-	.flujo {
-		width: 100%;
-		display: flex;
-		justify-content: center;
-		gap: 20px;
-		margin-top: 20px;
+	:global(.flatpickr-day.selected) {
+		background-color: #57534e !important;
+		border-color: #57534e !important;
 	}
 
-	button {
-		background-color: rgb(63, 248, 186);
-		color: black;
+	:global(.flatpickr-day:hover) {
+		background-color: #44403c !important;
 	}
 
-	button:hover {
-		background-color: rgb(52, 180, 137);
+	:global(.flatpickr-current-month) {
+		color: white !important;
 	}
 
-	.date-pick {
-		color: whitesmoke;
+	:global(.flatpickr-months .flatpickr-month) {
+		color: white !important;
 	}
 
-	input {
-		color: whitesmoke;
+	:global(.flatpickr-weekday) {
+		color: #a8a29e !important;
 	}
 </style>
