@@ -52,13 +52,19 @@
 	}
 
 	function formatDate(dateStr) {
-		const date = new Date(dateStr);
+		// Asegurar que la fecha se trate como UTC
+		let fecha = dateStr;
+		if (typeof fecha === 'string' && !fecha.endsWith('Z') && !fecha.includes('+')) {
+			fecha = fecha + 'Z';
+		}
+		const date = new Date(fecha);
 		return new Intl.DateTimeFormat('es-MX', {
 			day: '2-digit',
 			month: '2-digit',
 			year: 'numeric',
 			hour: '2-digit',
-			minute: '2-digit'
+			minute: '2-digit',
+			timeZone: 'America/Mexico_City'
 		}).format(date);
 	}
 

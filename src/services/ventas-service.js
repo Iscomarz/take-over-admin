@@ -11,15 +11,28 @@ function parseMoney(value) {
 
 //Ventas del dia
 export async function obtenerVentasDelDia() {
-    const hoy = new Date();
-    hoy.setHours(0, 0, 0, 0); // Establecer al inicio del día
-    const mañana = new Date(hoy);
-    mañana.setDate(hoy.getDate() + 1); // Establecer al inicio del día siguiente
+    // Obtener componentes de fecha en zona horaria de México
+    const ahora = new Date();
+    const formatter = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'America/Mexico_City',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+    });
+    const parts = formatter.formatToParts(ahora);
+    const year = parts.find(p => p.type === 'year').value;
+    const month = parts.find(p => p.type === 'month').value;
+    const day = parts.find(p => p.type === 'day').value;
+    
+    // Medianoche en México (00:00 CDMX) = 06:00 UTC del mismo día
+    const inicioDiaMexico = new Date(`${year}-${month}-${day}T06:00:00.000Z`);
+    const finDiaMexico = new Date(inicioDiaMexico.getTime() + 24 * 60 * 60 * 1000);
+    
     const { data, error } = await supabase
         .from('mVenta')
         .select('*, mPago(*)')
-        .gte('fechaVenta', hoy.toISOString())
-        .lt('fechaVenta', mañana.toISOString());
+        .gte('fechaVenta', inicioDiaMexico.toISOString())
+        .lt('fechaVenta', finDiaMexico.toISOString());
     if (error) {
         console.error('Error al obtener ventas del día:', error);
         return [];
