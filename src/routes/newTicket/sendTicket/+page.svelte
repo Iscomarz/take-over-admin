@@ -58,7 +58,7 @@
 
 <Toaster />
 
-<div class="min-h-screen bg-gradient-to-b from-black-900 to-stone-800 text-white p-6 pb-20">
+<div class="min-h-screen bg-gradient-to-b from-black-900 to-stone-800 text-white pb-20">
 	<div class="max-w-4xl mx-auto">
 		<!-- Header -->
 		<div class="text-center mb-8">

@@ -219,7 +219,7 @@
 	on:close={handleModalClose}
 />
 
-<div class="min-h-screen bg-gradient-to-b from-black-900 to-black-800 text-white p-4 pb-20">
+<div class="min-h-screen bg-gradient-to-b from-black-900 to-black-800 text-white pb-20">
 	<!-- Header -->
 	<div class="w-full">
 		<div class="text-center mb-6">
