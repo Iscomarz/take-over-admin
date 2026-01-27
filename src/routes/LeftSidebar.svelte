@@ -25,6 +25,7 @@
 	<a href="/newTicket">Generar ticket</a>
 	<a href="/validate">Validar QR</a>
 	<a href="/reenviarTickets">Reenviar Tickets</a>
+	<a href="/teamMembers">Equipo</a>
 	{/if}
 </section>
 
