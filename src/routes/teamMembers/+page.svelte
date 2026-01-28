@@ -318,7 +318,7 @@
 				<!-- Rol -->
 				<div>
 					<label class="block text-sm font-medium text-stone-300 mb-2">
-						Rol <span class="text-red-500">*</span>
+						Rol 
 					</label>
 					<input
 						type="text"
@@ -326,7 +326,6 @@
 						maxlength="100"
 						class="w-full bg-stone-800 border border-stone-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-stone-500"
 						placeholder="DJ, Producer, Manager, etc."
-						required
 					/>
 					<p class="text-xs text-stone-500 mt-1">{miembroActual.role.length}/100 caracteres</p>
 				</div>
