@@ -121,7 +121,10 @@
 			precio: 0,
 			limite: null,
 			fechaExpira: null,
-			idEvento: eventoId
+			idEvento: eventoId,
+			oculto: false,
+			soldout: false,
+			activo: true
 		};
 		fases.push(nuevaFase);
 	}

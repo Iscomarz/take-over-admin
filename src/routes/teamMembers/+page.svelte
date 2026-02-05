@@ -213,7 +213,7 @@
 
 <Toaster />
 
-<div class="min-h-screen bg-gradient-to-b from-stone-900 to-stone-800 text-white pb-20">
+<div class="min-h-screen bg-gradient-to-b from-black-900 to-stone-800 text-white pb-20">
 	<div class="max-w-7xl mx-auto px-4 py-8">
 		<!-- Header -->
 		<div class="flex justify-between items-center mb-8">
@@ -280,6 +280,7 @@
 
 <!-- Modal de Crear/Editar -->
 {#if mostrarModal}
+	<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
 	<div
 		class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
 		on:click={cerrarModal}
@@ -301,6 +302,7 @@
 			<form on:submit|preventDefault={guardarMiembro} class="space-y-6">
 				<!-- Nombre -->
 				<div>
+					<!-- svelte-ignore a11y-label-has-associated-control -->
 					<label class="block text-sm font-medium text-stone-300 mb-2">
 						Nombre <span class="text-red-500">*</span>
 					</label>

@@ -8,6 +8,8 @@
 
 	let showDropdown = false; // Estado para controlar la visibilidad del dropdown
 	let dropdownButton;
+	let openEventos = false;
+	let openHerramientas = false;
 
 	//control de email
 	let userEmail = '';
@@ -23,19 +25,19 @@
 		};
 	});
 
-	 async function checkSession() {
-        try {
-            const { data, error } = await supabase.auth.getSession();
-            if (error) {
-                console.error('Error al obtener sesión:', error);
-                return;
-            }
-            userEmail = data?.session?.user?.email ?? '';
-            isValidator = userEmail === 'validaciones@takeover.com';
-        } catch (e) {
-            console.error(e);
-        }
-    }
+	async function checkSession() {
+		try {
+			const { data, error } = await supabase.auth.getSession();
+			if (error) {
+				console.error('Error al obtener sesión:', error);
+				return;
+			}
+			userEmail = data?.session?.user?.email ?? '';
+			isValidator = userEmail === 'validaciones@takeover.com';
+		} catch (e) {
+			console.error(e);
+		}
+	}
 
 	function handleClickOutside(event) {
 		if (dropdownButton && !dropdownButton.contains(event.target)) {
@@ -65,6 +67,12 @@
 	async function toggleDropdown() {
 		showDropdown = !showDropdown;
 		await tick(); // Cambia el estado al hacer clic
+	}
+
+	function toggleGroup(group, event) {
+		event.stopPropagation();
+		if (group === 'eventos') openEventos = !openEventos;
+		if (group === 'herramientas') openHerramientas = !openHerramientas;
 	}
 </script>
 
@@ -113,81 +121,105 @@
 				>
 					<div class="py-1" role="none">
 						{#if isValidator}
-						<a
-							on:click={toggleDropdown}
-							href="/validate"
-							class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-							role="menuitem"
-							tabindex="-1"
-							id="menu-item-4">Validar QR</a
-						>
-						<button
-							on:click={cerrarSesion}
-							type="submit"
-							class="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
-							role="menuitem"
-							tabindex="-1"
-							id="menu-item-3">Salir</button
-						>
-						
+							<a
+								on:click={toggleDropdown}
+								href="/validate"
+								class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+								role="menuitem"
+								tabindex="-1"
+								id="menu-item-4">Validar QR</a
+							>
+							<button
+								on:click={cerrarSesion}
+								type="submit"
+								class="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
+								role="menuitem"
+								tabindex="-1"
+								id="menu-item-3">Salir</button
+							>
 						{:else}
-						<a
-							on:click={toggleDropdown}
-							href="/newEvent"
-							class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-							role="menuitem"
-							tabindex="-1"
-							id="menu-item-1">Nuevo Evento</a
-						>
-						<a
-							on:click={toggleDropdown}
-							href="/events"
-							class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-							role="menuitem"
-							tabindex="-1"
-							id="menu-item-2">Administrar Eventos</a
-						>
-						<a
-							on:click={toggleDropdown}
-							href="/newTicket"
-							class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-							role="menuitem"
-							tabindex="-1"
-							id="menu-item-3">Generar Ticket</a
-						>
-						<a
-							on:click={toggleDropdown}
-							href="/validate"
-							class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-							role="menuitem"
-							tabindex="-1"
-							id="menu-item-4">Validar QR</a
-						>
-						<a
-							on:click={toggleDropdown}
-							href="/reenviarTickets"
-							class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-							role="menuitem"
-							tabindex="-1"
-							id="menu-item-4">Reenviar Tickets</a
-						>
-						<a
-							on:click={toggleDropdown}
-							href="/teamMembers"
-							class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-							role="menuitem"
-							tabindex="-1"
-							id="menu-item-4">Equipo</a
-						>
+							<!-- Grupo Eventos -->
+							<div class="border-b border-gray-200">
+								<button
+									class="w-full text-left px-4 py-2 text-sm font-semibold text-gray-900 hover:bg-gray-50 flex justify-between items-center"
+									on:click={(e) => toggleGroup('eventos', e)}
+								>
+									Eventos
+									<span class="transition-transform {openEventos ? 'rotate-180' : ''}">▼</span>
+								</button>
+								{#if openEventos}
+									<div class="bg-gray-50">
+										<a
+											on:click={toggleDropdown}
+											href="/events"
+											class="block px-8 py-2 text-sm text-gray-700 hover:bg-gray-100"
+										>Ver Todos</a
+										>
+										<a
+											on:click={toggleDropdown}
+											href="/newEvent"
+											class="block px-8 py-2 text-sm text-gray-700 hover:bg-gray-100"
+										>Crear Nuevo</a
+										>
+									</div>
+								{/if}
+							</div>
 
-						<button
-							on:click={cerrarSesion}
-							type="submit"
-							class="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
-							role="menuitem"
-							tabindex="-1"
-							id="menu-item-3">Salir</button
-						>
+							<!-- Grupo Herramientas -->
+							<div class="border-b border-gray-200">
+								<button
+									class="w-full text-left px-4 py-2 text-sm font-semibold text-gray-900 hover:bg-gray-50 flex justify-between items-center"
+									on:click={(e) => toggleGroup('herramientas', e)}
+								>
+									Herramientas
+									<span class="transition-transform {openHerramientas ? 'rotate-180' : ''}">▼</span>
+								</button>
+								{#if openHerramientas}
+									<div class="bg-gray-50">
+										<a
+											on:click={toggleDropdown}
+											href="/newTicket"
+											class="block px-8 py-2 text-sm text-gray-700 hover:bg-gray-100"
+										>Generar Tickets</a
+										>
+										<a
+											on:click={toggleDropdown}
+											href="/validate"
+											class="block px-8 py-2 text-sm text-gray-700 hover:bg-gray-100"
+										>Validar QR</a
+										>
+										<a
+											on:click={toggleDropdown}
+											href="/reenviarTickets"
+											class="block px-8 py-2 text-sm text-gray-700 hover:bg-gray-100"
+										>Reenviar Tickets</a
+										>
+									</div>
+								{/if}
+							</div>
+
+							<!-- Equipo y Campañas -->
+							<a
+								on:click={toggleDropdown}
+								href="/teamMembers"
+								class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+							>Equipo</a
+							>
+							<a
+								on:click={toggleDropdown}
+								href="/campanias"
+								class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+							>Campañas</a
+							>
+
+							<div class="border-t border-gray-200 mt-1">
+								<button
+									on:click={cerrarSesion}
+									type="submit"
+									class="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
+								>Salir</button
+								>
+							</div>
 						{/if}
 					</div>
 				</div>
