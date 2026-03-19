@@ -28,7 +28,7 @@
 
 	onMount(async () => {
 		toast.dismiss();
-		await traerEventoMasCercano();
+		await traerEventoActivo();
 
 		if (typeof window !== 'undefined') {
 			token = localStorage.getItem('token');
@@ -148,14 +148,11 @@
 		}
 	}
 
-	async function traerEventoMasCercano() {
+	async function traerEventoActivo() {
 		const { data, error } = await supabase
 			.from('mEvento')
 			.select('*')
-			.gt('fechaInicio', new Date().toISOString())
-			.order('fechaInicio', {
-				ascending: true
-			})
+			.eq('activo', true)
 			.limit(1);
 
 		if (error) {
@@ -227,6 +224,26 @@
 			<p class="text-gray-400 text-sm">
 				{selectedEvento ? selectedEvento.nombreEvento : 'Cargando evento...'}
 			</p>
+		</div>
+
+		<!-- Botón Venta en Taquilla -->
+		<div class="mb-6">
+			<button
+				on:click={() => goto('/ventaTaquilla')}
+				class="w-full bg-green-600 hover:bg-green-700 text-white py-4 px-6 rounded-2xl font-bold text-lg transition-colors shadow-lg shadow-green-900/50 flex items-center justify-center gap-3"
+			>
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					class="w-7 h-7"
+					fill="currentColor"
+					viewBox="0 0 256 256"
+				>
+					<path
+						d="M216,64H176V56a24,24,0,0,0-24-24H104A24,24,0,0,0,80,56v8H40A16,16,0,0,0,24,80V192a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V80A16,16,0,0,0,216,64ZM96,56a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96ZM216,192H40V80H216V192Zm-88-32a48,48,0,1,0-48-48A48.05,48.05,0,0,0,128,160Zm0-80a32,32,0,1,1-32,32A32,32,0,0,1,128,80Z"
+					></path>
+				</svg>
+				Venta en Taquilla
+			</button>
 		</div>
 
 		<!-- Selector de Modo -->

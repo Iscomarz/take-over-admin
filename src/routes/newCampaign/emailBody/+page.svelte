@@ -160,7 +160,7 @@
 			datosCampania = {
 				titulo: campania.titulo,
 				asunto: campania.asunto,
-				destinatarios: campania.destinatarios?.map(d => d.venta_id) || [],
+				destinatarios: campania.destinatarios?.map(d => d.cliente_id) || [],
 				cuerpoHtml: campania.cuerpo_html,
 				usarVariable: campania.usar_variable_nombre
 			};
@@ -363,9 +363,9 @@
 			// Obtener datos completos de los clientes desde la BD
 			console.log('🔍 Obteniendo datos completos de clientes...');
 			const { data: clientesCompletos, error: errorClientes } = await supabase
-				.from('mVenta')
-				.select('idventa, correo, nombre')
-				.in('idventa', datosCompletos.destinatarios);
+				.from('mCliente')
+				.select('cliente_id, correo, nombre')
+				.in('cliente_id', datosCompletos.destinatarios);
 
 			if (errorClientes || !clientesCompletos) {
 				console.error('Error al obtener clientes:', errorClientes);
@@ -383,7 +383,7 @@
 			};
 
 			const destinatariosParaEnviar = clientesCompletos.map(c => ({
-				id: c.idventa,
+				id: c.cliente_id,
 				correo: c.correo,
 				nombre: c.nombre
 			}));

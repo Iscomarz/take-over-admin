@@ -10,7 +10,7 @@
 	import { FileDrop } from 'svelte-droplet';
 
 	const evento = get(eventoStore);
-	let { nombreEvento, venue, fechaInicio, fechaFin, direccion } = evento;
+	let { nombreEvento, id_venue, venue, fechaInicio, fechaFin, direccion, descripcionCorta, generos } = evento;
 	//fases
 	let nombreFace = '';
 	let precio = '';
@@ -67,11 +67,13 @@
 				.insert([
 					{
 						nombreEvento: nombreEvento,
-						venue: venue,
+						id_venue: id_venue, // Add the new ID here
+						venue: venue,       // Keep backwards compatibility
 						direccion: direccion,
 						fechaInicio: fechaInicio,
 						fechaFin: fechaFin,
 						usuario: idUsuario,
+						descripcionCorta: descripcionCorta,
 						pathImage: `${nombreEvento.replace(/ /g, '')}_img.png`
 					}
 				])
@@ -88,9 +90,40 @@
 			console.log(eventoData);
 			const eventoId = eventoData[0].idevento;
 
-			// Verificar que el evento se haya insertado correctamente antes de agregar fases
+			// Verificar que el evento se haya insertado correctamente antes de agregar fases y géneros
 			if (eventoId) {
 				await subirImagenEvento();
+
+				// Guardar o asociar géneros
+				if (generos && generos.length > 0) {
+					for (const genero of generos) {
+						let currentIdGenero = genero.id_genero;
+
+						// Si no tiene id, es nuevo y hay que insertarlo primero en generos_musicales
+						if (!currentIdGenero) {
+							const { data: newGeneroData, error: newGeneroError } = await supabase
+								.from('generos_musicales')
+								.insert([{ nombre_genero: genero.nombre_genero, activo: true }])
+								.select();
+							
+							if (newGeneroError) {
+								console.error('Error insertando nuevo género:', newGeneroError.message);
+								continue;
+							}
+							currentIdGenero = newGeneroData[0].id_genero;
+						}
+
+						// Insertar relación
+						const { error: relacionError } = await supabase
+							.from('r_evento_genero')
+							.insert([{ id_evento: eventoId, id_genero: currentIdGenero }]);
+
+						if (relacionError) {
+							console.error('Error insertando relación género-evento:', relacionError.message);
+						}
+					}
+				}
+
 				console.log(fases);
 				for (const fase of fases) {
 					const { error: faseError } = await supabase.from('cFaseEvento').insert([
@@ -106,13 +139,12 @@
 					if (faseError) {
 						console.error('Error al insertar la fase:', faseError.message);
 						throw new Error(faseError.message); // Lanzar error si falla la inserción de una fase
-					} else {
-						// Mostrar mensaje de éxito
-						toast.success('Evento creado exitosamente',{
-							duration: 3000
-						});
 					}
 				}
+				// Mostrar mensaje de éxito global después de fases
+				toast.success('Evento creado exitosamente',{
+					duration: 3000
+				});
 			}
 
 			// Limpiar el store después de guardar todo
@@ -132,6 +164,8 @@
 			fechaInicio: '',
 			fechaFin: '',
 			direccion: '',
+			descripcionCorta: '',
+			generos: [],
 			fases: []
 		});
 	}
@@ -164,12 +198,12 @@
 			img.onload = () => {
 				const { width, height } = img;
 
-				// Verifica si la imagen es cuadrada
-				if (width === height) {
+				// Verifica si la imagen es vertical (flyer) o cuadrada
+				if (height >= width) {
 					imagePreviewUrl = img.src; // Mostrar la imagen
 					droppedFiles = files; // Guarda el archivo solo si es válido
 				} else {
-					toast.error('La imagen debe ser cuadrada (ancho igual a alto).');
+					toast.error('La imagen debe ser vertical (flyer) o cuadrada. No se aceptan panorámicas.');
 					imagePreviewUrl = null;
 					droppedFiles = [];
 				}

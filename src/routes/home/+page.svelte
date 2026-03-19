@@ -31,17 +31,15 @@
 
 		isValidator = email === 'validaciones@takeover.com';
 
-		// Obtener ventas del día y evento activo
-		try {
-			ventasHoy = await obtenerVentasDelDia();
-			ventasEventoActivo = await obtenerVentasPorEventoActivo();
-			ultimasTransacciones = await obtenerUltimasTransacciones();
-		} catch (error) {
-			console.error('Error al obtener datos:', error);
-			toast.error('Error al cargar datos del dashboard');
-		} finally {
-			loading = false;
-		}
+		// Obtener ventas del día y evento activo (Carga independiente)
+		const promesas = [
+			obtenerVentasDelDia().then(res => ventasHoy = res),
+			obtenerUltimasTransacciones().then(res => ultimasTransacciones = res),
+			obtenerVentasPorEventoActivo().then(res => ventasEventoActivo = res)
+		];
+
+		await Promise.allSettled(promesas);
+		loading = false;
 	});
 
 	function formatMoney(value) {

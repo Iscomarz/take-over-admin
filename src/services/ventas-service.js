@@ -35,7 +35,7 @@ export async function obtenerVentasDelDia() {
         .lt('fechaVenta', finDiaMexico.toISOString());
     if (error) {
         console.error('Error al obtener ventas del día:', error);
-        return [];
+        return { totalVentas: 0, montoTotal: 0 };
     }
 
     //console.log('Ventas del día:', data);
@@ -55,35 +55,40 @@ export async function obtenerVentasDelDia() {
 
 // Ventas totales por evento activo
 export async function obtenerVentasPorEventoActivo() {
-    //Obtener evento activo
-    const eventoActivo = await obtenerEventoActivo();
-    if(!eventoActivo.idevento) {
-        console.error('No hay evento activo');
-        return [];
+    try {
+        // Obtener evento activo
+        const eventoActivo = await obtenerEventoActivo();
+        
+        if (!eventoActivo || !eventoActivo.idevento) {
+            return { totalTickets: 0, totalMonto: 0, fases: [] };
+        }
+
+        const { data, error } = await supabase
+            .rpc('ventas_por_fase', { evento_id: eventoActivo.idevento });
+
+        if (error) {
+            console.error('Error en RPC ventas_por_fase:', error);
+            return { totalTickets: 0, totalMonto: 0, fases: [] };
+        } 
+
+        const fases = Array.isArray(data) ? data : [];
+        const result = fases.reduce(
+            (acc, f) => {
+                const cantidad = Number(f.cantidad) || 0;
+                const monto = Number(f.monto) || 0;
+                acc.totalTickets += cantidad;
+                acc.totalMonto += monto;
+                acc.fases.push({ nombre_fase: f.nombre_fase, cantidad, monto });
+                return acc;
+            },
+            { totalTickets: 0, totalMonto: 0, fases: [] }
+        );
+
+        return result;
+    } catch (err) {
+        console.error('Error inesperado en obtenerVentasPorEventoActivo:', err);
+        return { totalTickets: 0, totalMonto: 0, fases: [] };
     }
-
-    const { data, error } = await supabase
-        .rpc('ventas_por_fase', { evento_id: eventoActivo.idevento })
-
-    if (error) {
-        console.error(error)
-        return [];
-    } 
-
-    const fases = Array.isArray(data) ? data : [];
-    const result = fases.reduce(
-        (acc, f) => {
-            const cantidad = Number(f.cantidad) || 0;
-            const monto = Number(f.monto) || 0;
-            acc.totalTickets += cantidad;
-            acc.totalMonto += monto;
-            acc.fases.push({ nombre_fase: f.nombre_fase, cantidad, monto });
-            return acc;
-        },
-        { totalTickets: 0, totalMonto: 0, fases: [] }
-    );
-
-    return result;
 }
 
 // Evento Activo
@@ -92,7 +97,8 @@ export async function obtenerEventoActivo() {
         .from('mEvento')
         .select('idevento')
         .eq('activo', true)
-        .single();
+        .maybeSingle(); // Usar maybeSingle para evitar error si no hay nada
+        
     if (error) {
         console.error('Error al obtener evento activo:', error);
         return null;
@@ -104,13 +110,33 @@ export async function obtenerEventoActivo() {
 export async function obtenerUltimasTransacciones() {
     const { data, error } = await supabase
         .from('mVenta')
-        .select('idventa, fechaVenta, nombre, correo, cantidadTickets, mPago(cantidad, cFormaPago(nombre)), mEvento(nombreEvento)')
+        .select(`
+            idventa, 
+            fechaVenta, 
+            cantidadTickets, 
+            cliente_id (
+                nombre, 
+                correo
+            ),
+            mPago(
+                cantidad, 
+                cFormaPago(nombre)
+            ), 
+            mEvento(nombreEvento)
+        `)
         .order('fechaVenta', { ascending: false })
         .limit(10);
+    
     if (error) {
         console.error('Error al obtener últimas transacciones:', error);
         return [];
     }
-    return data;
+
+    // Transformar para mantener compatibilidad con el UI
+    return data.map(v => ({
+        ...v,
+        nombre: v.cliente_id?.nombre || v.nombre,
+        correo: v.cliente_id?.correo || v.correo
+    }));
 }
 

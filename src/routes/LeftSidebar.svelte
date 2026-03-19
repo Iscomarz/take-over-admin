@@ -6,6 +6,7 @@
 	let isValidator = false;
 	let openEventos = false;
 	let openHerramientas = false;
+	let openCatalogos = false;
 
 	onMount(() => {
 		checkSession();
@@ -20,6 +21,7 @@
 	function toggleGroup(group) {
 		if (group === 'eventos') openEventos = !openEventos;
 		if (group === 'herramientas') openHerramientas = !openHerramientas;
+		if (group === 'catalogos') openCatalogos = !openCatalogos;
 	}
 </script>
 <section class="menu">
@@ -127,6 +129,37 @@
 			</span>
 			<span>Campañas</span>
 		</a>
+		<div class="menu-group">
+			<button class="menu-label flex items-center justify-between w-full" on:click={() => toggleGroup('catalogos')} aria-expanded={openCatalogos} aria-controls="catalogos-list">
+				<div class="flex items-center gap-3">
+					<span class="icon" aria-hidden="true">
+						<svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+							<path d="M4 6h16M4 12h16M4 18h16"></path>
+						</svg>
+					</span>
+					<span>Catálogos</span>
+				</div>
+			</button>
+			<div id="catalogos-list" class="submenu-list {openCatalogos ? 'open' : ''}">
+				<a class="submenu flex items-center gap-3" href="/catalogos/venues">
+					<span class="icon" aria-hidden="true">
+						<svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+							<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle>
+						</svg>
+					</span>
+					<span>Venues</span>
+				</a>
+				<a class="submenu flex items-center gap-3" href="/catalogos/generos">
+					<span class="icon" aria-hidden="true">
+						<svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+							<path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle>
+						</svg>
+					</span>
+					<span>Géneros Musicales</span>
+				</a>
+			</div>
+		</div>
+		<div class="divider"></div>
 	{/if}
 </section>
 

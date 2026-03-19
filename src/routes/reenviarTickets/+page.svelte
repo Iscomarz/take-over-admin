@@ -20,14 +20,19 @@
 	});
 
 	async function fetchVentas() {
-		console.log('Selected Evento:', selectedEvento);
+		//console.log('Selected Evento:', selectedEvento);
 		if (selectedEvento.idevento) {
 			const { data, error } = await supabase
 				.from('mVenta')
 				.select(
 					`
-						*,
-						idFaseEvento ( nombreFace ),
+						idventa,
+						fechaVenta,
+						nombre,
+						correo,
+						cantidadTickets,
+						cliente_id(cliente_id,nombre, correo),
+						idFaseEvento ( "nombreFace" ),
 						idPago ( cantidad ) 
 					`
 				)
@@ -37,12 +42,15 @@
 			if (error) {
 				console.error('Error fetching ventas:', error);
 			} else {
+				console.log('¿Llegaron ventas?:', data);
 				ventas = data.map((venta) => ({
 					...venta,
-					idFaseEvento: venta.idFaseEvento?.nombreFace || null, // Extraer solo el nombre
-					idPago: venta.idPago?.cantidad || null // Extraer solo el monto
+					// Extraemos los datos de mCliente a través del objeto cliente_id
+					nombre: venta.cliente_id?.nombre || venta.nombre || 'Sin nombre',
+					correo: venta.cliente_id?.correo || venta.correo || 'Sin correo',
+					idFaseEvento: venta.idFaseEvento?.nombreFace || null, 
+					idPago: venta.idPago?.cantidad || null 
 				}));
-				console.log('Ventas:', ventas);
 				dataCargada = true;
 			}
 		}

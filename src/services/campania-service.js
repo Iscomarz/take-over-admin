@@ -13,73 +13,23 @@ import supabase from '$lib/supabase';
 export async function obtenerClientesUnicos() {
 	try {
 		const { data, error } = await supabase
-			.from('mVenta')
-			.select('correo, nombre, idventa, idEvento')
+			.from('mCliente')
+			.select('cliente_id, correo, nombre, desuscrito, fecha_registro, ultima_compra')
+			.eq('desuscrito', false)
 			.order('nombre');
 
 		if (error) throw error;
 
-		// Agrupar por correo y contar nombres
-		const clientesMap = new Map();
-
-		data.forEach(venta => {
-			if (venta.correo) {
-				const emailLower = venta.correo.toLowerCase();
-				
-				if (!clientesMap.has(emailLower)) {
-					clientesMap.set(emailLower, {
-						id: venta.idventa,
-						correo: venta.correo,
-						nombres: {}, // Contar frecuencia de nombres
-						evento_id: venta.idEvento,
-						compras: 1
-					});
-					// Inicializar conteo de este nombre
-					clientesMap.get(emailLower).nombres[venta.nombre] = 1;
-				} else {
-					// Correo existente, incrementar compras
-					const cliente = clientesMap.get(emailLower);
-					cliente.compras++;
-					
-					// Contar el nombre
-					if (cliente.nombres[venta.nombre]) {
-						cliente.nombres[venta.nombre]++;
-					} else {
-						cliente.nombres[venta.nombre] = 1;
-					}
-				}
-			}
-		});
-
-		// Convertir a array y determinar nombre más frecuente
-		const clientesUnicos = Array.from(clientesMap.values()).map(cliente => {
-			// Encontrar el nombre que aparece más veces
-			let nombreMasFrecuente = '';
-			let maxFrecuencia = 0;
-			
-			for (const [nombre, frecuencia] of Object.entries(cliente.nombres)) {
-				if (frecuencia > maxFrecuencia) {
-					maxFrecuencia = frecuencia;
-					nombreMasFrecuente = nombre;
-				}
-			}
-
-			return {
-				id: cliente.id,
-				correo: cliente.correo,
-				nombre: nombreMasFrecuente,
-				evento_id: cliente.evento_id,
-				compras: cliente.compras,
-				esFrecuente: cliente.compras >= 3
-			};
-		});
-
-		// Ordenar: clientes frecuentes primero, luego alfabéticamente
-		clientesUnicos.sort((a, b) => {
-			if (a.esFrecuente && !b.esFrecuente) return -1;
-			if (!a.esFrecuente && b.esFrecuente) return 1;
-			return a.nombre.localeCompare(b.nombre);
-		});
+		// Transformar para mantener compatibilidad si es necesario
+		const clientesUnicos = data.map(cliente => ({
+			id: cliente.cliente_id,
+			correo: cliente.correo,
+			nombre: cliente.nombre,
+			fecha_registro: cliente.fecha_registro,
+			ultima_compra: cliente.ultima_compra,
+			compras: 0, // Podríamos calcularlo si fuera necesario
+			esFrecuente: false // Podríamos calcularlo si fuera necesario
+		}));
 
 		return clientesUnicos;
 	} catch (error) {
@@ -97,85 +47,38 @@ export async function obtenerClientesUnicos() {
  */
 export async function obtenerClientesPorEvento(eventoId) {
 	try {
-		// Primero obtener TODAS las ventas para contar compras totales por correo
-		const { data: todasLasVentas, error: errorTotal } = await supabase
-			.from('mVenta')
-			.select('correo, nombre');
-
-		if (errorTotal) throw errorTotal;
-
-		// Contar compras totales por correo y nombres asociados
-		const conteoCompras = new Map();
-		const nombresMap = new Map(); // Almacenar nombres por correo
-
-		todasLasVentas.forEach(venta => {
-			if (venta.correo) {
-				const emailLower = venta.correo.toLowerCase();
-				
-				// Contar compras
-				conteoCompras.set(emailLower, (conteoCompras.get(emailLower) || 0) + 1);
-				
-				// Contar nombres
-				if (!nombresMap.has(emailLower)) {
-					nombresMap.set(emailLower, {});
-				}
-				const nombres = nombresMap.get(emailLower);
-				nombres[venta.nombre] = (nombres[venta.nombre] || 0) + 1;
-			}
-		});
-
-		// Obtener clientes del evento específico
 		const { data, error } = await supabase
 			.from('mVenta')
-			.select('correo, nombre, idventa, idEvento')
-			.eq('idEvento', eventoId)
-			.order('nombre');
+			.select(`
+				cliente_id (
+					cliente_id,
+					correo,
+					nombre
+				)
+			`)
+			.eq('idEvento', eventoId);
 
 		if (error) throw error;
 
-		// Eliminar duplicados y agregar info de compras
+		// Transformar los datos para eliminar duplicados (un cliente puede tener varias ventas en un evento)
 		const clientesMap = new Map();
-
+		
 		data.forEach(venta => {
-			if (venta.correo) {
-				const emailLower = venta.correo.toLowerCase();
-				
-				if (!clientesMap.has(emailLower)) {
-					const comprasTotales = conteoCompras.get(emailLower) || 1;
-					
-					// Determinar nombre más frecuente
-					const nombres = nombresMap.get(emailLower) || {};
-					let nombreMasFrecuente = venta.nombre;
-					let maxFrecuencia = 0;
-					
-					for (const [nombre, frecuencia] of Object.entries(nombres)) {
-						if (frecuencia > maxFrecuencia) {
-							maxFrecuencia = frecuencia;
-							nombreMasFrecuente = nombre;
-						}
-					}
-
-					clientesMap.set(emailLower, {
-						id: venta.idventa,
-						correo: venta.correo,
-						nombre: nombreMasFrecuente,
-						evento_id: venta.idEvento,
-						compras: comprasTotales,
-						esFrecuente: comprasTotales >= 3
-					});
-				}
+			const cliente = venta.cliente_id;
+			if (cliente && !clientesMap.has(cliente.cliente_id)) {
+				clientesMap.set(cliente.cliente_id, {
+					id: cliente.cliente_id,
+					correo: cliente.correo,
+					nombre: cliente.nombre,
+					evento_id: eventoId
+				});
 			}
 		});
 
-		// Convertir a array y ordenar
 		const clientesUnicos = Array.from(clientesMap.values());
-
-		// Ordenar: clientes frecuentes primero, luego alfabéticamente
-		clientesUnicos.sort((a, b) => {
-			if (a.esFrecuente && !b.esFrecuente) return -1;
-			if (!a.esFrecuente && b.esFrecuente) return 1;
-			return a.nombre.localeCompare(b.nombre);
-		});
+		
+		// Ordenar alfabéticamente
+		clientesUnicos.sort((a, b) => a.nombre.localeCompare(b.nombre));
 
 		return clientesUnicos;
 	} catch (error) {
@@ -251,9 +154,9 @@ export async function guardarDestinatarios(campaniaId, destinatarios, esTodos) {
 		console.log('Guardando destinatarios:', { campaniaId, cantidadDestinatarios: destinatarios.length });
 
 		// Primero, insertar la relación con destinatarios
-		const registros = destinatarios.map(ventaId => ({
+		const registros = destinatarios.map(clienteId => ({
 			campania_id: campaniaId,
-			venta_id: ventaId,
+			cliente_id: clienteId,
 			enviado: false
 		}));
 
@@ -362,7 +265,7 @@ export async function obtenerDetalleCampania(campaniaId) {
 			.select(`
 				*,
 				destinatarios:mcampaniadestinatario(
-					venta_id,
+					cliente_id,
 					enviado,
 					fecha_envio,
 					error
