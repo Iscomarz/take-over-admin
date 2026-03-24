@@ -5,6 +5,7 @@
 	import QRCode from 'qrcode';
 	import { ticket } from '$lib/stores/ticketStore';
 	import { goto } from '$app/navigation';
+	import { page } from '$app/stores';
 	import { obtenerClientesUnicos } from '../../services/campania-service';
 
 	import { tick } from 'svelte';
@@ -31,13 +32,12 @@
 	let todosLosClientes = [];
 	let clientesFiltrados = [];
 	let mostrarDropdown = false;
+	let eventIdUrl = null;
 
 	onMount(async () => {
-		if (typeof window !== 'undefined') {
-			token = localStorage.getItem('token');
-			if (token == null) {
-				goto('/');
-			}
+		eventIdUrl = $page.url.searchParams.get('eventId');
+		if(eventIdUrl) {
+			selectedEventoId = parseInt(eventIdUrl);
 		}
 
 		await traerUsuario();
@@ -59,7 +59,7 @@
 	}
 
 	async function cargarEventos() {
-		const query = supabase.from('mEvento').select('*');
+		const query = supabase.from('mEvento').select('*').order('idevento', { ascending: false });
 		if (!mostrarEventosPasados) {
 			query.eq('activo', true);
 		}
@@ -68,8 +68,9 @@
 
 		if (mEvento && mEvento.length > 0) {
 			eventos = mEvento;
-			// Auto seleccionar el primer evento (asumiendo que es el activo si mostrarEventosPasados es false)
-			if (!selectedEventoId || !eventos.find(e => e.idevento == selectedEventoId)) {
+			if (eventIdUrl) {
+				selectedEventoId = parseInt(eventIdUrl);
+			} else if (!selectedEventoId || !eventos.find(e => e.idevento == selectedEventoId)) {
 				selectedEventoId = eventos[0].idevento;
 			}
 		} else {
@@ -334,12 +335,29 @@
 		// Re-seleccionar Efectivo
 		formaPagoSelect = formasPago.find((f) => f.idformapago === 1) || formasPago[0];
 	}
+
+	function atras() {
+		if (eventIdUrl) {
+			goto(`/events/event/${eventIdUrl}`);
+		} else {
+			goto('/events');
+		}
+	}
 </script>
 
 <Toaster />
 
-<div class="min-h-screen bg-gradient-to-b from-black-900 to-stone-800 text-white pb-20">
-	<div class="max-w-2xl mx-auto">
+<div class="min-h-screen bg-gradient-to-b from-black-900 to-stone-800 text-white pb-20 pt-6">
+	<div class="max-w-2xl mx-auto px-4 md:px-0">
+		<div class="flex flex-wrap gap-3 mb-6">
+			<button
+				on:click={atras}
+				class="bg-stone-800/70 hover:bg-stone-700/90 text-white py-2 px-4 rounded-xl font-semibold transition-colors border border-stone-600 flex items-center gap-2"
+			>
+				<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 256 256"><path d="M224,128a8,8,0,0,1-8,8H59.31l58.35,58.34a8,8,0,0,1-11.32,11.32l-72-72a8,8,0,0,1,0-11.32l72-72a8,8,0,0,1,11.32,11.32L59.31,120H216A8,8,0,0,1,224,128Z"></path></svg>
+				Atrás
+			</button>
+		</div>
 		<!-- Header -->
 		<div class="text-center mb-8">
 			<h1 class="text-3xl font-bold mb-2">Generar Nuevo Ticket</h1>
@@ -348,30 +366,37 @@
 
 		<form class="bg-stone-800/50 rounded-2xl p-6 border border-stone-700 space-y-6">
 			<!-- Evento -->
-			<div class="space-y-4">
-				<div class="flex items-center justify-between">
-					<label for="events" class="block text-sm font-medium text-stone-300">Evento</label>
-					<label class="flex items-center gap-2 cursor-pointer group">
-						<input 
-							type="checkbox" 
-							bind:checked={mostrarEventosPasados}
-							class="w-4 h-4 rounded border-stone-600 bg-stone-700 text-stone-500 focus:ring-stone-500 focus:ring-offset-stone-800 transition-all cursor-pointer"
-						/>
-						<span class="text-xs text-stone-400 group-hover:text-stone-300 transition-colors">Mostrar eventos pasados</span>
-					</label>
+			{#if eventIdUrl}
+				<div class="bg-stone-700/50 p-4 rounded-xl border border-stone-600">
+					<p class="text-xs text-stone-400 mb-1">Evento Seleccionado</p>
+					<p class="font-bold text-white text-lg">{eventoSelec.nombreEvento}</p>
 				</div>
-				<select
-					required
-					id="events"
-					bind:value={selectedEventoId}
-					class="w-full bg-stone-700 text-white border border-stone-600 rounded-xl p-3 focus:ring-2 focus:ring-stone-500 focus:border-transparent"
-				>
-					<option value={null}>Seleccionar Evento</option>
-					{#each eventos as evento}
-						<option value={evento.idevento}>{evento.nombreEvento}</option>
-					{/each}
-				</select>
-			</div>
+			{:else}
+				<div class="space-y-4">
+					<div class="flex items-center justify-between">
+						<label for="events" class="block text-sm font-medium text-stone-300">Evento</label>
+						<label class="flex items-center gap-2 cursor-pointer group">
+							<input 
+								type="checkbox" 
+								bind:checked={mostrarEventosPasados}
+								class="w-4 h-4 rounded border-stone-600 bg-stone-700 text-stone-500 focus:ring-stone-500 focus:ring-offset-stone-800 transition-all cursor-pointer"
+							/>
+							<span class="text-xs text-stone-400 group-hover:text-stone-300 transition-colors">Mostrar eventos pasados</span>
+						</label>
+					</div>
+					<select
+						required
+						id="events"
+						bind:value={selectedEventoId}
+						class="w-full bg-stone-700 text-white border border-stone-600 rounded-xl p-3 focus:ring-2 focus:ring-stone-500 focus:border-transparent"
+					>
+						<option value={null}>Seleccionar Evento</option>
+						{#each eventos as evento}
+							<option value={evento.idevento}>{evento.nombreEvento}</option>
+						{/each}
+					</select>
+				</div>
+			{/if}
 
 			<!-- Fase -->
 			<div>

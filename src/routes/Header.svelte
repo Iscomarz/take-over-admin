@@ -10,6 +10,7 @@
 	let dropdownButton;
 	let openEventos = false;
 	let openHerramientas = false;
+	let openCatalogos = false;
 
 	//control de email
 	let userEmail = '';
@@ -46,10 +47,9 @@
 	}
 
 	async function cerrarSesion() {
-		localStorage.removeItem('token');
 		limpiarStore();
 		await supabase.auth.signOut();
-		goto('/');
+		// La redirección y limpieza de cookies es manejada por el layout
 	}
 
 	function limpiarStore() {
@@ -73,6 +73,7 @@
 		event.stopPropagation();
 		if (group === 'eventos') openEventos = !openEventos;
 		if (group === 'herramientas') openHerramientas = !openHerramientas;
+		if (group === 'catalogos') openCatalogos = !openCatalogos;
 	}
 </script>
 
@@ -165,34 +166,30 @@
 								{/if}
 							</div>
 
-							<!-- Grupo Herramientas -->
+
+
+							<!-- Grupo Catálogos -->
 							<div class="border-b border-gray-200">
 								<button
 									class="w-full text-left px-4 py-2 text-sm font-semibold text-gray-900 hover:bg-gray-50 flex justify-between items-center"
-									on:click={(e) => toggleGroup('herramientas', e)}
+									on:click={(e) => toggleGroup('catalogos', e)}
 								>
-									Herramientas
-									<span class="transition-transform {openHerramientas ? 'rotate-180' : ''}">▼</span>
+									Catálogos
+									<span class="transition-transform {openCatalogos ? 'rotate-180' : ''}">▼</span>
 								</button>
-								{#if openHerramientas}
+								{#if openCatalogos}
 									<div class="bg-gray-50">
 										<a
 											on:click={toggleDropdown}
-											href="/newTicket"
+											href="/catalogos/venues"
 											class="block px-8 py-2 text-sm text-gray-700 hover:bg-gray-100"
-										>Generar Tickets</a
+										>Venues</a
 										>
 										<a
 											on:click={toggleDropdown}
-											href="/validate"
+											href="/catalogos/generos"
 											class="block px-8 py-2 text-sm text-gray-700 hover:bg-gray-100"
-										>Validar QR</a
-										>
-										<a
-											on:click={toggleDropdown}
-											href="/reenviarTickets"
-											class="block px-8 py-2 text-sm text-gray-700 hover:bg-gray-100"
-										>Reenviar Tickets</a
+										>Géneros Musicales</a
 										>
 									</div>
 								{/if}

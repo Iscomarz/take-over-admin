@@ -97,12 +97,7 @@
 </html>`;
 
 	onMount(async () => {
-		if (typeof window !== 'undefined') {
-			token = localStorage.getItem('token');
-			if (token == null) {
-				goto('/');
-			}
-		}
+		
 
 		// Verificar si estamos editando un borrador (viene campaniaId en la URL)
 		const urlParams = new URLSearchParams(window.location.search);

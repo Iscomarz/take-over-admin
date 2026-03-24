@@ -6,6 +6,7 @@
 	let generos = [];
 	let loading = true;
 	let showModal = false;
+	let editandoId = null;
 
 	// Form fields
 	let nombre_genero = '';
@@ -28,7 +29,14 @@
 
 	function resetForm() {
 		nombre_genero = '';
+		editandoId = null;
 		showModal = false;
+	}
+
+	function openEdit(genero) {
+		nombre_genero = genero.nombre_genero;
+		editandoId = genero.id_genero;
+		showModal = true;
 	}
 
 	async function toggleActive(genero) {
@@ -54,11 +62,16 @@
 		}
 
 		// Check if exists
-		const { data: existing, error: checkError } = await supabase
+		let query = supabase
 			.from('generos_musicales')
 			.select('id_genero')
-			.ilike('nombre_genero', nombre_genero.trim())
-			.limit(1);
+			.ilike('nombre_genero', nombre_genero.trim());
+
+		if (editandoId) {
+			query = query.neq('id_genero', editandoId);
+		}
+
+		const { data: existing, error: checkError } = await query.limit(1);
 
 		if (checkError) {
 			toast.error('Error al verificar existencia');
@@ -70,16 +83,26 @@
 			return;
 		}
 
-		const { error } = await supabase.from('generos_musicales').insert([{
-			nombre_genero: nombre_genero.trim(),
-			activo: true
-		}]);
+		let error;
+		if (editandoId) {
+			const { error: updateError } = await supabase.from('generos_musicales')
+				.update({ nombre_genero: nombre_genero.trim() })
+				.eq('id_genero', editandoId);
+			error = updateError;
+		} else {
+			const { error: insertError } = await supabase.from('generos_musicales')
+				.insert([{
+					nombre_genero: nombre_genero.trim(),
+					activo: true
+				}]);
+			error = insertError;
+		}
 
 		if (error) {
 			console.error(error);
-			toast.error('Error al crear género');
+			toast.error(editandoId ? 'Error al actualizar género' : 'Error al crear género');
 		} else {
-			toast.success('Género creado exitosamente');
+			toast.success(editandoId ? 'Género actualizado exitosamente' : 'Género creado exitosamente');
 			resetForm();
 			await loadGeneros();
 		}
@@ -132,7 +155,14 @@
 											{genero.activo ? 'Activo' : 'Inactivo'}
 										</span>
 									</td>
-									<td class="px-6 py-4 text-center">
+									<td class="px-6 py-4 text-center flex items-center justify-center gap-2">
+										<button 
+											on:click={() => openEdit(genero)}
+											class="text-xs px-2 py-1 rounded-lg border border-stone-600 text-stone-300 hover:bg-stone-800 transition-colors"
+											title="Editar"
+										>
+											<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+										</button>
 										<button 
 											on:click={() => toggleActive(genero)}
 											class={`text-xs px-3 py-1 rounded-lg border transition-colors ${genero.activo ? 'border-red-500/50 text-red-400 hover:bg-red-900/30' : 'border-green-500/50 text-green-400 hover:bg-green-900/30'}`}
@@ -162,7 +192,7 @@
 	<div class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4" on:click|self={resetForm}>
 		<div class="bg-stone-900 border border-stone-700 rounded-3xl w-full max-w-md shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
 			<div class="p-6 border-b border-stone-800 flex justify-between items-center">
-				<h2 class="text-xl font-bold text-white">Nuevo Género</h2>
+				<h2 class="text-xl font-bold text-white">{editandoId ? 'Editar Género' : 'Nuevo Género'}</h2>
 				<button on:click={resetForm} class="text-stone-400 hover:text-white transition">
 					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"></path></svg>
 				</button>
@@ -179,7 +209,7 @@
 			
 			<div class="p-6 border-t border-stone-800 flex justify-end gap-3 bg-stone-900">
 				<button type="button" on:click={resetForm} class="px-5 py-2.5 rounded-xl text-stone-300 font-medium hover:bg-stone-800 transition">Cancelar</button>
-				<button type="submit" form="generoForm" class="px-5 py-2.5 bg-green-900/40 text-green-300 border border-green-700/50 font-medium rounded-xl hover:bg-green-900/60 transition">Guardar</button>
+				<button type="submit" form="generoForm" class="px-5 py-2.5 bg-green-900/40 text-green-300 border border-green-700/50 font-medium rounded-xl hover:bg-green-900/60 transition">{editandoId ? 'Actualizar' : 'Guardar'}</button>
 			</div>
 		</div>
 	</div>

@@ -84,10 +84,11 @@ export async function obtenerVentasPorEventoActivo() {
             { totalTickets: 0, totalMonto: 0, fases: [] }
         );
 
+        result.eventoId = eventoActivo.idevento; // Add the actual ID so the dashboard can link to it
         return result;
     } catch (err) {
         console.error('Error inesperado en obtenerVentasPorEventoActivo:', err);
-        return { totalTickets: 0, totalMonto: 0, fases: [] };
+        return { totalTickets: 0, totalMonto: 0, fases: [], eventoId: null };
     }
 }
 

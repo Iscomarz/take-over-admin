@@ -6,6 +6,7 @@
 	let venues = [];
 	let loading = true;
 	let showModal = false;
+	let editandoId = null;
 
 	// Form fields
 	let nombre_venue = '';
@@ -44,7 +45,22 @@
 		pais = '';
 		codigo_postal = '';
 		url_direccion = '';
+		editandoId = null;
 		showModal = false;
+	}
+
+	function openEdit(venue) {
+		nombre_venue = venue.nombre_venue || '';
+		descripcion_venue = venue.descripcion_venue || '';
+		capacidad_venue = venue.capacidad_venue || '';
+		direccion_venue = venue.direccion_venue || '';
+		estado = venue.estado || '';
+		ciudad = venue.ciudad || '';
+		pais = venue.pais || '';
+		codigo_postal = venue.codigo_postal || '';
+		url_direccion = venue.url_direccion || '';
+		editandoId = venue.id_venue;
+		showModal = true;
 	}
 
 	async function toggleActive(venue) {
@@ -70,11 +86,16 @@
 		}
 
 		// Check if exists
-		const { data: existing, error: checkError } = await supabase
+		let query = supabase
 			.from('venue')
 			.select('id_venue')
-			.ilike('nombre_venue', nombre_venue.trim())
-			.limit(1);
+			.ilike('nombre_venue', nombre_venue.trim());
+
+		if (editandoId) {
+			query = query.neq('id_venue', editandoId);
+		}
+
+		const { data: existing, error: checkError } = await query.limit(1);
 
 		if (checkError) {
 			toast.error('Error al verificar existencia');
@@ -86,7 +107,7 @@
 			return;
 		}
 
-		const { error } = await supabase.from('venue').insert([{
+		const venueData = {
 			nombre_venue: nombre_venue.trim(),
 			descripcion_venue: descripcion_venue.trim() || null,
 			capacidad_venue: parseInt(capacidad_venue) || null,
@@ -96,14 +117,24 @@
 			pais: pais.trim() || null,
 			codigo_postal: codigo_postal.trim() || null,
 			url_direccion: url_direccion.trim() || null,
-			activo: true
-		}]);
+			...(editandoId ? {} : { activo: true })
+		};
+
+		let error;
+
+		if (editandoId) {
+			const { error: updateError } = await supabase.from('venue').update(venueData).eq('id_venue', editandoId);
+			error = updateError;
+		} else {
+			const { error: insertError } = await supabase.from('venue').insert([venueData]);
+			error = insertError;
+		}
 
 		if (error) {
 			console.error(error);
-			toast.error('Error al crear venue');
+			toast.error(editandoId ? 'Error al actualizar venue' : 'Error al crear venue');
 		} else {
-			toast.success('Venue creado exitosamente');
+			toast.success(editandoId ? 'Venue actualizado exitosamente' : 'Venue creado exitosamente');
 			resetForm();
 			await loadVenues();
 		}
@@ -167,13 +198,22 @@
 											{venue.activo ? 'Activo' : 'Inactivo'}
 										</span>
 									</td>
-									<td class="px-6 py-4 text-center">
-										<button 
-											on:click={() => toggleActive(venue)}
-											class={`text-xs px-3 py-1 rounded-lg border transition-colors ${venue.activo ? 'border-red-500/50 text-red-400 hover:bg-red-900/30' : 'border-green-500/50 text-green-400 hover:bg-green-900/30'}`}
-										>
-											{venue.activo ? 'Desactivar' : 'Activar'}
-										</button>
+									<td class="px-6 py-4 align-middle">
+										<div class="flex items-center justify-center gap-2">
+											<button 
+												on:click={() => openEdit(venue)}
+												class="text-xs px-2 py-1 rounded-lg border border-stone-600 text-stone-300 hover:bg-stone-800 transition-colors"
+												title="Editar"
+											>
+												<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+											</button>
+											<button 
+												on:click={() => toggleActive(venue)}
+												class={`text-xs px-3 py-1 rounded-lg border transition-colors ${venue.activo ? 'border-red-500/50 text-red-400 hover:bg-red-900/30' : 'border-green-500/50 text-green-400 hover:bg-green-900/30'}`}
+											>
+												{venue.activo ? 'Desactivar' : 'Activar'}
+											</button>
+										</div>
 									</td>
 								</tr>
 							{/each}
@@ -197,7 +237,7 @@
 	<div class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4" on:click|self={resetForm}>
 		<div class="bg-stone-900 border border-stone-700 rounded-3xl w-full max-w-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
 			<div class="p-6 border-b border-stone-800 flex justify-between items-center">
-				<h2 class="text-xl font-bold text-white">Nuevo Venue</h2>
+				<h2 class="text-xl font-bold text-white">{editandoId ? 'Editar Venue' : 'Nuevo Venue'}</h2>
 				<button on:click={resetForm} class="text-stone-400 hover:text-white transition">
 					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"></path></svg>
 				</button>
@@ -256,7 +296,7 @@
 			
 			<div class="p-6 border-t border-stone-800 flex justify-end gap-3 bg-stone-900">
 				<button type="button" on:click={resetForm} class="px-5 py-2.5 rounded-xl text-stone-300 font-medium hover:bg-stone-800 transition">Cancelar</button>
-				<button type="submit" form="venueForm" class="px-5 py-2.5 bg-green-900/40 text-green-300 border border-green-700/50 font-medium rounded-xl hover:bg-green-900/60 transition">Guardar Venue</button>
+				<button type="submit" form="venueForm" class="px-5 py-2.5 bg-green-900/40 text-green-300 border border-green-700/50 font-medium rounded-xl hover:bg-green-900/60 transition">{editandoId ? 'Actualizar Venue' : 'Guardar Venue'}</button>
 			</div>
 		</div>
 	</div>

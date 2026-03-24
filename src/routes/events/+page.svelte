@@ -9,15 +9,13 @@
 	let token = '';
 
 	onMount(async () => {
-		if (typeof window !== 'undefined') {
-			token = localStorage.getItem('token');
-			if (token == null) {
-				goto('/');
-			}
-		}
+		
 
-		// Obtener eventos
-		let { data: mEvento, error } = await supabase.from('mEvento').select('*');
+		// Obtener eventos ordenados de más recientes a más antiguos
+		let { data: mEvento, error } = await supabase
+			.from('mEvento')
+			.select('*')
+			.order('idevento', { ascending: false });
 
 		if (mEvento && mEvento.length > 0) {
 			eventos = mEvento;

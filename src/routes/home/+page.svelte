@@ -127,21 +127,33 @@
 				</div>
 
 				<!-- Card: Evento Activo -->
-				<div class="bg-stone-800/50 rounded-2xl p-6 border border-stone-700">
-					<div class="flex items-center gap-3 mb-4">
-						<div class="bg-blue-900/30 p-3 rounded-xl">
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								class="w-6 h-6 text-blue-400"
-								fill="currentColor"
-								viewBox="0 0 256 256"
-							>
-								<path
-									d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm40-68a28,28,0,0,1-28,28h-4v8a8,8,0,0,1-16,0v-8H104a8,8,0,0,1,0-16h36a12,12,0,0,0,0-24H116a28,28,0,0,1,0-56h4V72a8,8,0,0,1,16,0v8h16a8,8,0,0,1,0,16H116a12,12,0,0,0,0,24h24A28,28,0,0,1,168,148Z"
-								></path>
-							</svg>
+				<div class="bg-stone-800/50 rounded-2xl p-6 border border-stone-700 relative overflow-hidden group">
+					<div class="flex items-center justify-between gap-3 mb-4 relative z-10">
+						<div class="flex items-center gap-3">
+							<div class="bg-blue-900/30 p-3 rounded-xl">
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									class="w-6 h-6 text-blue-400"
+									fill="currentColor"
+									viewBox="0 0 256 256"
+								>
+									<path
+										d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm40-68a28,28,0,0,1-28,28h-4v8a8,8,0,0,1-16,0v-8H104a8,8,0,0,1,0-16h36a12,12,0,0,0,0-24H116a28,28,0,0,1,0-56h4V72a8,8,0,0,1,16,0v8h16a8,8,0,0,1,0,16H116a12,12,0,0,0,0,24h24A28,28,0,0,1,168,148Z"
+									></path>
+								</svg>
+							</div>
+							<h2 class="text-xl font-semibold">Evento Activo</h2>
 						</div>
-						<h2 class="text-xl font-semibold">Evento Activo</h2>
+
+						{#if ventasEventoActivo.eventoId}
+							<button 
+								on:click={() => goto(`/events/event/${ventasEventoActivo.eventoId}`)} 
+								class="text-sm font-semibold text-blue-400 bg-blue-900/20 hover:bg-blue-900/40 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1 border border-blue-900/40 hover:border-blue-700/60"
+							>
+								Administrar
+								<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 256 256"><path d="M221.66,133.66l-72,72a8,8,0,0,1-11.32-11.32L196.69,136H40a8,8,0,0,1,0-16H196.69L138.34,61.66a8,8,0,0,1,11.32-11.32l72,72A8,8,0,0,1,221.66,133.66Z"></path></svg>
+							</button>
+						{/if}
 					</div>
 
 					{#if ventasEventoActivo.totalTickets > 0}

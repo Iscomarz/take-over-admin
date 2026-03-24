@@ -22,12 +22,7 @@
 	let busqueda = '';
 
 	onMount(async () => {
-		if (typeof window !== 'undefined') {
-			token = localStorage.getItem('token');
-			if (token == null) {
-				goto('/');
-			}
-		}
+		
 
 		// Resetear el store al inicio
 		campaniaStore.reset();

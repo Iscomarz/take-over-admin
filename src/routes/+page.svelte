@@ -6,15 +6,6 @@
 
 	let email = '';
 	let pass = '';
-	let token = '';
-
-	// Verificar si el token está en localStorage al cargar el componente
-	if (typeof window !== 'undefined') {
-		token = localStorage.getItem('token');
-		if (token != null) {
-			goto('/home');
-		}
-	}
 
 	// // Función para registrar un usuario si en un futuro se registran mas usuarios
 	// async function registrar() {
@@ -47,7 +38,6 @@
 
 			// Si la respuesta es correcta y contiene la sesión
 			if (data.session) {
-				localStorage.setItem('token', data.session.access_token);
 				toast.success('Bienvenido!',{
 					duration: 4000
 				});

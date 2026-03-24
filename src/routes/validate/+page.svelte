@@ -1,6 +1,7 @@
 <script>
 	import { onMount, onDestroy } from 'svelte';
 	import { goto } from '$app/navigation';
+	import { page } from '$app/stores';
 	import { Html5QrcodeScanner } from 'html5-qrcode';
 	import toast, { Toaster } from 'svelte-french-toast';
 	import supabase from '$lib/supabase';
@@ -17,7 +18,8 @@
 	let tickets = [];
 	let filteredTickets = [];
 	let filterCliente = '';
-	let selectedEvento;
+	let selectedEventoId = '';
+	let selectedEvento = null;
 	let dataCargada = false;
 	let modoValidacion = 'nombre';
 
@@ -25,23 +27,29 @@
 	let showModal = false;
 	let modalStatus = 'success'; // 'success', 'already-validated', 'not-found'
 	let modalClientName = '';
+	let eventIdUrl = null;
 
 	onMount(async () => {
 		toast.dismiss();
-		await traerEventoActivo();
-
-		if (typeof window !== 'undefined') {
-			token = localStorage.getItem('token');
-			if (token == null) {
-				goto('/');
-			}
+		eventIdUrl = $page.url.searchParams.get('eventId');
+		if(eventIdUrl) {
+			selectedEventoId = parseInt(eventIdUrl);
+		} else {
+			await traerEventoActivo();
 		}
 
-		const { data, error } = await supabase.from('mEvento').select('*');
+		const { data, error } = await supabase.from('mEvento').select('*').order('idevento', { ascending: false });
 		if (error) {
 			console.error('Error fetching eventos:', error);
 		} else {
 			eventos = data;
+			// Sync selectedEvento details if ID matches
+			if (selectedEventoId) {
+				selectedEvento = eventos.find(e => e.idevento === selectedEventoId) || selectedEvento;
+				if(eventIdUrl) {
+					fetchTickets();
+				}
+			}
 		}
 	});
 
@@ -70,7 +78,7 @@
 
 					let { data: qrValido, error: qrNoValido } = await supabase
 						.from('ticket')
-						.select('*, mVenta(nombre)')
+						.select('*, mVenta(nombre, cliente_id(nombre))')
 						.eq('codigoQR', qrCodeMessage);
 
 					isScanning = false;
@@ -83,7 +91,7 @@
 					} else if (qrValido[0].validado === true) {
 						// QR ya validado
 						modalStatus = 'already-validated';
-						modalClientName = qrValido[0].mVenta?.nombre || '';
+						modalClientName = qrValido[0].mVenta?.cliente_id?.nombre || qrValido[0].mVenta?.nombre || '';
 						showModal = true;
 					} else if (qrValido[0].validado === false) {
 						// QR válido, proceder a validar
@@ -97,7 +105,7 @@
 							resetScanner();
 						} else {
 							modalStatus = 'success';
-							modalClientName = qrValido[0].mVenta?.nombre || '';
+							modalClientName = qrValido[0].mVenta?.cliente_id?.nombre || qrValido[0].mVenta?.nombre || '';
 							showModal = true;
 						}
 					}
@@ -110,17 +118,20 @@
 	}
 
 	async function fetchTickets() {
-		if (selectedEvento.idevento) {
+		if (selectedEventoId) {
+			// Update the mapped full selectedEvento if possible
+			selectedEvento = eventos.find(e => e.idevento === selectedEventoId) || selectedEvento;
+
 			const { data, error } = await supabase
 				.from('ticket')
 				.select(
 					`	idTicket,
 						validado,
-						mVenta (nombre, idEvento),
+						mVenta!inner (nombre, idEvento, cliente_id(nombre)),
 						cFaseEvento (nombreFace)
 					`
 				)
-				.eq('mVenta.idEvento', selectedEvento.idevento)
+				.eq('mVenta.idEvento', selectedEventoId)
 				.order('idTicket', { asc: true });
 
 			if (error) {
@@ -159,6 +170,7 @@
 			console.error('Error fetching eventos:', error);
 		} else {
 			if (data.length > 0) {
+				selectedEventoId = data[0].idevento;
 				selectedEvento = data[0];
 				fetchTickets();
 			} else {
@@ -168,11 +180,11 @@
 	}
 
 	$: filteredTickets = tickets.filter(
-		(ticket) =>
-			ticket.idTicket &&
-			ticket.mVenta &&
-			ticket.mVenta.nombre &&
-			ticket.mVenta.nombre.toLowerCase().includes(filterCliente.toLowerCase())
+		(ticket) => {
+			if (!ticket.idTicket || !ticket.mVenta) return false;
+			const clientName = ticket.mVenta.cliente_id?.nombre || ticket.mVenta.nombre || '';
+			return clientName.toLowerCase().includes(filterCliente.toLowerCase());
+		}
 	);
 
 	function resetScanner() {
@@ -205,6 +217,14 @@
 		resetScanner();
 	}
 
+	function atras() {
+		if (eventIdUrl) {
+			goto(`/events/event/${eventIdUrl}`);
+		} else {
+			goto('/events');
+		}
+	}
+
 	onDestroy(() => stopScanner());
 </script>
 
@@ -216,9 +236,18 @@
 	on:close={handleModalClose}
 />
 
-<div class="min-h-screen bg-gradient-to-b from-black-900 to-black-800 text-white pb-20">
+<div class="min-h-screen bg-gradient-to-b from-black-900 to-black-800 text-white pb-20 pt-6">
 	<!-- Header -->
-	<div class="w-full">
+	<div class="w-full max-w-2xl mx-auto px-4 md:px-0">
+		<div class="flex flex-wrap gap-3 mb-6">
+			<button
+				on:click={atras}
+				class="bg-stone-800/70 hover:bg-stone-700/90 text-white py-2 px-4 rounded-xl font-semibold transition-colors border border-stone-600 flex items-center gap-2"
+			>
+				<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 256 256"><path d="M224,128a8,8,0,0,1-8,8H59.31l58.35,58.34a8,8,0,0,1-11.32,11.32l-72-72a8,8,0,0,1,0-11.32l72-72a8,8,0,0,1,11.32,11.32L59.31,120H216A8,8,0,0,1,224,128Z"></path></svg>
+				Atrás
+			</button>
+		</div>
 		<div class="text-center mb-6">
 			<h1 class="text-2xl font-bold mb-2">Validar Accesos</h1>
 			<p class="text-gray-400 text-sm">
@@ -304,23 +333,25 @@
 		{:else}
 			<!-- Modo búsqueda por nombre -->
 			<div class="bg-stone-800/50 rounded-2xl p-4 mb-6">
-				<!-- Selector de evento -->
-				<div class="mb-4">
-					<label for="evento" class="block text-sm font-medium mb-2 text-stone-300"
-						>Evento:</label
-					>
-					<select
-						id="evento"
-						bind:value={selectedEvento}
-						on:change={fetchTickets}
-						class="w-full bg-stone-700 text-white border border-stone-600 rounded-xl p-3 focus:ring-2 focus:ring-stone-500 focus:border-transparent"
-					>
-						<option value="" disabled selected>Seleccione un evento</option>
-						{#each eventos as evento}
-							<option value={evento}>{evento.nombreEvento}</option>
-						{/each}
-					</select>
-				</div>
+				{#if !eventIdUrl}
+					<!-- Selector de evento -->
+					<div class="mb-4">
+						<label for="evento" class="block text-sm font-medium mb-2 text-stone-300"
+							>Evento:</label
+						>
+						<select
+							id="evento"
+							bind:value={selectedEventoId}
+							on:change={fetchTickets}
+							class="w-full bg-stone-700 text-white border border-stone-600 rounded-xl p-3 focus:ring-2 focus:ring-stone-500 focus:border-transparent"
+						>
+							<option value="" disabled selected>Seleccione un evento</option>
+							{#each eventos as evento}
+								<option value={evento.idevento}>{evento.nombreEvento}</option>
+							{/each}
+						</select>
+					</div>
+				{/if}
 
 				<!-- Búsqueda por nombre -->
 				<div class="mb-4">
@@ -374,7 +405,7 @@
 							>
 								<div class="flex items-center justify-between">
 									<div class="flex-1">
-										<h3 class="font-semibold text-lg mb-1">{ticket.mVenta.nombre}</h3>
+										<h3 class="font-semibold text-lg mb-1">{ticket.mVenta.cliente_id?.nombre || ticket.mVenta.nombre || 'Sin nombre'}</h3>
 										<p class="text-sm text-stone-400">{ticket.cFaseEvento.nombreFace}</p>
 									</div>
 									<div class="flex items-center gap-3">

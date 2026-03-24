@@ -71,45 +71,7 @@
 		</div>
 		<div class="divider"></div>
 
-		<div class="menu-group">
-			<button class="menu-label" on:click={() => toggleGroup('herramientas')} aria-expanded={openHerramientas} aria-controls="herramientas-list">
-				<span class="icon" aria-hidden="true">
-					<svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
-						<path d="M21.7 13.3l-2-2a1 1 0 0 0-1.4 0l-1.3 1.3-3.3-3.3 1.3-1.3a1 1 0 0 0 0-1.4l-2-2a1 1 0 0 0-1.4 0L3 9v4h4l6.7-6.7 3.3 3.3-6.7 6.7V21h4l4-4a1 1 0 0 0 0-1.4z"></path>
-					</svg>
-				</span>
-				<span>Herramientas</span>
-			</button>
-			<div id="herramientas-list" class="submenu-list {openHerramientas ? 'open' : ''}">
-			<a class="submenu" href="/newTicket">
-				<span class="icon" aria-hidden="true">
-					<svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
-						<path d="M21 10v4a2 2 0 0 1-2 2h-2v2H7v-2H5a2 2 0 0 1-2-2v-4"></path>
-						<path d="M7 7h10v4H7z"></path>
-					</svg>
-				</span>
-				<span>Generar Tickets</span>
-			</a>
-			<a class="submenu" href="/validate">
-				<span class="icon" aria-hidden="true">
-					<svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
-						<path d="M20 6L9 17l-5-5"></path>
-					</svg>
-				</span>
-				<span>Validar QR</span>
-			</a>
-			<a class="submenu" href="/reenviarTickets">
-				<span class="icon" aria-hidden="true">
-					<svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
-						<path d="M22 12v6a2 2 0 0 1-2 2H4"></path>
-						<path d="M16 6l6 6-6 6"></path>
-					</svg>
-				</span>
-				<span>Reenviar Tickets</span>
-			</a>
-			</div>
-		</div>
-		<div class="divider"></div>
+
 
 		<a class="menu-item" href="/teamMembers">
 			<span class="icon" aria-hidden="true">

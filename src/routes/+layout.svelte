@@ -1,5 +1,9 @@
 <script>
 	import { page } from '$app/stores';
+	import { browser } from '$app/environment';
+	import { onMount, tick } from 'svelte';
+	import { goto } from '$app/navigation';
+	import supabase from '$lib/supabase';
 	import Header from './Header.svelte';
 	import LeftSidebar from './LeftSidebar.svelte';
 	import '../app.css';
@@ -7,6 +11,39 @@
 	let showHeader = false;
 	$: currentPath = $page.url.pathname;
 	$: showHeader = currentPath !== '/';
+
+	onMount(() => {
+		const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+			if (session) {
+				const maxAge = session.expires_in || 3600;
+				document.cookie = `sb-access-token=${session.access_token}; path=/; max-age=${maxAge}; SameSite=Lax; Secure`;
+				document.cookie = `sb-refresh-token=${session.refresh_token}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax; Secure`;
+			} else {
+				document.cookie = 'sb-access-token=; path=/; max-age=0; SameSite=Lax; Secure';
+				document.cookie = 'sb-refresh-token=; path=/; max-age=0; SameSite=Lax; Secure';
+				if (browser) {
+					localStorage.removeItem('token');
+				}
+				if (currentPath !== '/') {
+					goto('/');
+				}
+			}
+		});
+
+		supabase.auth.getSession().then(({ data: { session } }) => {
+			if (!session && currentPath !== '/') {
+				goto('/');
+			} else if (session && currentPath === '/') {
+				goto('/home');
+			}
+		});
+
+		return () => {
+			if (authListener && authListener.subscription) {
+				authListener.subscription.unsubscribe();
+			}
+		};
+	});
 </script>
 
 <div class="app" class:login-page={!showHeader}>

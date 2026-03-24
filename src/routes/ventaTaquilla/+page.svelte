@@ -32,12 +32,7 @@
 	let mostrarDropdown = false;
 
 	onMount(async () => {
-		if (typeof window !== 'undefined') {
-			token = localStorage.getItem('token');
-			if (token == null) {
-				goto('/');
-			}
-		}
+		
 
 		await traerUsuario();
 		await cargarDatosIniciales();
@@ -61,7 +56,8 @@
 		let { data: mEvento, error } = await supabase
 			.from('mEvento')
 			.select('*')
-			.eq('activo', true);
+			.eq('activo', true)
+			.order('idevento', { ascending: false });
 
 		if (mEvento && mEvento.length > 0) {
 			eventos = mEvento;
@@ -315,17 +311,20 @@
 				<!-- Evento -->
 				<div>
 					<label for="events" class="block text-sm font-medium mb-2 text-stone-300"
-						>Evento <span class="text-red-500">*</span></label
+						>Evento <span class="text-stone-500 text-xs text-normal">(Bloqueado al evento activo)</span></label
 					>
 					<select
+						disabled
 						required
 						id="events"
 						bind:value={selectedEventoId}
-						class="w-full bg-stone-700 text-white border border-stone-600 rounded-xl p-3 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+						class="w-full bg-stone-800/80 text-white/70 border border-stone-700 rounded-xl p-3 focus:ring-0 cursor-not-allowed"
 					>
-						<option value={null}>Seleccionar Evento</option>
+						{#if eventos.length === 0}
+							<option value={null}>Buscando evento activo...</option>
+						{/if}
 						{#each eventos as evento}
-							<option value={evento.idevento}>{evento.nombreEvento}</option>
+							<option value={evento.idevento}>{evento.nombreEvento} (Activo)</option>
 						{/each}
 					</select>
 				</div>
