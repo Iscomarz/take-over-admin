@@ -97,8 +97,6 @@
 </html>`;
 
 	onMount(async () => {
-		
-
 		// Verificar si estamos editando un borrador (viene campaniaId en la URL)
 		const urlParams = new URLSearchParams(window.location.search);
 		campaniaIdEditar = urlParams.get('campaniaId');
@@ -110,10 +108,12 @@
 			// MODO NUEVO: Obtener datos del store
 			datosCampania = get(campaniaStore);
 
-			console.log('Datos de campaña en emailBody:', datosCampania);
-
 			// Verificar que venimos del paso anterior
-			if (!datosCampania.titulo || !datosCampania.destinatarios || datosCampania.destinatarios.length === 0) {
+			if (
+				!datosCampania.titulo ||
+				!datosCampania.destinatarios ||
+				datosCampania.destinatarios.length === 0
+			) {
 				toast.error('Por favor completa el paso anterior primero');
 				goto('/newCampaign');
 				return;
@@ -134,10 +134,10 @@
 
 	async function cargarBorradorParaEditar(campaniaId) {
 		const loadingToast = toast.loading('Cargando borrador...');
-		
+
 		try {
 			const campania = await obtenerDetalleCampania(campaniaId);
-			
+
 			if (!campania) {
 				throw new Error('No se pudo cargar la campaña');
 			}
@@ -155,7 +155,7 @@
 			datosCampania = {
 				titulo: campania.titulo,
 				asunto: campania.asunto,
-				destinatarios: campania.destinatarios?.map(d => d.cliente_id) || [],
+				destinatarios: campania.destinatarios?.map((d) => d.cliente_id) || [],
 				cuerpoHtml: campania.cuerpo_html,
 				usarVariable: campania.usar_variable_nombre
 			};
@@ -212,7 +212,9 @@
 		}
 
 		guardando = true;
-		const loadingToast = toast.loading(modoEdicion ? 'Actualizando borrador...' : 'Guardando borrador...');
+		const loadingToast = toast.loading(
+			modoEdicion ? 'Actualizando borrador...' : 'Guardando borrador...'
+		);
 
 		try {
 			if (modoEdicion) {
@@ -241,8 +243,6 @@
 				// Obtener datos completos del store
 				const datosCompletos = get(campaniaStore);
 
-				console.log('Datos completos para guardar:', datosCompletos);
-
 				// Validar datos
 				if (!datosCompletos.destinatarios || datosCompletos.destinatarios.length === 0) {
 					throw new Error('No hay destinatarios seleccionados');
@@ -260,8 +260,6 @@
 					throw new Error('Error al crear la campaña en la base de datos');
 				}
 
-				console.log('Campaña creada:', campania);
-
 				// Guardar destinatarios
 				const guardadoDestinatarios = await guardarDestinatarios(
 					campania.id,
@@ -270,7 +268,9 @@
 				);
 
 				if (!guardadoDestinatarios) {
-					throw new Error('Error al guardar destinatarios. Verifica que la tabla mcampaniadestinatario exista en tu base de datos.');
+					throw new Error(
+						'Error al guardar destinatarios. Verifica que la tabla mcampaniadestinatario exista en tu base de datos.'
+					);
 				}
 
 				toast.dismiss(loadingToast);
@@ -300,11 +300,7 @@
 		const numDestinatarios = datosCampania.destinatarios?.length || 0;
 
 		// Confirmar envío
-		if (
-			!confirm(
-				`¿Estás seguro de enviar esta campaña a ${numDestinatarios} destinatarios?`
-			)
-		) {
+		if (!confirm(`¿Estás seguro de enviar esta campaña a ${numDestinatarios} destinatarios?`)) {
 			return;
 		}
 
@@ -317,8 +313,6 @@
 
 			// Obtener datos completos del store
 			const datosCompletos = get(campaniaStore);
-
-			console.log('Datos completos para enviar:', datosCompletos);
 
 			// Validar datos
 			if (!datosCompletos.destinatarios || datosCompletos.destinatarios.length === 0) {
@@ -337,11 +331,6 @@
 				throw new Error('Error al crear la campaña en la base de datos');
 			}
 
-			console.log('✅ Campaña creada exitosamente:', campania);
-			console.log('🔑 ID de campaña:', campania.id);
-			console.log('🔍 Tipo de ID:', typeof campania.id);
-			console.log('📦 Objeto campaña completo:', JSON.stringify(campania, null, 2));
-
 			// Guardar destinatarios
 			const guardadoDestinatarios = await guardarDestinatarios(
 				campania.id,
@@ -350,13 +339,11 @@
 			);
 
 			if (!guardadoDestinatarios) {
-				throw new Error('Error al guardar destinatarios. Verifica que la tabla mcampaniadestinatario exista en tu base de datos.');
+				throw new Error(
+					'Error al guardar destinatarios. Verifica que la tabla mcampaniadestinatario exista en tu base de datos.'
+				);
 			}
 
-			console.log('✅ Destinatarios guardados');
-
-			// Obtener datos completos de los clientes desde la BD
-			console.log('🔍 Obteniendo datos completos de clientes...');
 			const { data: clientesCompletos, error: errorClientes } = await supabase
 				.from('mCliente')
 				.select('cliente_id, correo, nombre')
@@ -367,8 +354,6 @@
 				throw new Error('Error al obtener datos de destinatarios');
 			}
 
-			console.log('✅ Clientes obtenidos:', clientesCompletos.length);
-
 			// Preparar datos para enviar al servidor
 			const datosCampania = {
 				titulo: campania.titulo,
@@ -377,19 +362,20 @@
 				usar_variable_nombre: usarVariable
 			};
 
-			const destinatariosParaEnviar = clientesCompletos.map(c => ({
+			const destinatariosParaEnviar = clientesCompletos.map((c) => ({
 				id: c.cliente_id,
 				correo: c.correo,
 				nombre: c.nombre
 			}));
 
-			console.log('📧 Enviando campaña con todos los datos al servidor...');
 			const resultado = await enviarCampania(campania.id, datosCampania, destinatariosParaEnviar);
 
 			toast.dismiss(loadingToast);
 
 			if (resultado.success) {
-				toast.success(`Campaña enviada: ${resultado.enviados} exitosos, ${resultado.errores} errores`);
+				toast.success(
+					`Campaña enviada: ${resultado.enviados} exitosos, ${resultado.errores} errores`
+				);
 
 				// Resetear store y volver
 				setTimeout(() => {
@@ -421,13 +407,14 @@
 	<div class="max-w-7xl mx-auto px-4 py-8">
 		<!-- Header -->
 		<div class="mb-8">
-			<button on:click={volver} class="text-stone-400 hover:text-white mb-4 flex items-center gap-2">
+			<button
+				on:click={volver}
+				class="text-stone-400 hover:text-white mb-4 flex items-center gap-2"
+			>
 				← Volver
 			</button>
 			<h1 class="text-3xl font-bold mb-2">Contenido del Correo</h1>
-			<p class="text-stone-400 text-sm">
-				Paso 2 de 2: Diseña el contenido de tu campaña de email
-			</p>
+			<p class="text-stone-400 text-sm">Paso 2 de 2: Diseña el contenido de tu campaña de email</p>
 		</div>
 
 		<!-- Progreso -->
@@ -462,7 +449,8 @@
 				</div>
 				<div>
 					<span class="text-stone-500">Destinatarios:</span>
-					<span class="text-white font-medium ml-2">{datosCampania.destinatarios?.length || 0}</span>
+					<span class="text-white font-medium ml-2">{datosCampania.destinatarios?.length || 0}</span
+					>
 				</div>
 			</div>
 		</div>

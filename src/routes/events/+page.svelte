@@ -3,14 +3,12 @@
 	import EventCard from '../../components/eventCard.svelte';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
-	import toast,{ Toaster } from 'svelte-french-toast';
+	import toast, { Toaster } from 'svelte-french-toast';
 
 	let eventos = [];
 	let token = '';
 
 	onMount(async () => {
-		
-
 		// Obtener eventos ordenados de más recientes a más antiguos
 		let { data: mEvento, error } = await supabase
 			.from('mEvento')
@@ -42,6 +40,7 @@
 		}
 	});
 </script>
+
 <Toaster />
 
 <div class="min-h-screen bg-gradient-to-b from-black-900 to-stone-800 text-white pb-20">

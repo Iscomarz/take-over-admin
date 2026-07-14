@@ -16,7 +16,7 @@
 	let fechaFin = null;
 	let direccion = '';
 	let descripcionCorta = '';
-	
+
 	// Variables para géneros
 	let generos = []; // G\u00e9neros seleccionados para el evento
 	let generosActivos = []; // G\u00e9neros desde la base de datos
@@ -42,12 +42,7 @@
 	let fechaFinPicker;
 
 	onMount(async () => {
-		
-
-		await Promise.all([
-			cargarGenerosActivos(),
-			cargarVenuesActivos()
-		]);
+		await Promise.all([cargarGenerosActivos(), cargarVenuesActivos()]);
 
 		flatpickr('#fechaInicio', {
 			enableTime: true,
@@ -71,11 +66,8 @@
 	});
 
 	async function cargarGenerosActivos() {
-		const { data, error } = await supabase
-			.from('generos_musicales')
-			.select('*')
-			.eq('activo', true);
-		
+		const { data, error } = await supabase.from('generos_musicales').select('*').eq('activo', true);
+
 		if (data) {
 			generosActivos = data;
 		} else if (error) {
@@ -89,7 +81,7 @@
 			.select('*')
 			.eq('activo', true)
 			.order('nombre_venue');
-		
+
 		if (data) {
 			venuesActivos = data;
 		} else if (error) {
@@ -100,9 +92,12 @@
 	function handleInputGenero() {
 		if (nuevoGenero.length > 0) {
 			const busqueda = nuevoGenero.toLowerCase();
-			generosFiltrados = generosActivos.filter((g) =>
-				g.nombre_genero.toLowerCase().includes(busqueda) &&
-				!generos.some(selected => selected.nombre_genero.toLowerCase() === g.nombre_genero.toLowerCase())
+			generosFiltrados = generosActivos.filter(
+				(g) =>
+					g.nombre_genero.toLowerCase().includes(busqueda) &&
+					!generos.some(
+						(selected) => selected.nombre_genero.toLowerCase() === g.nombre_genero.toLowerCase()
+					)
 			);
 			mostrarDropdownGeneros = true;
 		} else {
@@ -124,7 +119,7 @@
 		} else if (nuevoGenero.trim() !== '') {
 			const nombreNuevo = nuevoGenero.trim();
 			// Check if already selected
-			if (generos.some(g => g.nombre_genero.toLowerCase() === nombreNuevo.toLowerCase())) {
+			if (generos.some((g) => g.nombre_genero.toLowerCase() === nombreNuevo.toLowerCase())) {
 				toast.error('Este genéro ya está seleccionado.');
 				nuevoGenero = '';
 				mostrarDropdownGeneros = false;
@@ -132,8 +127,10 @@
 			}
 
 			// Check if exists in DB but user just typed it
-			const existeEnBD = generosActivos.find(g => g.nombre_genero.toLowerCase() === nombreNuevo.toLowerCase());
-			
+			const existeEnBD = generosActivos.find(
+				(g) => g.nombre_genero.toLowerCase() === nombreNuevo.toLowerCase()
+			);
+
 			if (existeEnBD) {
 				generoAAgregar = existeEnBD;
 			} else {
@@ -167,7 +164,7 @@
 		}
 
 		// Obtener venue y dirección para mantener la compatibilidad si es necesario
-		const venueSeleccionado = venuesActivos.find(v => v.id_venue === id_venue);
+		const venueSeleccionado = venuesActivos.find((v) => v.id_venue === id_venue);
 		if (venueSeleccionado) {
 			venue = venueSeleccionado.nombre_venue;
 			direccion = venueSeleccionado.direccion_venue;
@@ -203,7 +200,7 @@
 			generos: [],
 			fases: []
 		});
-		
+
 		nombreEvento = '';
 		id_venue = null;
 		venue = '';
@@ -257,12 +254,19 @@
 						<option value={null} disabled>Selecciona un lugar</option>
 						{#each venuesActivos as v}
 							<option value={v.id_venue}>
-								{v.nombre_venue} - {v.direccion_venue} {v.capacidad_venue ? '(Capacidad: ' + v.capacidad_venue + ')' : ''}
+								{v.nombre_venue} - {v.direccion_venue}
+								{v.capacidad_venue ? '(Capacidad: ' + v.capacidad_venue + ')' : ''}
 							</option>
 						{/each}
 					</select>
-					<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-stone-400">
-						<svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+					<div
+						class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-stone-400"
+					>
+						<svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+							><path
+								d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"
+							/></svg
+						>
 					</div>
 				</div>
 			</div>
@@ -299,8 +303,6 @@
 				/>
 			</div>
 
-
-
 			<div class="mb-6">
 				<label for="descripcion_corta" class="block text-sm font-medium mb-2 text-stone-300"
 					>Descripción Corta (Para el feed)</label
@@ -319,18 +321,36 @@
 			<div class="mb-6 relative">
 				<label for="generoInput" class="block text-sm font-medium mb-2 text-stone-300">
 					Géneros Musicales
-					<span class="text-xs text-stone-500 ml-2 font-normal">(Máximo 5. Escribe un género y presiona Intro o selecciona de la lista)</span>
+					<span class="text-xs text-stone-500 ml-2 font-normal"
+						>(Máximo 5. Escribe un género y presiona Intro o selecciona de la lista)</span
+					>
 				</label>
 
 				<!-- Wrapper del Input para que parezca que contiene los tags -->
-				<div class="flex flex-wrap gap-2 w-full bg-stone-700 border border-stone-600 rounded-xl p-2 focus-within:ring-2 focus-within:ring-stone-500 focus-within:border-transparent min-h-[52px]">
-					
+				<div
+					class="flex flex-wrap gap-2 w-full bg-stone-700 border border-stone-600 rounded-xl p-2 focus-within:ring-2 focus-within:ring-stone-500 focus-within:border-transparent min-h-[52px]"
+				>
 					<!-- Tags seleccionados -->
 					{#each generos as genero, i}
-						<div class="flex items-center gap-1 bg-green-900/40 text-green-300 px-3 py-1 rounded-lg text-sm border border-green-700/50">
+						<div
+							class="flex items-center gap-1 bg-green-900/40 text-green-300 px-3 py-1 rounded-lg text-sm border border-green-700/50"
+						>
 							<span>{genero.nombre_genero}</span>
-							<button type="button" class="mt-[2px] ml-1 text-green-400 hover:text-green-100 transition-colors" on:click={() => eliminarGenero(i)}>
-								<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 256 256"><path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"></path></svg>
+							<button
+								type="button"
+								class="mt-[2px] ml-1 text-green-400 hover:text-green-100 transition-colors"
+								on:click={() => eliminarGenero(i)}
+							>
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									width="14"
+									height="14"
+									fill="currentColor"
+									viewBox="0 0 256 256"
+									><path
+										d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"
+									></path></svg
+								>
 							</button>
 						</div>
 					{/each}
@@ -340,7 +360,7 @@
 						type="text"
 						id="generoInput"
 						class="flex-1 min-w-[120px] bg-transparent text-white border-none p-1 text-sm focus:outline-none focus:ring-0"
-						placeholder={generos.length < 5 ? "+ Agregar género" : ""}
+						placeholder={generos.length < 5 ? '+ Agregar género' : ''}
 						bind:value={nuevoGenero}
 						on:input={handleInputGenero}
 						on:keydown={(e) => {
@@ -356,7 +376,9 @@
 
 				<!-- Dropdown Sugerencias -->
 				{#if mostrarDropdownGeneros}
-					<div class="absolute z-10 w-full mt-1 bg-stone-800 border border-stone-600 rounded-xl shadow-lg max-h-48 overflow-y-auto">
+					<div
+						class="absolute z-10 w-full mt-1 bg-stone-800 border border-stone-600 rounded-xl shadow-lg max-h-48 overflow-y-auto"
+					>
 						{#if generosFiltrados.length > 0}
 							{#each generosFiltrados as genero}
 								<!-- svelte-ignore a11y-click-events-have-key-events -->
@@ -369,7 +391,10 @@
 								</div>
 							{/each}
 						{:else}
-							<div class="px-4 py-3 cursor-pointer hover:bg-stone-700 text-sm italic text-stone-400" on:click={() => agregarGenero()}>
+							<div
+								class="px-4 py-3 cursor-pointer hover:bg-stone-700 text-sm italic text-stone-400"
+								on:click={() => agregarGenero()}
+							>
 								Presiona 'Enter' para crear "{nuevoGenero}"
 							</div>
 						{/if}
@@ -389,23 +414,23 @@
 						event.stopPropagation();
 						event.preventDefault();
 						limpiarStore();
-				limpiarStore();
-			}}
-			class="bg-red-900/30 hover:bg-red-900/50 text-red-400 py-3 px-6 rounded-xl font-semibold transition-colors border border-red-500/50 flex items-center justify-center gap-2"
-		>
-			<svg
-				xmlns="http://www.w3.org/2000/svg"
-				width="20"
-				height="20"
-				fill="currentColor"
-				viewBox="0 0 256 256"
-			>
-				<path
-					d="M224,128a96,96,0,0,1-94.71,96H128A95.38,95.38,0,0,1,62.1,197.8a8,8,0,0,1,11-11.63A80,80,0,1,0,71.43,71.39a3.07,3.07,0,0,1-.26.25L44.59,96H72a8,8,0,0,1,0,16H24a8,8,0,0,1-8-8V56a8,8,0,0,1,16,0V85.8L60.25,60A96,96,0,0,1,224,128Z"
-				></path>
-			</svg>
-			Limpiar
-		</button>
+						limpiarStore();
+					}}
+					class="bg-red-900/30 hover:bg-red-900/50 text-red-400 py-3 px-6 rounded-xl font-semibold transition-colors border border-red-500/50 flex items-center justify-center gap-2"
+				>
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						width="20"
+						height="20"
+						fill="currentColor"
+						viewBox="0 0 256 256"
+					>
+						<path
+							d="M224,128a96,96,0,0,1-94.71,96H128A95.38,95.38,0,0,1,62.1,197.8a8,8,0,0,1,11-11.63A80,80,0,1,0,71.43,71.39a3.07,3.07,0,0,1-.26.25L44.59,96H72a8,8,0,0,1,0,16H24a8,8,0,0,1-8-8V56a8,8,0,0,1,16,0V85.8L60.25,60A96,96,0,0,1,224,128Z"
+						></path>
+					</svg>
+					Limpiar
+				</button>
 			</div>
 		</form>
 	</div>

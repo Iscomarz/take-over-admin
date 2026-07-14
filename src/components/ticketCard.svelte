@@ -34,7 +34,9 @@
 	}
 </script>
 
-<div class="bg-stone-700/30 rounded-lg p-3 border border-stone-600/50 hover:border-stone-500 transition-colors">
+<div
+	class="bg-stone-700/30 rounded-lg p-3 border border-stone-600/50 hover:border-stone-500 transition-colors"
+>
 	{#if editar}
 		<!-- Modo edición -->
 		<div class="grid grid-cols-1 md:grid-cols-4 gap-3">
@@ -75,7 +77,7 @@
 				/>
 			</div>
 		</div>
-		
+
 		<!-- Controles booleanos -->
 		<div class="mt-4 flex flex-wrap gap-4">
 			<label class="inline-flex items-center cursor-pointer">
@@ -140,25 +142,35 @@
 		<!-- Modo vista Simplificado -->
 		<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-2 py-1">
 			<div class="flex items-center gap-4 flex-1">
-				<p class="font-bold text-white text-base truncate max-w-[120px] sm:max-w-xs">{fase.nombreFace}</p>
+				<p class="font-bold text-white text-base truncate max-w-[120px] sm:max-w-xs">
+					{fase.nombreFace}
+				</p>
 				<p class="text-green-400 font-semibold text-sm">${fase.precio}</p>
 				<p class="text-xs text-stone-400 hidden sm:block">
 					{fase.limite == null ? '∞ total' : fase.limite + ' limite'}
 				</p>
 			</div>
-			
+
 			<div class="flex items-center gap-2 mt-2 sm:mt-0 flex-wrap">
 				<!-- Status Badges -->
-				<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium {fase.activo ? 'bg-green-900/30 text-green-400' : 'bg-stone-600/30 text-stone-400'}">
+				<span
+					class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium {fase.activo
+						? 'bg-green-900/30 text-green-400'
+						: 'bg-stone-600/30 text-stone-400'}"
+				>
 					{fase.activo ? 'Activo' : 'Inactivo'}
 				</span>
 				{#if fase.oculto}
-					<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-blue-900/30 text-blue-400">
+					<span
+						class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-blue-900/30 text-blue-400"
+					>
 						Oculto
 					</span>
 				{/if}
 				{#if fase.soldout}
-					<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-red-900/30 text-red-400">
+					<span
+						class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-red-900/30 text-red-400"
+					>
 						Agotado
 					</span>
 				{/if}

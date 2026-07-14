@@ -14,7 +14,7 @@
 	font-family: JostRegular;
 	src: url(../src/lib/fonts/static/Jost-Regular.ttf) format('truetype');
 }
-:root{
+:root {
 	--color-bg-1: rgb(17, 17, 17);
 }
 

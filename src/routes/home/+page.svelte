@@ -3,7 +3,11 @@
 	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
 	import toast, { Toaster } from 'svelte-french-toast';
-	import { obtenerVentasDelDia, obtenerVentasPorEventoActivo, obtenerUltimasTransacciones } from '../../services/ventas-service';
+	import {
+		obtenerVentasDelDia,
+		obtenerVentasPorEventoActivo,
+		obtenerUltimasTransacciones
+	} from '../../services/ventas-service';
 
 	let usuario = null;
 	let email = '';
@@ -33,9 +37,9 @@
 
 		// Obtener ventas del día y evento activo (Carga independiente)
 		const promesas = [
-			obtenerVentasDelDia().then(res => ventasHoy = res),
-			obtenerUltimasTransacciones().then(res => ultimasTransacciones = res),
-			obtenerVentasPorEventoActivo().then(res => ventasEventoActivo = res)
+			obtenerVentasDelDia().then((res) => (ventasHoy = res)),
+			obtenerUltimasTransacciones().then((res) => (ultimasTransacciones = res)),
+			obtenerVentasPorEventoActivo().then((res) => (ventasEventoActivo = res))
 		];
 
 		await Promise.allSettled(promesas);
@@ -94,111 +98,202 @@
 			</div>
 		{:else}
 			<!-- Cards Grid -->
-			 {#if !isValidator}
-			<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-				<!-- Card: Ventas del Día -->
-				<div class="bg-stone-800/50 rounded-2xl p-6 border border-stone-700">
-					<div class="flex items-center gap-3 mb-4">
-						<div class="bg-green-900/30 p-3 rounded-xl">
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								class="w-6 h-6 text-green-400"
-								fill="currentColor"
-								viewBox="0 0 256 256"
-							>
-								<path
-									d="M232,96a8,8,0,0,1-8,8H176v16h32a8,8,0,0,1,0,16H176v16h48a8,8,0,0,1,0,16H176v16h32a8,8,0,0,1,0,16H176v16a8,8,0,0,1-16,0V56a8,8,0,0,1,16,0V88h48A8,8,0,0,1,232,96ZM64,120H96v16H64a8,8,0,0,0,0,16H96v16H80a8,8,0,0,0,0,16H96v16a8,8,0,0,0,16,0V56a8,8,0,0,0-16,0V88H64a8,8,0,0,0,0,16H96v16H64a8,8,0,0,0,0,16Z"
-								></path>
-							</svg>
-						</div>
-						<h2 class="text-xl font-semibold">Ventas del Día</h2>
-					</div>
-
-					<div class="space-y-4">
-						<div class="bg-stone-700/50 rounded-xl p-4">
-							<p class="text-sm text-stone-400 mb-1">Total de Ventas</p>
-							<p class="text-3xl font-bold text-white">{ventasHoy.totalVentas}</p>
-						</div>
-						<div class="bg-stone-700/50 rounded-xl p-4">
-							<p class="text-sm text-stone-400 mb-1">Monto Total</p>
-							<p class="text-3xl font-bold text-green-400">{formatMoney(ventasHoy.montoTotal)}</p>
-						</div>
-					</div>
-				</div>
-
-				<!-- Card: Evento Activo -->
-				<div class="bg-stone-800/50 rounded-2xl p-6 border border-stone-700 relative overflow-hidden group">
-					<div class="flex items-center justify-between gap-3 mb-4 relative z-10">
-						<div class="flex items-center gap-3">
-							<div class="bg-blue-900/30 p-3 rounded-xl">
+			{#if !isValidator}
+				<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+					<!-- Card: Ventas del Día -->
+					<div class="bg-stone-800/50 rounded-2xl p-6 border border-stone-700">
+						<div class="flex items-center gap-3 mb-4">
+							<div class="bg-green-900/30 p-3 rounded-xl">
 								<svg
 									xmlns="http://www.w3.org/2000/svg"
-									class="w-6 h-6 text-blue-400"
+									class="w-6 h-6 text-green-400"
 									fill="currentColor"
 									viewBox="0 0 256 256"
 								>
 									<path
-										d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm40-68a28,28,0,0,1-28,28h-4v8a8,8,0,0,1-16,0v-8H104a8,8,0,0,1,0-16h36a12,12,0,0,0,0-24H116a28,28,0,0,1,0-56h4V72a8,8,0,0,1,16,0v8h16a8,8,0,0,1,0,16H116a12,12,0,0,0,0,24h24A28,28,0,0,1,168,148Z"
+										d="M232,96a8,8,0,0,1-8,8H176v16h32a8,8,0,0,1,0,16H176v16h48a8,8,0,0,1,0,16H176v16h32a8,8,0,0,1,0,16H176v16a8,8,0,0,1-16,0V56a8,8,0,0,1,16,0V88h48A8,8,0,0,1,232,96ZM64,120H96v16H64a8,8,0,0,0,0,16H96v16H80a8,8,0,0,0,0,16H96v16a8,8,0,0,0,16,0V56a8,8,0,0,0-16,0V88H64a8,8,0,0,0,0,16H96v16H64a8,8,0,0,0,0,16Z"
 									></path>
 								</svg>
 							</div>
-							<h2 class="text-xl font-semibold">Evento Activo</h2>
+							<h2 class="text-xl font-semibold">Ventas del Día</h2>
 						</div>
 
-						{#if ventasEventoActivo.eventoId}
-							<button 
-								on:click={() => goto(`/events/event/${ventasEventoActivo.eventoId}`)} 
-								class="text-sm font-semibold text-blue-400 bg-blue-900/20 hover:bg-blue-900/40 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1 border border-blue-900/40 hover:border-blue-700/60"
-							>
-								Administrar
-								<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 256 256"><path d="M221.66,133.66l-72,72a8,8,0,0,1-11.32-11.32L196.69,136H40a8,8,0,0,1,0-16H196.69L138.34,61.66a8,8,0,0,1,11.32-11.32l72,72A8,8,0,0,1,221.66,133.66Z"></path></svg>
-							</button>
-						{/if}
-					</div>
-
-					{#if ventasEventoActivo.totalTickets > 0}
-						<!-- Totales -->
-						<div class="space-y-3 mb-4">
+						<div class="space-y-4">
 							<div class="bg-stone-700/50 rounded-xl p-4">
-								<p class="text-sm text-stone-400 mb-1">Tickets Vendidos</p>
-								<p class="text-2xl font-bold text-white">{ventasEventoActivo.totalTickets}</p>
+								<p class="text-sm text-stone-400 mb-1">Total de Ventas</p>
+								<p class="text-3xl font-bold text-white">{ventasHoy.totalVentas}</p>
 							</div>
 							<div class="bg-stone-700/50 rounded-xl p-4">
 								<p class="text-sm text-stone-400 mb-1">Monto Total</p>
-								<p class="text-2xl font-bold text-blue-400">
-									{formatMoney(ventasEventoActivo.totalMonto)}
-								</p>
+								<p class="text-3xl font-bold text-green-400">{formatMoney(ventasHoy.montoTotal)}</p>
 							</div>
 						</div>
+					</div>
 
-						<!-- Desglose por Fases -->
-						<div>
-							<p class="text-sm font-semibold text-stone-300 mb-3">Desglose por Fase</p>
-							<div class="space-y-2">
-								{#each ventasEventoActivo.fases as fase}
-									<div
-										class="bg-stone-700/30 rounded-lg p-3 border border-stone-600 hover:border-stone-500 transition-colors"
+					<!-- Card: Evento Activo -->
+					<div
+						class="bg-stone-800/50 rounded-2xl p-6 border border-stone-700 relative overflow-hidden group"
+					>
+						<div class="flex items-center justify-between gap-3 mb-4 relative z-10">
+							<div class="flex items-center gap-3">
+								<div class="bg-blue-900/30 p-3 rounded-xl">
+									<svg
+										xmlns="http://www.w3.org/2000/svg"
+										class="w-6 h-6 text-blue-400"
+										fill="currentColor"
+										viewBox="0 0 256 256"
 									>
-										<div class="flex items-center justify-between mb-2">
-											<p class="font-semibold text-sm">{fase.nombre_fase}</p>
-											<p class="text-xs text-stone-400">{fase.cantidad} tickets</p>
-										</div>
-										<div class="flex items-center justify-between">
-											<div class="flex-1 bg-stone-600 rounded-full h-2 mr-3">
-												<div
-													class="bg-blue-500 h-2 rounded-full"
-													style="width: {(fase.cantidad /
-														ventasEventoActivo.totalTickets) *
-														100}%"
-												></div>
-											</div>
-											<p class="text-sm font-semibold text-blue-400">
-												{formatMoney(fase.monto)}
-											</p>
-										</div>
-									</div>
-								{/each}
+										<path
+											d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm40-68a28,28,0,0,1-28,28h-4v8a8,8,0,0,1-16,0v-8H104a8,8,0,0,1,0-16h36a12,12,0,0,0,0-24H116a28,28,0,0,1,0-56h4V72a8,8,0,0,1,16,0v8h16a8,8,0,0,1,0,16H116a12,12,0,0,0,0,24h24A28,28,0,0,1,168,148Z"
+										></path>
+									</svg>
+								</div>
+								<h2 class="text-xl font-semibold">Evento Activo</h2>
 							</div>
+
+							{#if ventasEventoActivo.eventoId}
+								<button
+									on:click={() => goto(`/events/event/${ventasEventoActivo.eventoId}`)}
+									class="text-sm font-semibold text-blue-400 bg-blue-900/20 hover:bg-blue-900/40 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1 border border-blue-900/40 hover:border-blue-700/60"
+								>
+									Administrar
+									<svg
+										xmlns="http://www.w3.org/2000/svg"
+										width="14"
+										height="14"
+										fill="currentColor"
+										viewBox="0 0 256 256"
+										><path
+											d="M221.66,133.66l-72,72a8,8,0,0,1-11.32-11.32L196.69,136H40a8,8,0,0,1,0-16H196.69L138.34,61.66a8,8,0,0,1,11.32-11.32l72,72A8,8,0,0,1,221.66,133.66Z"
+										></path></svg
+									>
+								</button>
+							{/if}
+						</div>
+
+						{#if ventasEventoActivo.totalTickets > 0}
+							<!-- Totales -->
+							<div class="space-y-3 mb-4">
+								<div class="bg-stone-700/50 rounded-xl p-4">
+									<p class="text-sm text-stone-400 mb-1">Tickets Vendidos</p>
+									<p class="text-2xl font-bold text-white">{ventasEventoActivo.totalTickets}</p>
+								</div>
+								<div class="bg-stone-700/50 rounded-xl p-4">
+									<p class="text-sm text-stone-400 mb-1">Monto Total</p>
+									<p class="text-2xl font-bold text-blue-400">
+										{formatMoney(ventasEventoActivo.totalMonto)}
+									</p>
+								</div>
+							</div>
+
+							<!-- Desglose por Fases -->
+							<div>
+								<p class="text-sm font-semibold text-stone-300 mb-3">Desglose por Fase</p>
+								<div class="space-y-2">
+									{#each ventasEventoActivo.fases as fase}
+										<div
+											class="bg-stone-700/30 rounded-lg p-3 border border-stone-600 hover:border-stone-500 transition-colors"
+										>
+											<div class="flex items-center justify-between mb-2">
+												<p class="font-semibold text-sm">{fase.nombre_fase}</p>
+												<p class="text-xs text-stone-400">{fase.cantidad} tickets</p>
+											</div>
+											<div class="flex items-center justify-between">
+												<div class="flex-1 bg-stone-600 rounded-full h-2 mr-3">
+													<div
+														class="bg-blue-500 h-2 rounded-full"
+														style="width: {(fase.cantidad / ventasEventoActivo.totalTickets) *
+															100}%"
+													></div>
+												</div>
+												<p class="text-sm font-semibold text-blue-400">
+													{formatMoney(fase.monto)}
+												</p>
+											</div>
+										</div>
+									{/each}
+								</div>
+							</div>
+						{:else}
+							<div class="text-center py-8">
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									class="w-12 h-12 mx-auto mb-3 text-stone-600"
+									fill="currentColor"
+									viewBox="0 0 256 256"
+								>
+									<path
+										d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm-8,56a8,8,0,0,1,16,0v56a8,8,0,0,1-16,0Zm8,104a12,12,0,1,1,12-12A12,12,0,0,1,128,184Z"
+									></path>
+								</svg>
+								<p class="text-stone-400 text-sm">No hay evento activo</p>
+							</div>
+						{/if}
+					</div>
+				</div>
+
+				<!-- Tabla: Últimas Transacciones -->
+				<div class="mt-6 bg-stone-800/50 rounded-2xl p-6 border border-stone-700">
+					<div class="flex items-center gap-3 mb-6">
+						<div class="bg-purple-900/30 p-3 rounded-xl">
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								class="w-6 h-6 text-purple-400"
+								fill="currentColor"
+								viewBox="0 0 256 256"
+							>
+								<path
+									d="M224,48H32a8,8,0,0,0-8,8V192a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A8,8,0,0,0,224,48ZM40,112H80v32H40Zm56,0H216v32H96ZM216,64V96H40V64ZM40,160H80v32H40Zm176,32H96V160H216v32Z"
+								></path>
+							</svg>
+						</div>
+						<h2 class="text-xl font-semibold">Últimas Transacciones</h2>
+					</div>
+
+					{#if ultimasTransacciones.length > 0}
+						<div class="overflow-x-auto">
+							<table class="w-full">
+								<thead class="bg-stone-700/50">
+									<tr>
+										<th class="px-4 py-3 text-left text-sm font-semibold text-stone-300">Fecha</th>
+										<th class="px-4 py-3 text-left text-sm font-semibold text-stone-300">Cliente</th
+										>
+										<th class="px-4 py-3 text-left text-sm font-semibold text-stone-300">Correo</th>
+										<th class="px-4 py-3 text-left text-sm font-semibold text-stone-300">Evento</th>
+										<th class="px-4 py-3 text-left text-sm font-semibold text-stone-300">Tickets</th
+										>
+										<th class="px-4 py-3 text-left text-sm font-semibold text-stone-300">Monto</th>
+										<th class="px-4 py-3 text-left text-sm font-semibold text-stone-300"
+											>Forma de pago</th
+										>
+									</tr>
+								</thead>
+								<tbody class="divide-y divide-stone-700">
+									{#each ultimasTransacciones as transaccion}
+										<tr class="hover:bg-stone-700/30 transition-colors">
+											<td class="px-4 py-3 text-sm text-stone-400">
+												{formatDate(transaccion.fechaVenta)}
+											</td>
+											<td class="px-4 py-3 text-sm font-medium">{transaccion.nombre}</td>
+											<td class="px-4 py-3 text-sm text-stone-400">{transaccion.correo}</td>
+											<td class="px-4 py-3 text-sm">{transaccion.mEvento?.nombreEvento}</td>
+											<td class="px-4 py-3 text-sm">
+												<span
+													class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-900/30 text-blue-400"
+												>
+													{transaccion.cantidadTickets}
+												</span>
+											</td>
+											<td class="px-4 py-3 text-sm font-semibold text-green-400">
+												{formatMoney(parseMoney(transaccion.mPago?.cantidad))}
+											</td>
+											<td class="px-4 py-3 text-sm text-stone-400">
+												{transaccion.mPago?.cFormaPago?.nombre || 'N/A'}
+											</td>
+										</tr>
+									{/each}
+								</tbody>
+							</table>
 						</div>
 					{:else}
 						<div class="text-center py-8">
@@ -212,87 +307,10 @@
 									d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm-8,56a8,8,0,0,1,16,0v56a8,8,0,0,1-16,0Zm8,104a12,12,0,1,1,12-12A12,12,0,0,1,128,184Z"
 								></path>
 							</svg>
-							<p class="text-stone-400 text-sm">No hay evento activo</p>
+							<p class="text-stone-400 text-sm">No hay transacciones recientes</p>
 						</div>
 					{/if}
 				</div>
-			</div>
-
-			<!-- Tabla: Últimas Transacciones -->
-			<div class="mt-6 bg-stone-800/50 rounded-2xl p-6 border border-stone-700">
-				<div class="flex items-center gap-3 mb-6">
-					<div class="bg-purple-900/30 p-3 rounded-xl">
-						<svg
-							xmlns="http://www.w3.org/2000/svg"
-							class="w-6 h-6 text-purple-400"
-							fill="currentColor"
-							viewBox="0 0 256 256"
-						>
-							<path
-								d="M224,48H32a8,8,0,0,0-8,8V192a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A8,8,0,0,0,224,48ZM40,112H80v32H40Zm56,0H216v32H96ZM216,64V96H40V64ZM40,160H80v32H40Zm176,32H96V160H216v32Z"
-							></path>
-						</svg>
-					</div>
-					<h2 class="text-xl font-semibold">Últimas Transacciones</h2>
-				</div>
-
-				{#if ultimasTransacciones.length > 0}
-					<div class="overflow-x-auto">
-						<table class="w-full">
-							<thead class="bg-stone-700/50">
-								<tr>
-									<th class="px-4 py-3 text-left text-sm font-semibold text-stone-300">Fecha</th>
-									<th class="px-4 py-3 text-left text-sm font-semibold text-stone-300">Cliente</th>
-									<th class="px-4 py-3 text-left text-sm font-semibold text-stone-300">Correo</th>
-									<th class="px-4 py-3 text-left text-sm font-semibold text-stone-300">Evento</th>
-									<th class="px-4 py-3 text-left text-sm font-semibold text-stone-300">Tickets</th>
-									<th class="px-4 py-3 text-left text-sm font-semibold text-stone-300">Monto</th>
-									<th class="px-4 py-3 text-left text-sm font-semibold text-stone-300">Forma de pago</th>
-								</tr>
-							</thead>
-							<tbody class="divide-y divide-stone-700">
-								{#each ultimasTransacciones as transaccion}
-									<tr class="hover:bg-stone-700/30 transition-colors">
-										<td class="px-4 py-3 text-sm text-stone-400">
-											{formatDate(transaccion.fechaVenta)}
-										</td>
-										<td class="px-4 py-3 text-sm font-medium">{transaccion.nombre}</td>
-										<td class="px-4 py-3 text-sm text-stone-400">{transaccion.correo}</td>
-										<td class="px-4 py-3 text-sm">{transaccion.mEvento?.nombreEvento}</td>
-										<td class="px-4 py-3 text-sm">
-											<span
-												class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-900/30 text-blue-400"
-											>
-												{transaccion.cantidadTickets}
-											</span>
-										</td>
-										<td class="px-4 py-3 text-sm font-semibold text-green-400">
-											{formatMoney(parseMoney(transaccion.mPago?.cantidad))}
-										</td>
-										<td class="px-4 py-3 text-sm text-stone-400">
-											{transaccion.mPago?.cFormaPago?.nombre || 'N/A'}
-										</td>
-									</tr>
-								{/each}
-							</tbody>
-						</table>
-					</div>
-				{:else}
-					<div class="text-center py-8">
-						<svg
-							xmlns="http://www.w3.org/2000/svg"
-							class="w-12 h-12 mx-auto mb-3 text-stone-600"
-							fill="currentColor"
-							viewBox="0 0 256 256"
-						>
-							<path
-								d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm-8,56a8,8,0,0,1,16,0v56a8,8,0,0,1-16,0Zm8,104a12,12,0,1,1,12-12A12,12,0,0,1,128,184Z"
-							></path>
-						</svg>
-						<p class="text-stone-400 text-sm">No hay transacciones recientes</p>
-					</div>
-				{/if}
-			</div>
 			{/if}
 		{/if}
 	</div>

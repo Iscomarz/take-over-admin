@@ -32,21 +32,24 @@
 	onMount(async () => {
 		toast.dismiss();
 		eventIdUrl = $page.url.searchParams.get('eventId');
-		if(eventIdUrl) {
+		if (eventIdUrl) {
 			selectedEventoId = parseInt(eventIdUrl);
 		} else {
 			await traerEventoActivo();
 		}
 
-		const { data, error } = await supabase.from('mEvento').select('*').order('idevento', { ascending: false });
+		const { data, error } = await supabase
+			.from('mEvento')
+			.select('*')
+			.order('idevento', { ascending: false });
 		if (error) {
 			console.error('Error fetching eventos:', error);
 		} else {
 			eventos = data;
 			// Sync selectedEvento details if ID matches
 			if (selectedEventoId) {
-				selectedEvento = eventos.find(e => e.idevento === selectedEventoId) || selectedEvento;
-				if(eventIdUrl) {
+				selectedEvento = eventos.find((e) => e.idevento === selectedEventoId) || selectedEvento;
+				if (eventIdUrl) {
 					fetchTickets();
 				}
 			}
@@ -56,18 +59,22 @@
 	async function iniciarScanner() {
 		modoValidacion = 'qr';
 		scannerActive = true;
-		
+
 		setTimeout(() => {
-			scanner = new Html5QrcodeScanner('reader', {
-				fps: 10,
-				qrbox: { width: 250, height: 250 },
-				aspectRatio: 1.0,
-				videoConstraints: {
-					facingMode: { ideal: "environment" }
+			scanner = new Html5QrcodeScanner(
+				'reader',
+				{
+					fps: 10,
+					qrbox: { width: 250, height: 250 },
+					aspectRatio: 1.0,
+					videoConstraints: {
+						facingMode: { ideal: 'environment' }
+					},
+					showTorchButtonIfSupported: true,
+					rememberLastUsedCamera: true
 				},
-				showTorchButtonIfSupported: true,
-				rememberLastUsedCamera: true
-			}, /* verbose= */ false);
+				/* verbose= */ false
+			);
 
 			scanner.render(
 				async (decodedText, decodedResult) => {
@@ -91,7 +98,8 @@
 					} else if (qrValido[0].validado === true) {
 						// QR ya validado
 						modalStatus = 'already-validated';
-						modalClientName = qrValido[0].mVenta?.cliente_id?.nombre || qrValido[0].mVenta?.nombre || '';
+						modalClientName =
+							qrValido[0].mVenta?.cliente_id?.nombre || qrValido[0].mVenta?.nombre || '';
 						showModal = true;
 					} else if (qrValido[0].validado === false) {
 						// QR válido, proceder a validar
@@ -105,7 +113,8 @@
 							resetScanner();
 						} else {
 							modalStatus = 'success';
-							modalClientName = qrValido[0].mVenta?.cliente_id?.nombre || qrValido[0].mVenta?.nombre || '';
+							modalClientName =
+								qrValido[0].mVenta?.cliente_id?.nombre || qrValido[0].mVenta?.nombre || '';
 							showModal = true;
 						}
 					}
@@ -120,7 +129,7 @@
 	async function fetchTickets() {
 		if (selectedEventoId) {
 			// Update the mapped full selectedEvento if possible
-			selectedEvento = eventos.find(e => e.idevento === selectedEventoId) || selectedEvento;
+			selectedEvento = eventos.find((e) => e.idevento === selectedEventoId) || selectedEvento;
 
 			const { data, error } = await supabase
 				.from('ticket')
@@ -160,11 +169,7 @@
 	}
 
 	async function traerEventoActivo() {
-		const { data, error } = await supabase
-			.from('mEvento')
-			.select('*')
-			.eq('activo', true)
-			.limit(1);
+		const { data, error } = await supabase.from('mEvento').select('*').eq('activo', true).limit(1);
 
 		if (error) {
 			console.error('Error fetching eventos:', error);
@@ -179,13 +184,11 @@
 		}
 	}
 
-	$: filteredTickets = tickets.filter(
-		(ticket) => {
-			if (!ticket.idTicket || !ticket.mVenta) return false;
-			const clientName = ticket.mVenta.cliente_id?.nombre || ticket.mVenta.nombre || '';
-			return clientName.toLowerCase().includes(filterCliente.toLowerCase());
-		}
-	);
+	$: filteredTickets = tickets.filter((ticket) => {
+		if (!ticket.idTicket || !ticket.mVenta) return false;
+		const clientName = ticket.mVenta.cliente_id?.nombre || ticket.mVenta.nombre || '';
+		return clientName.toLowerCase().includes(filterCliente.toLowerCase());
+	});
 
 	function resetScanner() {
 		setTimeout(() => {
@@ -244,7 +247,16 @@
 				on:click={atras}
 				class="bg-stone-800/70 hover:bg-stone-700/90 text-white py-2 px-4 rounded-xl font-semibold transition-colors border border-stone-600 flex items-center gap-2"
 			>
-				<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 256 256"><path d="M224,128a8,8,0,0,1-8,8H59.31l58.35,58.34a8,8,0,0,1-11.32,11.32l-72-72a8,8,0,0,1,0-11.32l72-72a8,8,0,0,1,11.32,11.32L59.31,120H216A8,8,0,0,1,224,128Z"></path></svg>
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					width="18"
+					height="18"
+					fill="currentColor"
+					viewBox="0 0 256 256"
+					><path
+						d="M224,128a8,8,0,0,1-8,8H59.31l58.35,58.34a8,8,0,0,1-11.32,11.32l-72-72a8,8,0,0,1,0-11.32l72-72a8,8,0,0,1,11.32,11.32L59.31,120H216A8,8,0,0,1,224,128Z"
+					></path></svg
+				>
 				Atrás
 			</button>
 		</div>
@@ -279,7 +291,8 @@
 		<div class="grid grid-cols-2 gap-3 mb-6">
 			<button
 				on:click={() => cambiarModo('nombre')}
-				class="flex flex-col items-center justify-center p-6 rounded-2xl transition-all duration-200 {modoValidacion === 'nombre'
+				class="flex flex-col items-center justify-center p-6 rounded-2xl transition-all duration-200 {modoValidacion ===
+				'nombre'
 					? 'bg-black shadow-lg shadow-black/50 scale-105 border-2 border-stone-500'
 					: 'bg-stone-800/70 hover:bg-stone-700/90'}"
 			>
@@ -298,7 +311,8 @@
 
 			<button
 				on:click={() => cambiarModo('qr')}
-				class="flex flex-col items-center justify-center p-6 rounded-2xl transition-all duration-200 {modoValidacion === 'qr'
+				class="flex flex-col items-center justify-center p-6 rounded-2xl transition-all duration-200 {modoValidacion ===
+				'qr'
 					? 'bg-black shadow-lg shadow-black/50 scale-105 border-2 border-gray-500'
 					: 'bg-stone-900/70 hover:bg-stone-800/90'}"
 			>
@@ -336,8 +350,7 @@
 				{#if !eventIdUrl}
 					<!-- Selector de evento -->
 					<div class="mb-4">
-						<label for="evento" class="block text-sm font-medium mb-2 text-stone-300"
-							>Evento:</label
+						<label for="evento" class="block text-sm font-medium mb-2 text-stone-300">Evento:</label
 						>
 						<select
 							id="evento"
@@ -405,12 +418,16 @@
 							>
 								<div class="flex items-center justify-between">
 									<div class="flex-1">
-										<h3 class="font-semibold text-lg mb-1">{ticket.mVenta.cliente_id?.nombre || ticket.mVenta.nombre || 'Sin nombre'}</h3>
+										<h3 class="font-semibold text-lg mb-1">
+											{ticket.mVenta.cliente_id?.nombre || ticket.mVenta.nombre || 'Sin nombre'}
+										</h3>
 										<p class="text-sm text-stone-400">{ticket.cFaseEvento.nombreFace}</p>
 									</div>
 									<div class="flex items-center gap-3">
 										{#if ticket.validado}
-											<div class="flex items-center gap-2 bg-green-900/30 text-green-400 px-3 py-2 rounded-lg">
+											<div
+												class="flex items-center gap-2 bg-green-900/30 text-green-400 px-3 py-2 rounded-lg"
+											>
 												<svg
 													xmlns="http://www.w3.org/2000/svg"
 													class="w-6 h-6"
@@ -458,4 +475,3 @@
 		{/if}
 	</div>
 </div>
-

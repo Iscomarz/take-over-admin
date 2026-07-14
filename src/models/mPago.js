@@ -1,5 +1,3 @@
-export class MPago{
-    constructor({idPago, idFormaPago}){
-
-    }
+export class MPago {
+	constructor({ idPago, idFormaPago }) {}
 }

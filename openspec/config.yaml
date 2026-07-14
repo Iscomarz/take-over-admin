@@ -1,0 +1,62 @@
+schema: spec-driven
+
+context: |
+  Stack: Svelte (v4.2.7), SvelteKit (v2.0.0), Vite (v5.0.3), Tailwind CSS (v3.4.10)
+  Database/APIs: Supabase JS (v2.45.3)
+  Integration: nodemailer, html5-qrcode, jspdf, resend
+  Formatting: Prettier (v3.1.1)
+  Testing: None configured.
+
+rules:
+  proposal:
+    - Include rollback plan for risky changes
+  specs:
+    - Use Given/When/Then for scenarios
+    - Use RFC 2119 keywords (MUST, SHALL, SHOULD, MAY)
+  design:
+    - Include sequence diagrams for complex flows
+    - Document architecture decisions with rationale
+  tasks:
+    - Group by phase, use hierarchical numbering
+    - Keep tasks completable in one session
+  apply:
+    rules:
+      - Follow existing code patterns
+    tdd: false
+    test_command: ''
+  verify:
+    test_command: ''
+    build_command: 'npm run build'
+    coverage_threshold: 0
+  archive:
+    - Warn before merging destructive deltas
+
+testing:
+  strict_tdd: false
+  detected: '2026-07-14'
+  runner:
+    command: ''
+    framework: 'none'
+  layers:
+    unit:
+      available: false
+      tool: '—'
+    integration:
+      available: false
+      tool: '—'
+    e2e:
+      available: false
+      tool: '—'
+  coverage:
+    available: false
+    command: ''
+  quality:
+    linter:
+      available: true
+      command: 'npm run lint'
+    type_checker:
+      available: false
+      command: ''
+    formatter:
+      available: true
+      command: 'npm run format'

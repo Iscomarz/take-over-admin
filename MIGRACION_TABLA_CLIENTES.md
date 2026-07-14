@@ -1,6 +1,7 @@
 # 🔄 Migración: Normalización de Base de Datos - Tabla de Clientes
 
 ## 📋 Resumen
+
 Este documento contiene las instrucciones completas para normalizar la base de datos agregando una tabla dedicada de clientes (`mCliente`), eliminando la duplicación de datos de clientes en `mVenta`.
 
 **⚠️ IMPORTANTE**: Realizar esta migración cuando NO haya eventos activos. La migración puede tomar tiempo dependiendo del volumen de datos.
@@ -10,6 +11,7 @@ Este documento contiene las instrucciones completas para normalizar la base de d
 ## 📊 Estructura Actual vs Nueva
 
 ### Antes (Problemático)
+
 ```
 mVenta
 ├── idventa (PK)
@@ -22,6 +24,7 @@ mVenta
 ```
 
 ### Después (Normalizado)
+
 ```
 mCliente (NUEVA)
 ├── id (PK)
@@ -95,7 +98,7 @@ FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 ```sql
 -- Agregar columna cliente_id a mVenta
-ALTER TABLE mVenta 
+ALTER TABLE mVenta
 ADD COLUMN cliente_id INTEGER;
 
 -- Crear índice (antes de agregar FK para mejor rendimiento)
@@ -103,8 +106,8 @@ CREATE INDEX idx_venta_cliente ON mVenta(cliente_id);
 
 -- Después de la migración de datos, agregar la foreign key
 -- (No ejecutar ahora, ejecutar después del PASO 3)
--- ALTER TABLE mVenta 
--- ADD CONSTRAINT fk_venta_cliente 
+-- ALTER TABLE mVenta
+-- ADD CONSTRAINT fk_venta_cliente
 -- FOREIGN KEY (cliente_id) REFERENCES mCliente(id) ON DELETE RESTRICT;
 ```
 
@@ -117,7 +120,7 @@ CREATE INDEX idx_venta_cliente ON mVenta(cliente_id);
 ```sql
 -- Insertar clientes únicos basándose en el correo
 INSERT INTO mCliente (nombre, correo, fecha_registro, ultima_compra)
-SELECT 
+SELECT
     -- Usar el nombre más reciente para cada correo
     FIRST_VALUE(nombre) OVER (PARTITION BY correo ORDER BY fecha DESC) as nombre,
     correo,
@@ -142,16 +145,16 @@ FROM mCliente c
 WHERE v.correo = c.correo;
 
 -- Verificar que todas las ventas tienen cliente_id
-SELECT 
+SELECT
     COUNT(*) as total_ventas,
     COUNT(cliente_id) as ventas_con_cliente,
     COUNT(*) - COUNT(cliente_id) as ventas_sin_cliente
 FROM mVenta;
 
 -- Si hay ventas sin cliente_id, revisarlas
-SELECT idventa, nombre, correo, fecha 
-FROM mVenta 
-WHERE cliente_id IS NULL 
+SELECT idventa, nombre, correo, fecha
+FROM mVenta
+WHERE cliente_id IS NULL
 LIMIT 10;
 ```
 
@@ -159,12 +162,12 @@ LIMIT 10;
 
 ```sql
 -- Solo ejecutar si todas las ventas tienen cliente_id
-ALTER TABLE mVenta 
-ADD CONSTRAINT fk_venta_cliente 
+ALTER TABLE mVenta
+ADD CONSTRAINT fk_venta_cliente
 FOREIGN KEY (cliente_id) REFERENCES mCliente(id) ON DELETE RESTRICT;
 
 -- Hacer cliente_id NOT NULL (opcional, recomendado)
-ALTER TABLE mVenta 
+ALTER TABLE mVenta
 ALTER COLUMN cliente_id SET NOT NULL;
 ```
 
@@ -174,11 +177,11 @@ ALTER COLUMN cliente_id SET NOT NULL;
 
 ```sql
 -- Opción A: Renombrar columna (si ya usas venta_id)
-ALTER TABLE mCampaniaDestinatario 
+ALTER TABLE mCampaniaDestinatario
 RENAME COLUMN venta_id TO cliente_id;
 
 -- Opción B: Crear nueva columna y migrar
-ALTER TABLE mCampaniaDestinatario 
+ALTER TABLE mCampaniaDestinatario
 ADD COLUMN cliente_id INTEGER REFERENCES mCliente(id);
 
 -- Migrar datos de venta_id a cliente_id
@@ -188,7 +191,7 @@ FROM mVenta v
 WHERE cd.venta_id = v.idventa;
 
 -- Verificar migración
-SELECT 
+SELECT
     COUNT(*) as total,
     COUNT(cliente_id) as con_cliente_id
 FROM mCampaniaDestinatario;
@@ -206,97 +209,104 @@ FROM mCampaniaDestinatario;
 #### 5.1 `src/services/campania-service.js`
 
 **Función `obtenerClientesUnicos()`** (Línea ~15):
+
 ```javascript
 // ANTES
 const { data, error } = await supabase
-    .from('mVenta')
-    .select('correo, nombre, idventa, idEvento')
-    .order('nombre');
+	.from('mVenta')
+	.select('correo, nombre, idventa, idEvento')
+	.order('nombre');
 
 // DESPUÉS
 const { data, error } = await supabase
-    .from('mCliente')
-    .select('id, correo, nombre')
-    .eq('desuscrito', false)
-    .order('nombre');
+	.from('mCliente')
+	.select('id, correo, nombre')
+	.eq('desuscrito', false)
+	.order('nombre');
 ```
 
 **Función `obtenerClientesPorEvento()`** (Línea ~100):
+
 ```javascript
 // ANTES
 const { data, error } = await supabase
-    .from('mVenta')
-    .select('correo, nombre, idventa, idEvento')
-    .eq('idEvento', eventoId)
-    .order('nombre');
+	.from('mVenta')
+	.select('correo, nombre, idventa, idEvento')
+	.eq('idEvento', eventoId)
+	.order('nombre');
 
 // DESPUÉS
 // Necesitas hacer un JOIN
 const { data, error } = await supabase
-    .from('mVenta')
-    .select(`
+	.from('mVenta')
+	.select(
+		`
         cliente_id,
         mCliente!inner (
             id,
             correo,
             nombre
         )
-    `)
-    .eq('idEvento', eventoId);
+    `
+	)
+	.eq('idEvento', eventoId);
 
 // Transformar los datos
 const clientesUnicos = data.reduce((acc, venta) => {
-    const clienteId = venta.mCliente.id;
-    if (!acc.find(c => c.id === clienteId)) {
-        acc.push({
-            id: clienteId,
-            correo: venta.mCliente.correo,
-            nombre: venta.mCliente.nombre
-        });
-    }
-    return acc;
+	const clienteId = venta.mCliente.id;
+	if (!acc.find((c) => c.id === clienteId)) {
+		acc.push({
+			id: clienteId,
+			correo: venta.mCliente.correo,
+			nombre: venta.mCliente.nombre
+		});
+	}
+	return acc;
 }, []);
 ```
 
 #### 5.2 `src/routes/newCampaign/emailBody/+page.svelte`
 
 **Línea ~290** - Cambiar query de obtención de clientes:
+
 ```javascript
 // ANTES
 const { data: clientesCompletos, error: errorClientes } = await supabase
-    .from('mVenta')
-    .select('idventa, correo, nombre')
-    .in('idventa', datosCompletos.destinatarios);
+	.from('mVenta')
+	.select('idventa, correo, nombre')
+	.in('idventa', datosCompletos.destinatarios);
 
 // DESPUÉS
 const { data: clientesCompletos, error: errorClientes } = await supabase
-    .from('mCliente')
-    .select('cliente_id, correo, nombre')
-    .in('cliente_id', datosCompletos.destinatarios);
+	.from('mCliente')
+	.select('cliente_id, correo, nombre')
+	.in('cliente_id', datosCompletos.destinatarios);
 
 // Y en el map:
-const destinatariosParaEnviar = clientesCompletos.map(c => ({
-    id: c.cliente_id, // Cambiar de c.idventa a c.id
-    correo: c.correo,
-    nombre: c.nombre
+const destinatariosParaEnviar = clientesCompletos.map((c) => ({
+	id: c.cliente_id, // Cambiar de c.idventa a c.id
+	correo: c.correo,
+	nombre: c.nombre
 }));
 ```
 
 #### 5.3 `src/routes/reenviarTickets/+page.svelte`
 
 **Línea ~26**:
+
 ```javascript
 // ANTES
 const { data, error } = await supabase
-    .from('mVenta')
-    .select('idventa, nombre, correo, idevento')
-    .order('nombre');
+	.from('mVenta')
+	.select('idventa, nombre, correo, idevento')
+	.order('nombre');
 
 // DESPUÉS
 // Obtener ventas con información del cliente
 const { data, error } = await supabase
-    .from('mVenta')
-    .select(`
+	.from('mVenta')
+	.select(
+		`
         idventa,
         idevento,
         mCliente!inner (
@@ -304,32 +314,35 @@ const { data, error } = await supabase
             nombre,
             correo
         )
-    `)
-    .order('mCliente(nombre)');
+    `
+	)
+	.order('mCliente(nombre)');
 
 // Transformar datos
-const ventasConCliente = data.map(v => ({
-    idventa: v.idventa,
-    idevento: v.idevento,
-    nombre: v.mCliente.nombre,
-    correo: v.mCliente.correo
+const ventasConCliente = data.map((v) => ({
+	idventa: v.idventa,
+	idevento: v.idevento,
+	nombre: v.mCliente.nombre,
+	correo: v.mCliente.correo
 }));
 ```
 
 #### 5.4 `src/routes/events/event/[id]/+page.svelte`
 
 **Línea ~135**:
+
 ```javascript
 // ANTES
 const { data: ventas, error: errorVentas } = await supabase
-    .from('mVenta')
-    .select('*')
-    .eq('idevento', eventoId);
+	.from('mVenta')
+	.select('*')
+	.eq('idevento', eventoId);
 
 // DESPUÉS (agregar JOIN con cliente)
 const { data: ventas, error: errorVentas } = await supabase
-    .from('mVenta')
-    .select(`
+	.from('mVenta')
+	.select(
+		`
         *,
         mCliente (
             id,
@@ -337,8 +350,9 @@ const { data: ventas, error: errorVentas } = await supabase
             correo,
             telefono
         )
-    `)
-    .eq('idevento', eventoId);
+    `
+	)
+	.eq('idevento', eventoId);
 
 // Nota: Ahora accede a los datos del cliente con: venta.mCliente.nombre
 ```
@@ -346,16 +360,19 @@ const { data: ventas, error: errorVentas } = await supabase
 #### 5.5 `src/routes/newTicket/+page.svelte`
 
 **Línea ~95** - Al crear nueva venta:
+
 ```javascript
 // ANTES
 const { data, error } = await supabase
-    .from('mVenta')
-    .insert([{
-        nombre: formData.nombre,
-        correo: formData.correo,
-        // ... otros campos
-    }])
-    .select();
+	.from('mVenta')
+	.insert([
+		{
+			nombre: formData.nombre,
+			correo: formData.correo
+			// ... otros campos
+		}
+	])
+	.select();
 
 // DESPUÉS
 // Primero: Buscar o crear cliente
@@ -363,38 +380,42 @@ let clienteId;
 
 // Buscar cliente existente
 const { data: clienteExistente } = await supabase
-    .from('mCliente')
-    .select('id')
-    .eq('correo', formData.correo)
-    .single();
+	.from('mCliente')
+	.select('id')
+	.eq('correo', formData.correo)
+	.single();
 
 if (clienteExistente) {
-    clienteId = clienteExistente.id;
+	clienteId = clienteExistente.id;
 } else {
-    // Crear nuevo cliente
-    const { data: nuevoCliente, error: errorCliente } = await supabase
-        .from('mCliente')
-        .insert([{
-            nombre: formData.nombre,
-            correo: formData.correo,
-            telefono: formData.telefono || null,
-            fecha_registro: new Date().toISOString()
-        }])
-        .select()
-        .single();
-    
-    if (errorCliente) throw errorCliente;
-    clienteId = nuevoCliente.id;
+	// Crear nuevo cliente
+	const { data: nuevoCliente, error: errorCliente } = await supabase
+		.from('mCliente')
+		.insert([
+			{
+				nombre: formData.nombre,
+				correo: formData.correo,
+				telefono: formData.telefono || null,
+				fecha_registro: new Date().toISOString()
+			}
+		])
+		.select()
+		.single();
+
+	if (errorCliente) throw errorCliente;
+	clienteId = nuevoCliente.id;
 }
 
 // Luego: Crear venta con cliente_id
 const { data, error } = await supabase
-    .from('mVenta')
-    .insert([{
-        cliente_id: clienteId,
-        // ... otros campos (NO incluir nombre ni correo)
-    }])
-    .select();
+	.from('mVenta')
+	.insert([
+		{
+			cliente_id: clienteId
+			// ... otros campos (NO incluir nombre ni correo)
+		}
+	])
+	.select();
 ```
 
 ---
@@ -404,33 +425,36 @@ const { data, error } = await supabase
 ### Archivos a modificar en el proyecto de ventas:
 
 1. **Formulario de compra** - Al crear venta:
+
    ```javascript
    // Buscar o crear cliente primero
    const { data: cliente } = await supabase
-       .from('mCliente')
-       .select('id')
-       .eq('correo', email)
-       .single();
-   
+   	.from('mCliente')
+   	.select('id')
+   	.eq('correo', email)
+   	.single();
+
    let clienteId;
    if (cliente) {
-       clienteId = cliente.id;
+   	clienteId = cliente.id;
    } else {
-       const { data: nuevoCliente } = await supabase
-           .from('mCliente')
-           .insert([{ nombre, correo: email, telefono }])
-           .select()
-           .single();
-       clienteId = nuevoCliente.id;
+   	const { data: nuevoCliente } = await supabase
+   		.from('mCliente')
+   		.insert([{ nombre, correo: email, telefono }])
+   		.select()
+   		.single();
+   	clienteId = nuevoCliente.id;
    }
-   
+
    // Crear venta con cliente_id
-   await supabase.from('mVenta').insert([{
-       cliente_id: clienteId,
-       idevento: eventoId,
-       cantidad: cantidad,
-       total: total
-   }]);
+   await supabase.from('mVenta').insert([
+   	{
+   		cliente_id: clienteId,
+   		idevento: eventoId,
+   		cantidad: cantidad,
+   		total: total
+   	}
+   ]);
    ```
 
 2. **Consultas de ventas existentes**:
@@ -445,13 +469,13 @@ const { data, error } = await supabase
 
 ```sql
 -- 1. Verificar integridad de datos
-SELECT 
+SELECT
     (SELECT COUNT(*) FROM mCliente) as total_clientes,
     (SELECT COUNT(DISTINCT cliente_id) FROM mVenta) as clientes_con_ventas,
     (SELECT COUNT(*) FROM mVenta WHERE cliente_id IS NULL) as ventas_sin_cliente;
 
 -- 2. Verificar clientes con múltiples compras
-SELECT 
+SELECT
     c.id,
     c.nombre,
     c.correo,
@@ -464,7 +488,7 @@ ORDER BY total_compras DESC
 LIMIT 10;
 
 -- 3. Verificar campañas
-SELECT 
+SELECT
     COUNT(*) as total_destinatarios,
     COUNT(cliente_id) as con_cliente_id
 FROM mCampaniaDestinatario;
@@ -498,12 +522,14 @@ ALTER TABLE mVenta DROP COLUMN IF EXISTS correo;
 ## 📋 Checklist de Migración
 
 ### Pre-Migración
+
 - [ ] Evento actual terminado
 - [ ] Backup completo de la base de datos
 - [ ] Notificar al equipo de la migración
 - [ ] Poner sitio en modo mantenimiento (opcional)
 
 ### Migración
+
 - [ ] PASO 1: Crear tabla mCliente
 - [ ] PASO 2: Modificar tabla mVenta (agregar cliente_id)
 - [ ] PASO 3.1: Insertar clientes únicos
@@ -515,6 +541,7 @@ ALTER TABLE mVenta DROP COLUMN IF EXISTS correo;
 - [ ] PASO 7: Ejecutar scripts de verificación
 
 ### Post-Migración
+
 - [ ] Probar flujo completo de compra
 - [ ] Probar envío de tickets
 - [ ] Probar creación de campaña

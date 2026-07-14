@@ -3,9 +3,9 @@
 	import { goto } from '$app/navigation';
 	import toast, { Toaster } from 'svelte-french-toast';
 	import supabase from '$lib/supabase';
-	import { 
-		obtenerCampanias, 
-		obtenerDetalleCampania, 
+	import {
+		obtenerCampanias,
+		obtenerDetalleCampania,
 		eliminarCampania,
 		enviarCampania
 	} from '../../services/campania-service';
@@ -33,7 +33,6 @@
 	};
 
 	onMount(async () => {
-		
 		await cargarCampanias();
 	});
 
@@ -45,7 +44,9 @@
 
 		toast.dismiss(loadingToast);
 		if (campanias.length > 0) {
-			toast.success(`${campanias.length} campaña${campanias.length !== 1 ? 's' : ''} cargada${campanias.length !== 1 ? 's' : ''}`);
+			toast.success(
+				`${campanias.length} campaña${campanias.length !== 1 ? 's' : ''} cargada${campanias.length !== 1 ? 's' : ''}`
+			);
 		}
 		cargando = false;
 	}
@@ -94,7 +95,11 @@
 	}
 
 	async function enviarBorradorAhora() {
-		if (!confirm(`¿Enviar esta campaña a ${campaniaSeleccionada.destinatarios?.length || 0} destinatarios?`)) {
+		if (
+			!confirm(
+				`¿Enviar esta campaña a ${campaniaSeleccionada.destinatarios?.length || 0} destinatarios?`
+			)
+		) {
 			return;
 		}
 
@@ -103,8 +108,8 @@
 
 		try {
 			// Obtener datos completos de clientes
-			const idsDestinatarios = campaniaSeleccionada.destinatarios.map(d => d.venta_id);
-			
+			const idsDestinatarios = campaniaSeleccionada.destinatarios.map((d) => d.venta_id);
+
 			const { data: clientesCompletos, error: errorClientes } = await supabase
 				.from('mVenta')
 				.select('idventa, correo, nombre')
@@ -121,22 +126,24 @@
 				usar_variable_nombre: campaniaSeleccionada.usar_variable_nombre
 			};
 
-			const destinatariosParaEnviar = clientesCompletos.map(c => ({
+			const destinatariosParaEnviar = clientesCompletos.map((c) => ({
 				id: c.idventa,
 				correo: c.correo,
 				nombre: c.nombre
 			}));
 
 			const resultado = await enviarCampania(
-				campaniaSeleccionada.id, 
-				datosCampania, 
+				campaniaSeleccionada.id,
+				datosCampania,
 				destinatariosParaEnviar
 			);
 
 			toast.dismiss(loadingToast);
 
 			if (resultado.success) {
-				toast.success(`Campaña enviada: ${resultado.enviados} exitosos, ${resultado.errores} errores`);
+				toast.success(
+					`Campaña enviada: ${resultado.enviados} exitosos, ${resultado.errores} errores`
+				);
 				cerrarModal();
 				await cargarCampanias();
 			} else {
@@ -253,12 +260,7 @@
 								</div>
 							</div>
 							<div class="text-stone-500">
-								<svg
-									class="w-5 h-5"
-									fill="none"
-									stroke="currentColor"
-									viewBox="0 0 24 24"
-								>
+								<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 									<path
 										stroke-linecap="round"
 										stroke-linejoin="round"
@@ -319,10 +321,7 @@
 					</div>
 					<p class="text-stone-400 text-sm">{campaniaSeleccionada.asunto}</p>
 				</div>
-				<button
-					on:click={cerrarModal}
-					class="text-stone-400 hover:text-white transition-colors"
-				>
+				<button on:click={cerrarModal} class="text-stone-400 hover:text-white transition-colors">
 					<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path
 							stroke-linecap="round"
@@ -342,7 +341,9 @@
 				</div>
 				<div class="bg-green-500/10 rounded-lg p-4 border border-green-500/30">
 					<p class="text-green-400 text-xs mb-1">Enviados</p>
-					<p class="text-2xl font-bold text-green-300">{campaniaSeleccionada.total_enviados || 0}</p>
+					<p class="text-2xl font-bold text-green-300">
+						{campaniaSeleccionada.total_enviados || 0}
+					</p>
 				</div>
 				<div class="bg-red-500/10 rounded-lg p-4 border border-red-500/30">
 					<p class="text-red-400 text-xs mb-1">Errores</p>
@@ -405,9 +406,25 @@
 						class="flex-1 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 disabled:from-stone-600 disabled:to-stone-600 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-200 flex items-center justify-center gap-2"
 					>
 						{#if enviandoCampania}
-							<svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-								<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-								<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+							<svg
+								class="animate-spin h-5 w-5"
+								xmlns="http://www.w3.org/2000/svg"
+								fill="none"
+								viewBox="0 0 24 24"
+							>
+								<circle
+									class="opacity-25"
+									cx="12"
+									cy="12"
+									r="10"
+									stroke="currentColor"
+									stroke-width="4"
+								></circle>
+								<path
+									class="opacity-75"
+									fill="currentColor"
+									d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+								></path>
 							</svg>
 							Enviando...
 						{:else}

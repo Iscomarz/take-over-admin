@@ -1,6 +1,7 @@
 # 📧 Módulo de Email Marketing - Guía de Uso
 
 ## 🎯 Descripción
+
 Sistema completo para crear y enviar campañas de email marketing personalizadas a tus clientes que han comprado tickets en tus eventos.
 
 ---
@@ -8,20 +9,25 @@ Sistema completo para crear y enviar campañas de email marketing personalizadas
 ## 📁 Archivos Creados
 
 ### **Stores**
+
 - `/src/lib/stores/campaniaStore.js` - Store de Svelte para mantener estado entre pantallas
 
 ### **Servicios**
+
 - `/src/services/campania-service.js` - Lógica de negocio y conexión con base de datos
 
 ### **Rutas (Páginas)**
+
 - `/src/routes/newCampaign/+page.svelte` - Paso 1: Datos básicos de la campaña
 - `/src/routes/newCampaign/emailBody/+page.svelte` - Paso 2: Contenido del correo
 - `/src/routes/campanias/+page.svelte` - Historial de campañas enviadas
 
 ### **API**
+
 - `/src/routes/api/enviarCampania/+server.js` - Endpoint para envío de correos
 
 ### **Documentación**
+
 - `/DATABASE_CAMPANIA.md` - Estructura completa de base de datos
 
 ---
@@ -29,9 +35,11 @@ Sistema completo para crear y enviar campañas de email marketing personalizadas
 ## 🚀 Flujo de Uso
 
 ### 1️⃣ **Crear Nueva Campaña**
+
 ```
 /newCampaign → Paso 1: Datos Básicos
 ```
+
 - Ingresa título de la campaña
 - Define asunto del correo
 - Filtra por evento (opcional)
@@ -39,9 +47,11 @@ Sistema completo para crear y enviar campañas de email marketing personalizadas
 - Click en "Continuar"
 
 ### 2️⃣ **Diseñar Contenido**
+
 ```
 /newCampaign/emailBody → Paso 2: Contenido
 ```
+
 - Escribe o pega tu HTML
 - Activa "Usar variable de nombre" para personalizar
 - Usa `{{nombre}}` donde quieras el nombre del cliente
@@ -49,9 +59,11 @@ Sistema completo para crear y enviar campañas de email marketing personalizadas
 - Guarda como borrador o envía inmediatamente
 
 ### 3️⃣ **Ver Historial**
+
 ```
 /campanias → Historial
 ```
+
 - Lista todas las campañas
 - Click en una campaña para ver detalles
 - Revisa estadísticas de envío
@@ -64,6 +76,7 @@ Sistema completo para crear y enviar campañas de email marketing personalizadas
 ### Tablas a Crear en Supabase:
 
 #### 1. **mCampania**
+
 ```sql
 CREATE TABLE mCampania (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -83,6 +96,7 @@ CREATE TABLE mCampania (
 ```
 
 #### 2. **mCampaniaDestinatario**
+
 ```sql
 CREATE TABLE mCampaniaDestinatario (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -105,6 +119,7 @@ Ver `DATABASE_CAMPANIA.md` para más detalles e índices.
 El código está preparado pero **necesitas configurar un servicio de email**. Opciones:
 
 ### **Opción 1: Nodemailer (SMTP)**
+
 ```bash
 npm install nodemailer
 ```
@@ -114,25 +129,26 @@ npm install nodemailer
 import nodemailer from 'nodemailer';
 
 const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 587,
-  secure: false,
-  auth: {
-    user: 'tu-email@gmail.com',
-    pass: 'tu-contraseña-app'
-  }
+	host: 'smtp.gmail.com',
+	port: 587,
+	secure: false,
+	auth: {
+		user: 'tu-email@gmail.com',
+		pass: 'tu-contraseña-app'
+	}
 });
 
 // Reemplazar en el endpoint:
 await transporter.sendMail({
-  from: '"Take Over" <noreply@takeover.com>',
-  to: cliente.correo,
-  subject: campania.asunto,
-  html: htmlFinal
+	from: '"Take Over" <noreply@takeover.com>',
+	to: cliente.correo,
+	subject: campania.asunto,
+	html: htmlFinal
 });
 ```
 
 ### **Opción 2: Resend (Moderno y Fácil)**
+
 ```bash
 npm install resend
 ```
@@ -142,14 +158,15 @@ import { Resend } from 'resend';
 const resend = new Resend('tu_api_key');
 
 await resend.emails.send({
-  from: 'TakeOver <noreply@takeover.com>',
-  to: cliente.correo,
-  subject: campania.asunto,
-  html: htmlFinal
+	from: 'TakeOver <noreply@takeover.com>',
+	to: cliente.correo,
+	subject: campania.asunto,
+	html: htmlFinal
 });
 ```
 
 ### **Opción 3: SendGrid**
+
 ```bash
 npm install @sendgrid/mail
 ```
@@ -159,10 +176,10 @@ import sgMail from '@sendgrid/mail';
 sgMail.setApiKey('tu_api_key');
 
 await sgMail.send({
-  to: cliente.correo,
-  from: 'noreply@takeover.com',
-  subject: campania.asunto,
-  html: htmlFinal
+	to: cliente.correo,
+	from: 'noreply@takeover.com',
+	subject: campania.asunto,
+	html: htmlFinal
 });
 ```
 
@@ -171,18 +188,21 @@ await sgMail.send({
 ## 🎨 Personalización
 
 ### Variables Disponibles
+
 Por defecto solo está `{{nombre}}`, pero puedes agregar más:
 
 ```javascript
 // En emailBody/+page.svelte
 htmlFinal = htmlFinal
-  .replace(/\{\{nombre\}\}/g, cliente.nombre)
-  .replace(/\{\{correo\}\}/g, cliente.correo)
-  .replace(/\{\{evento\}\}/g, evento.nombre);
+	.replace(/\{\{nombre\}\}/g, cliente.nombre)
+	.replace(/\{\{correo\}\}/g, cliente.correo)
+	.replace(/\{\{evento\}\}/g, evento.nombre);
 ```
 
 ### Plantilla HTML Incluida
+
 El sistema incluye una plantilla por defecto moderna y responsive. Puedes:
+
 - Usarla como base
 - Reemplazarla completamente
 - Crear múltiples plantillas
@@ -192,7 +212,9 @@ El sistema incluye una plantilla por defecto moderna y responsive. Puedes:
 ## 🔒 Seguridad
 
 ### Variables de Entorno
+
 Crea `.env` con tus credenciales:
+
 ```env
 # Para Nodemailer
 SMTP_HOST=smtp.gmail.com
@@ -208,6 +230,7 @@ SENDGRID_API_KEY=SG.xxxxxxxxxxxx
 ```
 
 ### Políticas RLS en Supabase
+
 Ejecuta las políticas en `DATABASE_CAMPANIA.md` para seguridad de datos.
 
 ---
@@ -230,13 +253,9 @@ Ejecuta las políticas en `DATABASE_CAMPANIA.md` para seguridad de datos.
 Edita tu menú de navegación para agregar:
 
 ```svelte
-<a href="/newCampaign" class="menu-item">
-  📧 Nueva Campaña
-</a>
+<a href="/newCampaign" class="menu-item"> 📧 Nueva Campaña </a>
 
-<a href="/campanias" class="menu-item">
-  📊 Historial de Campañas
-</a>
+<a href="/campanias" class="menu-item"> 📊 Historial de Campañas </a>
 ```
 
 ---
@@ -244,6 +263,7 @@ Edita tu menú de navegación para agregar:
 ## 🧪 Testing
 
 ### Flujo de Prueba:
+
 1. Crear campaña de prueba
 2. Seleccionar solo tu correo como destinatario
 3. Diseñar un HTML simple
@@ -256,6 +276,7 @@ Edita tu menú de navegación para agregar:
 ## 📈 Mejoras Futuras Sugeridas
 
 ### Funcionalidades Extra:
+
 - [ ] **Programar envíos** (enviar en fecha/hora específica)
 - [ ] **Plantillas guardadas** (reutilizar diseños)
 - [ ] **Tracking de apertura** (pixel de seguimiento)
@@ -268,6 +289,7 @@ Edita tu menú de navegación para agregar:
 - [ ] **Reportes detallados** (gráficos de rendimiento)
 
 ### Validaciones Extra:
+
 - [ ] Validar formato de correos
 - [ ] Evitar correos duplicados
 - [ ] Limitar tamaño del HTML
@@ -279,19 +301,23 @@ Edita tu menú de navegación para agregar:
 ## 🆘 Solución de Problemas
 
 ### Error: "No hay destinatarios"
+
 - Verifica que la tabla mVenta tenga correos válidos
 - Revisa que los clientes tengan campo `correo` no vacío
 
 ### Error al enviar correos
+
 - Verifica credenciales del servicio de email
 - Revisa logs en consola del servidor
 - Comprueba límites de tu servicio de correo
 
 ### Preview no se actualiza
+
 - Haz click en "Vista Previa" después de editar
 - Verifica que el HTML sea válido
 
 ### Correos no personalizados
+
 - Asegúrate de activar "Usar variable de nombre"
 - Verifica que usas `{{nombre}}` en el HTML (con llaves dobles)
 
@@ -300,6 +326,7 @@ Edita tu menú de navegación para agregar:
 ## 📞 Soporte
 
 Para más información, revisa:
+
 - `DATABASE_CAMPANIA.md` - Estructura de base de datos completa
 - Código comentado en archivos `.svelte` y `.js`
 - Documentación de tu servicio de email elegido

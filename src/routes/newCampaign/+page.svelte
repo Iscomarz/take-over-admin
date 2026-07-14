@@ -22,8 +22,6 @@
 	let busqueda = '';
 
 	onMount(async () => {
-		
-
 		// Resetear el store al inicio
 		campaniaStore.reset();
 
@@ -31,7 +29,7 @@
 		await cargarDatos();
 	});
 
-		async function cargarDatos() {
+	async function cargarDatos() {
 		cargandoClientes = true;
 		const loadingToast = toast.loading('Cargando datos...');
 
@@ -41,7 +39,7 @@
 			clientesFiltrados = clientes;
 
 			// Contar clientes frecuentes
-			const frecuentes = clientes.filter(c => c.esFrecuente).length;
+			const frecuentes = clientes.filter((c) => c.esFrecuente).length;
 
 			toast.dismiss(loadingToast);
 			toast.success(`${clientes.length} clientes cargados (${frecuentes} frecuentes)`);
@@ -55,16 +53,15 @@
 	}
 
 	async function filtrarPorEvento() {
-		
 		if (eventoSeleccionado && eventoSeleccionado !== '') {
 			cargandoClientes = true;
 			const loadingToast = toast.loading('Filtrando clientes...');
 
 			try {
 				const eventoIdNumero = parseInt(eventoSeleccionado);
-				
+
 				clientesFiltrados = await obtenerClientesPorEvento(eventoIdNumero);
-				
+
 				toast.dismiss(loadingToast);
 				toast.success(`${clientesFiltrados.length} clientes del evento`);
 			} catch (error) {
@@ -109,14 +106,16 @@
 
 	function filtrarClientesPorBusqueda() {
 		if (busqueda.trim() === '') {
-			clientesFiltrados = eventoSeleccionado && eventoSeleccionado !== ''
-				? clientes.filter((c) => c.evento_id === parseInt(eventoSeleccionado))
-				: clientes;
+			clientesFiltrados =
+				eventoSeleccionado && eventoSeleccionado !== ''
+					? clientes.filter((c) => c.evento_id === parseInt(eventoSeleccionado))
+					: clientes;
 		} else {
 			const busquedaLower = busqueda.toLowerCase();
-			const base = eventoSeleccionado && eventoSeleccionado !== ''
-				? clientes.filter((c) => c.evento_id === parseInt(eventoSeleccionado))
-				: clientes;
+			const base =
+				eventoSeleccionado && eventoSeleccionado !== ''
+					? clientes.filter((c) => c.evento_id === parseInt(eventoSeleccionado))
+					: clientes;
 
 			clientesFiltrados = base.filter(
 				(c) =>
@@ -184,9 +183,7 @@
 				← Volver
 			</button>
 			<h1 class="text-3xl font-bold mb-2">Nueva Campaña de Email</h1>
-			<p class="text-stone-400 text-sm">
-				Paso 1 de 2: Configura los datos básicos de tu campaña
-			</p>
+			<p class="text-stone-400 text-sm">Paso 1 de 2: Configura los datos básicos de tu campaña</p>
 		</div>
 
 		<!-- Progreso -->
@@ -259,7 +256,8 @@
 				</select>
 				{#if eventoSeleccionado}
 					<p class="text-xs text-stone-400 mt-1">
-						Evento seleccionado: {eventos.find(e => e.idevento == eventoSeleccionado)?.nombreEvento || 'N/A'}
+						Evento seleccionado: {eventos.find((e) => e.idevento == eventoSeleccionado)
+							?.nombreEvento || 'N/A'}
 					</p>
 				{/if}
 			</div>
@@ -285,14 +283,22 @@
 				</div>
 
 				<!-- Stats de clientes frecuentes -->
-				{#if clientesFiltrados.some(c => c.esFrecuente)}
-					<div class="bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/30 rounded-lg p-3 mb-4">
+				{#if clientesFiltrados.some((c) => c.esFrecuente)}
+					<div
+						class="bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/30 rounded-lg p-3 mb-4"
+					>
 						<div class="flex items-center gap-2 text-sm">
 							<span class="text-2xl">⭐</span>
 							<div>
 								<p class="text-amber-300 font-semibold">
-									{clientesFiltrados.filter(c => c.esFrecuente).length} Cliente{clientesFiltrados.filter(c => c.esFrecuente).length !== 1 ? 's' : ''} Frecuente{clientesFiltrados.filter(c => c.esFrecuente).length !== 1 ? 's' : ''}
-				 </p>
+									{clientesFiltrados.filter((c) => c.esFrecuente).length} Cliente{clientesFiltrados.filter(
+										(c) => c.esFrecuente
+									).length !== 1
+										? 's'
+										: ''} Frecuente{clientesFiltrados.filter((c) => c.esFrecuente).length !== 1
+										? 's'
+										: ''}
+								</p>
 								<p class="text-amber-400/70 text-xs">
 									Clientes con 3 o más compras aparecen primero
 								</p>
@@ -325,7 +331,9 @@
 					{:else}
 						{#each clientesFiltrados as cliente (cliente.id)}
 							<label
-								class="flex items-center gap-3 p-3 hover:bg-stone-700/50 cursor-pointer transition-colors {cliente.esFrecuente ? 'bg-amber-500/5' : ''}"
+								class="flex items-center gap-3 p-3 hover:bg-stone-700/50 cursor-pointer transition-colors {cliente.esFrecuente
+									? 'bg-amber-500/5'
+									: ''}"
 							>
 								<input
 									type="checkbox"
@@ -338,7 +346,9 @@
 										<div class="flex items-center gap-2">
 											<p class="text-sm font-medium text-white truncate">{cliente.nombre}</p>
 											{#if cliente.esFrecuente}
-												<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-gradient-to-r from-green-500/20 to-green-500/20 text-green-300 border border-green-500/30 shrink-0">
+												<span
+													class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-gradient-to-r from-green-500/20 to-green-500/20 text-green-300 border border-green-500/30 shrink-0"
+												>
 													⭐ Frecuente
 												</span>
 											{/if}

@@ -153,20 +153,16 @@
 										<a
 											on:click={toggleDropdown}
 											href="/events"
-											class="block px-8 py-2 text-sm text-gray-700 hover:bg-gray-100"
-										>Ver Todos</a
+											class="block px-8 py-2 text-sm text-gray-700 hover:bg-gray-100">Ver Todos</a
 										>
 										<a
 											on:click={toggleDropdown}
 											href="/newEvent"
-											class="block px-8 py-2 text-sm text-gray-700 hover:bg-gray-100"
-										>Crear Nuevo</a
+											class="block px-8 py-2 text-sm text-gray-700 hover:bg-gray-100">Crear Nuevo</a
 										>
 									</div>
 								{/if}
 							</div>
-
-
 
 							<!-- Grupo Catálogos -->
 							<div class="border-b border-gray-200">
@@ -182,14 +178,13 @@
 										<a
 											on:click={toggleDropdown}
 											href="/catalogos/venues"
-											class="block px-8 py-2 text-sm text-gray-700 hover:bg-gray-100"
-										>Venues</a
+											class="block px-8 py-2 text-sm text-gray-700 hover:bg-gray-100">Venues</a
 										>
 										<a
 											on:click={toggleDropdown}
 											href="/catalogos/generos"
 											class="block px-8 py-2 text-sm text-gray-700 hover:bg-gray-100"
-										>Géneros Musicales</a
+											>Géneros Musicales</a
 										>
 									</div>
 								{/if}
@@ -199,14 +194,12 @@
 							<a
 								on:click={toggleDropdown}
 								href="/teamMembers"
-								class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-							>Equipo</a
+								class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Equipo</a
 							>
 							<a
 								on:click={toggleDropdown}
 								href="/campanias"
-								class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-							>Campañas</a
+								class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Campañas</a
 							>
 
 							<div class="border-t border-gray-200 mt-1">
@@ -214,7 +207,7 @@
 									on:click={cerrarSesion}
 									type="submit"
 									class="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
-								>Salir</button
+									>Salir</button
 								>
 							</div>
 						{/if}

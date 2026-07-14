@@ -21,6 +21,10 @@
 	let correo = '';
 	let idUsuario = '';
 	let token = '';
+	let mVenta = {};
+	let tickets = [];
+	let cargaCompleta = false;
+	let cargando = false;
 
 	// IDs para binding (más robusto)
 	let selectedEventoId = null;
@@ -36,22 +40,22 @@
 
 	onMount(async () => {
 		eventIdUrl = $page.url.searchParams.get('eventId');
-		if(eventIdUrl) {
+		if (eventIdUrl) {
 			selectedEventoId = parseInt(eventIdUrl);
 		}
 
 		await traerUsuario();
 		await traeFormaPago();
 		await cargarEventos();
-		
+
 		// Cargar clientes para el buscador
 		todosLosClientes = await obtenerClientesUnicos();
 	});
 
 	// Reactividad para vincular IDs con Objetos
-	$: eventoSelec = eventos.find(e => e.idevento == selectedEventoId) || {};
-	$: faseSelec = fasesEvento.find(f => f.idFase == selectedFaseId) || {};
-	$: formaPagoSelect = formasPago.find(p => p.idformapago == selectedPagoId) || {};
+	$: eventoSelec = eventos.find((e) => e.idevento == selectedEventoId) || {};
+	$: faseSelec = fasesEvento.find((f) => f.idFase == selectedFaseId) || {};
+	$: formaPagoSelect = formasPago.find((p) => p.idformapago == selectedPagoId) || {};
 
 	// Cuando cambia el evento, traer sus fases
 	$: if (selectedEventoId) {
@@ -63,14 +67,14 @@
 		if (!mostrarEventosPasados) {
 			query.eq('activo', true);
 		}
-		
+
 		let { data: mEvento, error } = await query;
 
 		if (mEvento && mEvento.length > 0) {
 			eventos = mEvento;
 			if (eventIdUrl) {
 				selectedEventoId = parseInt(eventIdUrl);
-			} else if (!selectedEventoId || !eventos.find(e => e.idevento == selectedEventoId)) {
+			} else if (!selectedEventoId || !eventos.find((e) => e.idevento == selectedEventoId)) {
 				selectedEventoId = eventos[0].idevento;
 			}
 		} else {
@@ -149,148 +153,156 @@
 		} else if (!selectedFaseId) {
 			toast.error('Selecciona una fase');
 		} else {
-			//paso 1 Guardar en tabla mPago
-			const { data: dataPago, error: errorPago } = await supabase
-				.from('mPago')
-				.insert([
-					{
-						idFormaPago: selectedPagoId,
-						cantidad: (cantidad * faseSelec.precio).toFixed(2),
-						acreditado: true,
-						fechaAcreditacion: new Date(),
-						fechaPago: new Date()
-					}
-				])
-				.select();
-			if (errorPago) {
-				console.log('Error al guardar en mPago:', errorPago);
-				toast.error('Error al guardar el pago');
-				return; // Detener si hay error
-			} else {
-				//paso 2: Buscar o crear cliente
-				let clienteId;
-
-				// Buscar cliente existente
-				const { data: clienteExistente, error: errorBusqueda } = await supabase
-					.from('mCliente')
-					.select('cliente_id')
-					.eq('correo', correo)
-					.maybeSingle();
-
-				if (clienteExistente) {
-					clienteId = clienteExistente.cliente_id;
-				} else {
-					// Crear nuevo cliente
-					const { data: nuevoCliente, error: errorCliente } = await supabase
-						.from('mCliente')
-						.insert([
-							{
-								nombre: nombre,
-								correo: correo,
-								fecha_registro: new Date()
-							}
-						])
-						.select()
-						.single();
-
-					if (errorCliente) {
-						console.log('Error al crear cliente:', errorCliente);
-						toast.error('Error al registrar cliente');
-						return;
-					}
-					clienteId = nuevoCliente.cliente_id;
-				}
-
-				//paso 3: Guardar en tabla mVenta
-				const { data: dataVenta, error: errorVenta } = await supabase
-					.from('mVenta')
+			cargando = true;
+			try {
+				tickets = [];
+				mVenta = {};
+				cargaCompleta = false;
+				//paso 1 Guardar en tabla mPago
+				const { data: dataPago, error: errorPago } = await supabase
+					.from('mPago')
 					.insert([
 						{
-							idEvento: eventoSelec.idevento,
-							idUsuario: idUsuario.id,
-							cliente_id: clienteId,
-							fechaVenta: new Date(),
-							cantidadTickets: cantidad,
-							idPago: dataPago[0].idpago,
-							idFaseEvento: faseSelec.idFase
+							idFormaPago: selectedPagoId,
+							cantidad: (cantidad * faseSelec.precio).toFixed(2),
+							acreditado: true,
+							fechaAcreditacion: new Date(),
+							fechaPago: new Date()
 						}
 					])
 					.select();
-
-				if (errorVenta) {
-					console.log('Error al insertar venta', errorVenta);
-					toast.error('Error al registrar la venta');
-					return;
+				if (errorPago) {
+					console.log('Error al guardar en mPago:', errorPago);
+					toast.error('Error al guardar el pago');
+					return; // Detener si hay error
 				} else {
-					mVenta = {
-						...dataVenta[0],
-						nombre: nombre,
-						correo: correo
-					};
-					for (let i = 1; i <= cantidad; i++) {
-						// Generar referencia aleatoria de 8 dígitos
-						let referencia = Math.floor(10000000 + Math.random() * 90000000);
+					//paso 2: Buscar o crear cliente
+					let clienteId;
 
-						// Crear un salt único
-						let salt = crypto.randomUUID();
+					// Buscar cliente existente
+					const { data: clienteExistente, error: errorBusqueda } = await supabase
+						.from('mCliente')
+						.select('cliente_id')
+						.eq('correo', correo)
+						.maybeSingle();
 
-						// Combinar la referencia con el salt y aplicar una función hash (SHA-256)
-						let codigoQR = await crypto.subtle
-							.digest('SHA-256', new TextEncoder().encode(referencia + salt))
-							.then((hashBuffer) => {
-								// Convertir el resultado a una cadena hexadecimal
-								return Array.from(new Uint8Array(hashBuffer))
-									.map((b) => b.toString(16).padStart(2, '0'))
-									.join('');
-							});
-
-						let base64QR = await generarQRCode(codigoQR);
-
-						let pathQR = await subirQRASupabase(base64QR, referencia);
-
-						//paso 4 Guardar en tabla ticket
-						const { data: dataTicket, error: errorTicket } = await supabase
-							.from('ticket')
+					if (clienteExistente) {
+						clienteId = clienteExistente.cliente_id;
+					} else {
+						// Crear nuevo cliente
+						const { data: nuevoCliente, error: errorCliente } = await supabase
+							.from('mCliente')
 							.insert([
 								{
-									codigoQR: codigoQR,
-									validado: false,
-									pathStorage: pathQR,
-									idVenta: dataVenta[0].idventa,
-									idFase: faseSelec.idFase,
-									referencia: referencia,
-									fechaValidacion: null
+									nombre: nombre,
+									correo: correo,
+									fecha_registro: new Date()
 								}
 							])
-							.select();
-						tickets.push(dataTicket[0]);
+							.select()
+							.single();
 
-						if (errorTicket) {
-							console.log('Error al insertar ticket', errorTicket);
-						} else {
-							if (cantidad == i) {
-								cargaCompleta = true;
+						if (errorCliente) {
+							console.log('Error al crear cliente:', errorCliente);
+							toast.error('Error al registrar cliente');
+							return;
+						}
+						clienteId = nuevoCliente.cliente_id;
+					}
+
+					//paso 3: Guardar en tabla mVenta
+					const { data: dataVenta, error: errorVenta } = await supabase
+						.from('mVenta')
+						.insert([
+							{
+								idEvento: eventoSelec.idevento,
+								idUsuario: idUsuario.id,
+								cliente_id: clienteId,
+								fechaVenta: new Date(),
+								cantidadTickets: cantidad,
+								idPago: dataPago[0].idpago,
+								idFaseEvento: faseSelec.idFase
+							}
+						])
+						.select();
+
+					if (errorVenta) {
+						console.log('Error al insertar venta', errorVenta);
+						toast.error('Error al registrar la venta');
+						return;
+					} else {
+						mVenta = {
+							...dataVenta[0],
+							nombre: nombre,
+							correo: correo
+						};
+						for (let i = 1; i <= cantidad; i++) {
+							// Generar referencia aleatoria de 8 dígitos
+							let referencia = Math.floor(10000000 + Math.random() * 90000000);
+
+							// Crear un salt único
+							let salt = crypto.randomUUID();
+
+							// Combinar la referencia con el salt y aplicar una función hash (SHA-256)
+							let codigoQR = await crypto.subtle
+								.digest('SHA-256', new TextEncoder().encode(referencia + salt))
+								.then((hashBuffer) => {
+									// Convertir el resultado a una cadena hexadecimal
+									return Array.from(new Uint8Array(hashBuffer))
+										.map((b) => b.toString(16).padStart(2, '0'))
+										.join('');
+								});
+
+							let base64QR = await generarQRCode(codigoQR);
+
+							let pathQR = await subirQRASupabase(base64QR, referencia);
+
+							//paso 4 Guardar en tabla ticket
+							const { data: dataTicket, error: errorTicket } = await supabase
+								.from('ticket')
+								.insert([
+									{
+										codigoQR: codigoQR,
+										validado: false,
+										pathStorage: pathQR,
+										idVenta: dataVenta[0].idventa,
+										idFase: faseSelec.idFase,
+										referencia: referencia,
+										fechaValidacion: null
+									}
+								])
+								.select();
+							tickets.push(dataTicket[0]);
+
+							if (errorTicket) {
+								console.log('Error al insertar ticket', errorTicket);
+							} else {
+								if (cantidad == i) {
+									cargaCompleta = true;
+								}
 							}
 						}
 					}
 				}
-			}
 
-			if (cargaCompleta) {
-				ticket.set({
-					eventoSelec,
-					mVenta,
-					tickets
-				});
-				limpiarForm();
-				cargaCompleta = false;
-				goto('/newTicket/sendTicket');
-			} else {
-				toast.error('Error al genrar');
+				if (cargaCompleta) {
+					ticket.set({
+						eventoSelec,
+						mVenta,
+						tickets
+					});
+					limpiarForm();
+					cargaCompleta = false;
+					goto('/newTicket/sendTicket');
+				} else {
+					toast.error('Error al generar');
+				}
+			} catch (err) {
+				console.error(err);
+				toast.error('Ocurrió un error al procesar el ticket');
+			} finally {
+				cargando = false;
 			}
-			//paso 4 Generar ticket
-
-			//boton enviar por correo
 		}
 	}
 
@@ -354,7 +366,16 @@
 				on:click={atras}
 				class="bg-stone-800/70 hover:bg-stone-700/90 text-white py-2 px-4 rounded-xl font-semibold transition-colors border border-stone-600 flex items-center gap-2"
 			>
-				<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 256 256"><path d="M224,128a8,8,0,0,1-8,8H59.31l58.35,58.34a8,8,0,0,1-11.32,11.32l-72-72a8,8,0,0,1,0-11.32l72-72a8,8,0,0,1,11.32,11.32L59.31,120H216A8,8,0,0,1,224,128Z"></path></svg>
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					width="18"
+					height="18"
+					fill="currentColor"
+					viewBox="0 0 256 256"
+					><path
+						d="M224,128a8,8,0,0,1-8,8H59.31l58.35,58.34a8,8,0,0,1-11.32,11.32l-72-72a8,8,0,0,1,0-11.32l72-72a8,8,0,0,1,11.32,11.32L59.31,120H216A8,8,0,0,1,224,128Z"
+					></path></svg
+				>
 				Atrás
 			</button>
 		</div>
@@ -376,12 +397,14 @@
 					<div class="flex items-center justify-between">
 						<label for="events" class="block text-sm font-medium text-stone-300">Evento</label>
 						<label class="flex items-center gap-2 cursor-pointer group">
-							<input 
-								type="checkbox" 
+							<input
+								type="checkbox"
 								bind:checked={mostrarEventosPasados}
 								class="w-4 h-4 rounded border-stone-600 bg-stone-700 text-stone-500 focus:ring-stone-500 focus:ring-offset-stone-800 transition-all cursor-pointer"
 							/>
-							<span class="text-xs text-stone-400 group-hover:text-stone-300 transition-colors">Mostrar eventos pasados</span>
+							<span class="text-xs text-stone-400 group-hover:text-stone-300 transition-colors"
+								>Mostrar eventos pasados</span
+							>
 						</label>
 					</div>
 					<select
@@ -419,7 +442,9 @@
 				<input
 					bind:value={nombre}
 					on:input={handleInputNombre}
-					on:focus={() => { if (clientesFiltrados.length > 0 && nombre.length > 1) mostrarDropdown = true; }}
+					on:focus={() => {
+						if (clientesFiltrados.length > 0 && nombre.length > 1) mostrarDropdown = true;
+					}}
 					type="text"
 					id="nombre"
 					autocomplete="off"
@@ -427,9 +452,11 @@
 					placeholder="Nombre del cliente"
 					required
 				/>
-				
+
 				{#if mostrarDropdown}
-					<div class="absolute z-50 w-full mt-1 bg-stone-800 border border-stone-600 rounded-xl shadow-2xl max-h-60 overflow-y-auto divide-y divide-stone-700">
+					<div
+						class="absolute z-50 w-full mt-1 bg-stone-800 border border-stone-600 rounded-xl shadow-2xl max-h-60 overflow-y-auto divide-y divide-stone-700"
+					>
 						{#each clientesFiltrados as cliente}
 							<button
 								type="button"
@@ -459,16 +486,20 @@
 			<!-- Cantidad con Contador -->
 			<div>
 				<label for="cantidad" class="block text-sm font-medium mb-2 text-stone-300">Cantidad</label>
-				<div class="flex items-center gap-4 bg-stone-700 rounded-xl p-1 border border-stone-600 w-fit">
-					<button 
+				<div
+					class="flex items-center gap-4 bg-stone-700 rounded-xl p-1 border border-stone-600 w-fit"
+				>
+					<button
 						type="button"
-						on:click={() => { if (cantidad > 1) cantidad-- }}
+						on:click={() => {
+							if (cantidad > 1) cantidad--;
+						}}
 						class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-stone-600 transition-colors text-white font-bold"
 					>
 						-
 					</button>
 					<div class="w-12 text-center font-bold text-lg">{cantidad}</div>
-					<button 
+					<button
 						type="button"
 						on:click={() => cantidad++}
 						class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-stone-600 transition-colors text-white font-bold"
@@ -499,20 +530,39 @@
 			<button
 				on:click={generarTicket}
 				type="submit"
-				class="w-full bg-stone-700 hover:bg-stone-600 text-white py-3 px-6 rounded-xl font-semibold transition-colors border border-stone-600 flex items-center justify-center gap-2"
+				disabled={cargando}
+				class="w-full bg-stone-700 hover:bg-stone-600 text-white py-3 px-6 rounded-xl font-semibold transition-colors border border-stone-600 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
 			>
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					width="20"
-					height="20"
-					fill="currentColor"
-					viewBox="0 0 256 256"
-				>
-					<path
-						d="M232,96a8,8,0,0,1-8,8H176v16h32a8,8,0,0,1,0,16H176v16h48a8,8,0,0,1,0,16H176v16h32a8,8,0,0,1,0,16H176v16a8,8,0,0,1-16,0V56a8,8,0,0,1,16,0V88h48A8,8,0,0,1,232,96ZM64,120H96v16H64a8,8,0,0,0,0,16H96v16H80a8,8,0,0,0,0,16H96v16a8,8,0,0,0,16,0V56a8,8,0,0,0-16,0V88H64a8,8,0,0,0,0,16H96v16H64a8,8,0,0,0,0,16Z"
-					></path>
-				</svg>
-				Generar Tickets
+				{#if cargando}
+					<svg
+						class="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+						xmlns="http://www.w3.org/2000/svg"
+						fill="none"
+						viewBox="0 0 24 24"
+					>
+						<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"
+						></circle>
+						<path
+							class="opacity-75"
+							fill="currentColor"
+							d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+						></path>
+					</svg>
+					Generando Tickets...
+				{:else}
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						width="20"
+						height="20"
+						fill="currentColor"
+						viewBox="0 0 256 256"
+					>
+						<path
+							d="M232,96a8,8,0,0,1-8,8H176v16h32a8,8,0,0,1,0,16H176v16h48a8,8,0,0,1,0,16H176v16h32a8,8,0,0,1,0,16H176v16a8,8,0,0,1-16,0V56a8,8,0,0,1,16,0V88h48A8,8,0,0,1,232,96ZM64,120H96v16H64a8,8,0,0,0,0,16H96v16H80a8,8,0,0,0,0,16H96v16a8,8,0,0,0,16,0V56a8,8,0,0,0-16,0V88H64a8,8,0,0,0,0,16H96v16H64a8,8,0,0,0,0,16Z"
+						></path>
+					</svg>
+					Generar Tickets
+				{/if}
 			</button>
 		</form>
 	</div>

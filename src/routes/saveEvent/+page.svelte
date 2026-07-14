@@ -10,7 +10,16 @@
 	import { FileDrop } from 'svelte-droplet';
 
 	const evento = get(eventoStore);
-	let { nombreEvento, id_venue, venue, fechaInicio, fechaFin, direccion, descripcionCorta, generos } = evento;
+	let {
+		nombreEvento,
+		id_venue,
+		venue,
+		fechaInicio,
+		fechaFin,
+		direccion,
+		descripcionCorta,
+		generos
+	} = evento;
 	//fases
 	let nombreFace = '';
 	let precio = '';
@@ -25,9 +34,7 @@
 	let imagePreviewUrl = '';
 	let imageName = '';
 
-	onMount(() => {
-		
-	});
+	onMount(() => {});
 
 	function agregarFase() {
 		fases = [...fases, { nombreFace, precio, fechaExpira, limite }]; // Crear nueva referencia del array
@@ -63,7 +70,7 @@
 					{
 						nombreEvento: nombreEvento,
 						id_venue: id_venue, // Add the new ID here
-						venue: venue,       // Keep backwards compatibility
+						venue: venue, // Keep backwards compatibility
 						direccion: direccion,
 						fechaInicio: fechaInicio,
 						fechaFin: fechaFin,
@@ -100,7 +107,7 @@
 								.from('generos_musicales')
 								.insert([{ nombre_genero: genero.nombre_genero, activo: true }])
 								.select();
-							
+
 							if (newGeneroError) {
 								console.error('Error insertando nuevo género:', newGeneroError.message);
 								continue;
@@ -137,7 +144,7 @@
 					}
 				}
 				// Mostrar mensaje de éxito global después de fases
-				toast.success('Evento creado exitosamente',{
+				toast.success('Evento creado exitosamente', {
 					duration: 3000
 				});
 			}
@@ -260,93 +267,172 @@
 			<p class="text-stone-400 text-sm">Revisa los datos y agrega las fases del evento</p>
 		</div>
 
-<form on:submit={insertarEvento}>
-		<!-- Resumen del evento -->
-		<div class="bg-stone-800/50 rounded-2xl p-6 border border-stone-700 mb-6">
-			<h3 class="text-xl font-semibold mb-4 text-stone-200">Datos del Evento</h3>
-			<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-				<div class="bg-stone-700/50 rounded-xl p-4">
-					<p class="text-stone-400 text-sm mb-1">Nombre</p>
-					<p class="font-semibold text-lg">{nombreEvento}</p>
-				</div>
-				<div class="bg-stone-700/50 rounded-xl p-4">
-					<p class="text-stone-400 text-sm mb-1">Venue</p>
-					<p class="font-semibold text-lg">{venue}</p>
-				</div>
-				<div class="bg-stone-700/50 rounded-xl p-4">
-					<p class="text-stone-400 text-sm mb-1">Fecha de inicio</p>
-					<p class="font-semibold">{fechaInicio}</p>
-				</div>
-				<div class="bg-stone-700/50 rounded-xl p-4">
-					<p class="text-stone-400 text-sm mb-1">Fecha de fin</p>
-					<p class="font-semibold">{fechaFin}</p>
+		<form on:submit={insertarEvento}>
+			<!-- Resumen del evento -->
+			<div class="bg-stone-800/50 rounded-2xl p-6 border border-stone-700 mb-6">
+				<h3 class="text-xl font-semibold mb-4 text-stone-200">Datos del Evento</h3>
+				<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+					<div class="bg-stone-700/50 rounded-xl p-4">
+						<p class="text-stone-400 text-sm mb-1">Nombre</p>
+						<p class="font-semibold text-lg">{nombreEvento}</p>
+					</div>
+					<div class="bg-stone-700/50 rounded-xl p-4">
+						<p class="text-stone-400 text-sm mb-1">Venue</p>
+						<p class="font-semibold text-lg">{venue}</p>
+					</div>
+					<div class="bg-stone-700/50 rounded-xl p-4">
+						<p class="text-stone-400 text-sm mb-1">Fecha de inicio</p>
+						<p class="font-semibold">{fechaInicio}</p>
+					</div>
+					<div class="bg-stone-700/50 rounded-xl p-4">
+						<p class="text-stone-400 text-sm mb-1">Fecha de fin</p>
+						<p class="font-semibold">{fechaFin}</p>
+					</div>
 				</div>
 			</div>
-		</div>
 
-		<!-- Sección de Fases/Tickets -->
-		<div class="bg-stone-800/50 rounded-2xl p-6 border border-stone-700 mb-6">
-			<h3 class="text-xl font-semibold mb-4 text-stone-200">Fases/Tickets del Evento</h3>
-			
-			<!-- Fases agregadas -->
-			<div class="space-y-3 mb-6">
-				{#each fases as fase, index}
-					<TicketCard {fase} {index} {borrarFase} />
-				{/each}
+			<!-- Sección de Fases/Tickets -->
+			<div class="bg-stone-800/50 rounded-2xl p-6 border border-stone-700 mb-6">
+				<h3 class="text-xl font-semibold mb-4 text-stone-200">Fases/Tickets del Evento</h3>
+
+				<!-- Fases agregadas -->
+				<div class="space-y-3 mb-6">
+					{#each fases as fase, index}
+						<TicketCard {fase} {index} {borrarFase} />
+					{/each}
+				</div>
+
+				<!-- Formulario para agregar fase -->
+				<div class="bg-stone-700/50 rounded-xl p-4 mb-4">
+					<p class="text-stone-300 text-sm mb-3 font-medium">Agregar Nueva Fase</p>
+					<div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+						<div>
+							<label for="nombre" class="block text-xs text-stone-400 mb-1"
+								>Nombre Fase/Ticket</label
+							>
+							<input
+								name="nombre"
+								bind:value={nombreFace}
+								type="text"
+								required={quitarReqFases}
+								class="w-full bg-stone-600 text-white border border-stone-500 rounded-lg p-2 focus:ring-2 focus:ring-stone-400 focus:border-transparent text-sm"
+								placeholder="VIP, General..."
+							/>
+						</div>
+						<div>
+							<label for="precio" class="block text-xs text-stone-400 mb-1">Precio</label>
+							<input
+								name="precio"
+								bind:value={precio}
+								type="number"
+								required={quitarReqFases}
+								class="w-full bg-stone-600 text-white border border-stone-500 rounded-lg p-2 focus:ring-2 focus:ring-stone-400 focus:border-transparent text-sm"
+								placeholder="0.00"
+							/>
+						</div>
+						<div>
+							<label for="fecha" class="block text-xs text-stone-400 mb-1">Fecha Expiración</label>
+							<input
+								name="fecha"
+								bind:value={fechaExpira}
+								type="date"
+								required={quitarReqFases}
+								class="w-full bg-stone-600 text-white border border-stone-500 rounded-lg p-2 focus:ring-2 focus:ring-stone-400 focus:border-transparent text-sm"
+							/>
+						</div>
+						<div>
+							<label for="limite" class="block text-xs text-stone-400 mb-1">Límite</label>
+							<input
+								name="limite"
+								bind:value={limite}
+								type="number"
+								required={quitarReqFases}
+								class="w-full bg-stone-600 text-white border border-stone-500 rounded-lg p-2 focus:ring-2 focus:ring-stone-400 focus:border-transparent text-sm"
+								placeholder="Sin límite"
+							/>
+						</div>
+					</div>
+					<button
+						type="button"
+						class="w-full bg-stone-600 hover:bg-stone-500 text-white py-2 px-4 rounded-xl font-semibold transition-colors border border-stone-500 flex items-center justify-center gap-2 mt-3"
+						on:click={agregarFase}
+					>
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							width="20"
+							height="20"
+							fill="currentColor"
+							viewBox="0 0 256 256"
+						>
+							<path
+								d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z"
+							></path>
+						</svg>
+						Agregar Fase/Ticket
+					</button>
+				</div>
 			</div>
 
-			<!-- Formulario para agregar fase -->
-			<div class="bg-stone-700/50 rounded-xl p-4 mb-4">
-				<p class="text-stone-300 text-sm mb-3 font-medium">Agregar Nueva Fase</p>
-				<div class="grid grid-cols-1 md:grid-cols-4 gap-3">
-					<div>
-						<label for="nombre" class="block text-xs text-stone-400 mb-1">Nombre Fase/Ticket</label>
-						<input
-							name="nombre"
-							bind:value={nombreFace}
-							type="text"
-							required={quitarReqFases}
-							class="w-full bg-stone-600 text-white border border-stone-500 rounded-lg p-2 focus:ring-2 focus:ring-stone-400 focus:border-transparent text-sm"
-							placeholder="VIP, General..."
+			<!-- Sección de Imagen -->
+			<div class="bg-stone-800/50 rounded-2xl p-6 border border-stone-700 mb-6">
+				<h3 class="text-xl font-semibold mb-4 text-stone-200">Imagen del Evento</h3>
+				{#if !imagePreviewUrl}
+					<FileDrop {handleFiles} let:droppable>
+						<div
+							class="border-2 border-dashed rounded-xl p-12 text-center transition-colors"
+							class:border-stone-500={!droppable}
+							class:bg-stone-700={!droppable}
+							class:border-stone-400={droppable}
+							class:bg-stone-600={droppable}
+						>
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								class="w-16 h-16 mx-auto mb-4 text-stone-400"
+								fill="currentColor"
+								viewBox="0 0 256 256"
+							>
+								<path
+									d="M216,40H40A16,16,0,0,0,24,56V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40Zm0,16V158.75l-26.07-26.06a16,16,0,0,0-22.63,0l-20,20-44-44a16,16,0,0,0-22.62,0L40,149.37V56ZM40,172l52-52,80,80H40Zm176,28H194.63l-36-36,20-20L216,181.38V200ZM144,100a12,12,0,1,1,12,12A12,12,0,0,1,144,100Z"
+								></path>
+							</svg>
+							<p class="text-stone-300 font-medium mb-1">Selecciona o arrastra una imagen aquí</p>
+							<p class="text-stone-500 text-sm">La imagen debe ser cuadrada (PNG o JPG)</p>
+						</div>
+					</FileDrop>
+				{:else}
+					<div class="relative">
+						<img
+							src={imagePreviewUrl}
+							alt="Vista previa"
+							class="w-full max-w-md mx-auto rounded-xl"
 						/>
+						<button
+							type="button"
+							on:click={eliminarImagen}
+							class="mt-4 bg-red-900/30 hover:bg-red-900/50 text-red-400 py-2 px-4 rounded-xl font-semibold transition-colors border border-red-500/50 flex items-center justify-center gap-2 mx-auto"
+						>
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								width="18"
+								height="18"
+								fill="currentColor"
+								viewBox="0 0 256 256"
+							>
+								<path
+									d="M216,48H176V40a24,24,0,0,0-24-24H104A24,24,0,0,0,80,40v8H40a8,8,0,0,0,0,16h8V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V64h8a8,8,0,0,0,0-16ZM96,40a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96Zm96,168H64V64H192ZM112,104v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Zm48,0v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Z"
+								></path>
+							</svg>
+							Eliminar imagen
+						</button>
 					</div>
-					<div>
-						<label for="precio" class="block text-xs text-stone-400 mb-1">Precio</label>
-						<input
-							name="precio"
-							bind:value={precio}
-							type="number"
-							required={quitarReqFases}
-							class="w-full bg-stone-600 text-white border border-stone-500 rounded-lg p-2 focus:ring-2 focus:ring-stone-400 focus:border-transparent text-sm"
-							placeholder="0.00"
-						/>
-					</div>
-					<div>
-						<label for="fecha" class="block text-xs text-stone-400 mb-1">Fecha Expiración</label>
-						<input
-							name="fecha"
-							bind:value={fechaExpira}
-							type="date"
-							required={quitarReqFases}
-							class="w-full bg-stone-600 text-white border border-stone-500 rounded-lg p-2 focus:ring-2 focus:ring-stone-400 focus:border-transparent text-sm"
-						/>
-					</div>
-					<div>
-						<label for="limite" class="block text-xs text-stone-400 mb-1">Límite</label>
-						<input
-							name="limite"
-							bind:value={limite}
-							type="number"
-							required={quitarReqFases}
-							class="w-full bg-stone-600 text-white border border-stone-500 rounded-lg p-2 focus:ring-2 focus:ring-stone-400 focus:border-transparent text-sm"
-							placeholder="Sin límite"
-						/>
-					</div>
-				</div>
+				{/if}
+			</div>
+
+			<!-- Botones de acción -->
+			<div class="flex gap-4">
 				<button
-					type="button"
-					class="w-full bg-stone-600 hover:bg-stone-500 text-white py-2 px-4 rounded-xl font-semibold transition-colors border border-stone-500 flex items-center justify-center gap-2 mt-3"
-					on:click={agregarFase}
+					type="submit"
+					class="flex-1 bg-stone-700 hover:bg-stone-600 text-white py-3 px-6 rounded-xl font-semibold transition-colors border border-stone-600 flex items-center justify-center gap-2"
 				>
 					<svg
 						xmlns="http://www.w3.org/2000/svg"
@@ -356,94 +442,21 @@
 						viewBox="0 0 256 256"
 					>
 						<path
-							d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z"
+							d="M229.66,77.66l-128,128a8,8,0,0,1-11.32,0l-56-56a8,8,0,0,1,11.32-11.32L96,188.69,218.34,66.34a8,8,0,0,1,11.32,11.32Z"
 						></path>
 					</svg>
-					Agregar Fase/Ticket
+					Guardar Evento
+				</button>
+
+				<button
+					type="button"
+					class="bg-red-900/30 hover:bg-red-900/50 text-red-400 py-3 px-6 rounded-xl font-semibold transition-colors border border-red-500/50"
+					on:click={cancelar}
+				>
+					Cancelar
 				</button>
 			</div>
-		</div>
-
-		<!-- Sección de Imagen -->
-		<div class="bg-stone-800/50 rounded-2xl p-6 border border-stone-700 mb-6">
-			<h3 class="text-xl font-semibold mb-4 text-stone-200">Imagen del Evento</h3>
-			{#if !imagePreviewUrl}
-				<FileDrop {handleFiles} let:droppable>
-					<div
-						class="border-2 border-dashed rounded-xl p-12 text-center transition-colors"
-						class:border-stone-500={!droppable}
-						class:bg-stone-700={!droppable}
-						class:border-stone-400={droppable}
-						class:bg-stone-600={droppable}
-					>
-						<svg
-							xmlns="http://www.w3.org/2000/svg"
-							class="w-16 h-16 mx-auto mb-4 text-stone-400"
-							fill="currentColor"
-							viewBox="0 0 256 256"
-						>
-							<path
-								d="M216,40H40A16,16,0,0,0,24,56V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40Zm0,16V158.75l-26.07-26.06a16,16,0,0,0-22.63,0l-20,20-44-44a16,16,0,0,0-22.62,0L40,149.37V56ZM40,172l52-52,80,80H40Zm176,28H194.63l-36-36,20-20L216,181.38V200ZM144,100a12,12,0,1,1,12,12A12,12,0,0,1,144,100Z"
-							></path>
-						</svg>
-						<p class="text-stone-300 font-medium mb-1">Selecciona o arrastra una imagen aquí</p>
-						<p class="text-stone-500 text-sm">La imagen debe ser cuadrada (PNG o JPG)</p>
-					</div>
-				</FileDrop>
-			{:else}
-				<div class="relative">
-					<img src={imagePreviewUrl} alt="Vista previa" class="w-full max-w-md mx-auto rounded-xl" />
-					<button
-						type="button"
-						on:click={eliminarImagen}
-						class="mt-4 bg-red-900/30 hover:bg-red-900/50 text-red-400 py-2 px-4 rounded-xl font-semibold transition-colors border border-red-500/50 flex items-center justify-center gap-2 mx-auto"
-					>
-						<svg
-							xmlns="http://www.w3.org/2000/svg"
-							width="18"
-							height="18"
-							fill="currentColor"
-							viewBox="0 0 256 256"
-						>
-							<path
-								d="M216,48H176V40a24,24,0,0,0-24-24H104A24,24,0,0,0,80,40v8H40a8,8,0,0,0,0,16h8V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V64h8a8,8,0,0,0,0-16ZM96,40a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96Zm96,168H64V64H192ZM112,104v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Zm48,0v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Z"
-							></path>
-						</svg>
-						Eliminar imagen
-					</button>
-				</div>
-			{/if}
-		</div>
-
-		<!-- Botones de acción -->
-		<div class="flex gap-4">
-			<button
-				type="submit"
-				class="flex-1 bg-stone-700 hover:bg-stone-600 text-white py-3 px-6 rounded-xl font-semibold transition-colors border border-stone-600 flex items-center justify-center gap-2"
-			>
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					width="20"
-					height="20"
-					fill="currentColor"
-					viewBox="0 0 256 256"
-				>
-					<path
-						d="M229.66,77.66l-128,128a8,8,0,0,1-11.32,0l-56-56a8,8,0,0,1,11.32-11.32L96,188.69,218.34,66.34a8,8,0,0,1,11.32,11.32Z"
-					></path>
-				</svg>
-				Guardar Evento
-			</button>
-
-			<button
-				type="button"
-				class="bg-red-900/30 hover:bg-red-900/50 text-red-400 py-3 px-6 rounded-xl font-semibold transition-colors border border-red-500/50"
-				on:click={cancelar}
-			>
-				Cancelar
-			</button>
-		</div>
-</form>
+		</form>
 	</div>
 </div>
 

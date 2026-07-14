@@ -21,7 +21,7 @@ export async function obtenerClientesUnicos() {
 		if (error) throw error;
 
 		// Transformar para mantener compatibilidad si es necesario
-		const clientesUnicos = data.map(cliente => ({
+		const clientesUnicos = data.map((cliente) => ({
 			id: cliente.cliente_id,
 			correo: cliente.correo,
 			nombre: cliente.nombre,
@@ -49,21 +49,23 @@ export async function obtenerClientesPorEvento(eventoId) {
 	try {
 		const { data, error } = await supabase
 			.from('mVenta')
-			.select(`
+			.select(
+				`
 				cliente_id (
 					cliente_id,
 					correo,
 					nombre
 				)
-			`)
+			`
+			)
 			.eq('idEvento', eventoId);
 
 		if (error) throw error;
 
 		// Transformar los datos para eliminar duplicados (un cliente puede tener varias ventas en un evento)
 		const clientesMap = new Map();
-		
-		data.forEach(venta => {
+
+		data.forEach((venta) => {
 			const cliente = venta.cliente_id;
 			if (cliente && !clientesMap.has(cliente.cliente_id)) {
 				clientesMap.set(cliente.cliente_id, {
@@ -76,7 +78,7 @@ export async function obtenerClientesPorEvento(eventoId) {
 		});
 
 		const clientesUnicos = Array.from(clientesMap.values());
-		
+
 		// Ordenar alfabéticamente
 		clientesUnicos.sort((a, b) => a.nombre.localeCompare(b.nombre));
 
@@ -151,18 +153,19 @@ export async function guardarDestinatarios(campaniaId, destinatarios, esTodos) {
 			return false;
 		}
 
-		console.log('Guardando destinatarios:', { campaniaId, cantidadDestinatarios: destinatarios.length });
+		console.log('Guardando destinatarios:', {
+			campaniaId,
+			cantidadDestinatarios: destinatarios.length
+		});
 
 		// Primero, insertar la relación con destinatarios
-		const registros = destinatarios.map(clienteId => ({
+		const registros = destinatarios.map((clienteId) => ({
 			campania_id: campaniaId,
 			cliente_id: clienteId,
 			enviado: false
 		}));
 
-		const { data, error } = await supabase
-			.from('mcampaniadestinatario')
-			.insert(registros);
+		const { data, error } = await supabase.from('mcampaniadestinatario').insert(registros);
 
 		if (error) {
 			console.error('Error al insertar destinatarios:', error);
@@ -208,13 +211,13 @@ export async function enviarCampania(campaniaId, campania, destinatarios) {
 		console.log('📤 Enviando campaña al servidor con todos los datos...');
 		console.log('ID:', campaniaId);
 		console.log('Destinatarios:', destinatarios.length);
-		
+
 		const response = await fetch('/api/enviarCampania', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json'
 			},
-			body: JSON.stringify({ 
+			body: JSON.stringify({
 				campaniaId,
 				campania,
 				destinatarios
@@ -223,7 +226,7 @@ export async function enviarCampania(campaniaId, campania, destinatarios) {
 
 		const resultado = await response.json();
 		console.log('📥 Respuesta del servidor:', resultado);
-		
+
 		return resultado;
 	} catch (error) {
 		console.error('Error al enviar campaña:', error);
@@ -239,10 +242,12 @@ export async function obtenerCampanias() {
 	try {
 		const { data, error } = await supabase
 			.from('mcampania')
-			.select(`
+			.select(
+				`
 				*,
 				destinatarios:mcampaniadestinatario(count)
-			`)
+			`
+			)
 			.order('fecha_creacion', { ascending: false });
 
 		if (error) throw error;
@@ -262,7 +267,8 @@ export async function obtenerDetalleCampania(campaniaId) {
 	try {
 		const { data, error } = await supabase
 			.from('mcampania')
-			.select(`
+			.select(
+				`
 				*,
 				destinatarios:mcampaniadestinatario(
 					cliente_id,
@@ -270,7 +276,8 @@ export async function obtenerDetalleCampania(campaniaId) {
 					fecha_envio,
 					error
 				)
-			`)
+			`
+			)
 			.eq('id', campaniaId)
 			.single();
 
@@ -311,10 +318,7 @@ export async function eliminarCampania(campaniaId) {
  */
 export async function actualizarCampania(campaniaId, datos) {
 	try {
-		const { error } = await supabase
-			.from('mcampania')
-			.update(datos)
-			.eq('id', campaniaId);
+		const { error } = await supabase.from('mcampania').update(datos).eq('id', campaniaId);
 
 		if (error) throw error;
 		return true;

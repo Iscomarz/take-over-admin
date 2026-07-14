@@ -38,7 +38,7 @@
 
 			// Si la respuesta es correcta y contiene la sesión
 			if (data.session) {
-				toast.success('Bienvenido!',{
+				toast.success('Bienvenido!', {
 					duration: 4000
 				});
 				goto('/home');
@@ -58,18 +58,13 @@
 
 <section class="">
 	<div class="flex flex-col items-center justify-center px-6 py-8 mx-auto md:h-screen lg:py-0">
-		<a
-			href="/"
-			class="flex items-center mb-6 text-2xl font-semibold welcome"
-		>
+		<a href="/" class="flex items-center mb-6 text-2xl font-semibold welcome">
 			<img class="mr-2" src="/logos/takeover-logo.png?version=1.0" alt="logo" />
 			Welcome
 		</a>
 		<div class="w-full bg-white rounded-lg shadow md:mt-0 sm:max-w-md xl:p-0 login">
 			<div class="p-6 space-y-4 md:space-y-6 sm:p-8">
-				<h1
-					class="text-xl font-bold leading-tight tracking-tight md:text-2xl dark:text-white"
-				>
+				<h1 class="text-xl font-bold leading-tight tracking-tight md:text-2xl dark:text-white">
 					Sign in to your account
 				</h1>
 				<form class="space-y-4 md:space-y-6" on:submit={login}>
@@ -88,9 +83,8 @@
 						/>
 					</div>
 					<div>
-						<label
-							for="password"
-							class="block mb-2 text-sm font-medium dark:text-white">Password</label
+						<label for="password" class="block mb-2 text-sm font-medium dark:text-white"
+							>Password</label
 						>
 						<input
 							type="password"
@@ -102,11 +96,7 @@
 							required
 						/>
 					</div>
-					<button
-						type="submit"
-						class="signIn"
-						>Sign in</button
-					>
+					<button type="submit" class="signIn">Sign in</button>
 				</form>
 			</div>
 		</div>
@@ -122,7 +112,7 @@
 		background-color: rgb(32, 32, 32);
 		margin-top: 20px;
 	}
-	.signIn{
+	.signIn {
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -134,10 +124,10 @@
 		margin-top: 40px !important;
 	}
 
-	img{
+	img {
 		width: 140px;
 	}
-	button{
+	button {
 		color: black;
 	}
 </style>

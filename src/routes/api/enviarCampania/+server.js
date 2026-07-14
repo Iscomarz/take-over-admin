@@ -30,14 +30,15 @@ export async function POST({ request }) {
 
 		for (let i = 0; i < destinatarios.length; i++) {
 			const destinatario = destinatarios[i];
-			
+
 			try {
 				// Reemplazar variables en el HTML
 				let htmlFinal = campania.cuerpo_html;
-				
-				const htmlContent = campania.usar_variable_nombre && destinatario.nombre
-					? htmlFinal.replace(/\{\{nombre\}\}/g, destinatario.nombre)
-					: htmlFinal;
+
+				const htmlContent =
+					campania.usar_variable_nombre && destinatario.nombre
+						? htmlFinal.replace(/\{\{nombre\}\}/g, destinatario.nombre)
+						: htmlFinal;
 
 				// Enviar correo con Resend
 				const { data, error } = await resend.emails.send({
@@ -48,9 +49,9 @@ export async function POST({ request }) {
 					headers: {
 						'X-Priority': '3',
 						'X-MSMail-Priority': 'Normal',
-						'Importance': 'Normal',
+						Importance: 'Normal',
 						'List-Unsubscribe': `<mailto:unsubscribe@tudominio.com>`,
-						'Precedence': 'bulk'
+						Precedence: 'bulk'
 					},
 					// Agregar versión de texto plano
 					text: htmlContent.replace(/<[^>]*>/g, '')
@@ -59,7 +60,7 @@ export async function POST({ request }) {
 				if (error) {
 					throw new Error(JSON.stringify(error));
 				}
-				
+
 				// Marcar como enviado en BD
 				const { error: updateError } = await supabase
 					.from('mcampaniadestinatario')
@@ -73,7 +74,7 @@ export async function POST({ request }) {
 
 				if (updateError) {
 					console.error('⚠️ Error al actualizar estado (pero el correo se envió):', updateError);
-				} 
+				}
 
 				enviados++;
 				resultados.push({ correo: destinatario.correo, status: 'enviado', resend_id: data.id });
@@ -93,7 +94,11 @@ export async function POST({ request }) {
 					console.error('⚠️ Error al guardar el error en BD:', updateError);
 				}
 
-				resultados.push({ correo: destinatario.correo, status: 'error', error: error.message || String(error) });
+				resultados.push({
+					correo: destinatario.correo,
+					status: 'error',
+					error: error.message || String(error)
+				});
 			}
 		}
 

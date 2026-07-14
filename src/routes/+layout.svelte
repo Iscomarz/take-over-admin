@@ -107,7 +107,7 @@
 		padding: 1rem;
 	}
 
-    .login-page {
+	.login-page {
 		display: flex;
 		justify-content: center;
 		align-items: center;
@@ -130,13 +130,13 @@
 
 	@media (max-width: 768px) {
 		.sidebar {
-			display: none; 
+			display: none;
 		}
-		.app{
+		.app {
 			grid-template-areas:
-			'header header'
-			'main  main'
-			'footer footer';
+				'header header'
+				'main  main'
+				'footer footer';
 		}
 	}
 </style>

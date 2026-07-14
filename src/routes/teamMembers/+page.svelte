@@ -56,7 +56,6 @@
 	];
 
 	onMount(async () => {
-		
 		await cargarMiembros();
 	});
 
@@ -188,9 +187,7 @@
 
 			if (resultado) {
 				toast.success(
-					modoEdicion
-						? 'Miembro actualizado correctamente'
-						: 'Miembro creado correctamente'
+					modoEdicion ? 'Miembro actualizado correctamente' : 'Miembro creado correctamente'
 				);
 				cerrarModal();
 				await cargarMiembros();
@@ -314,9 +311,7 @@
 
 				<!-- Rol -->
 				<div>
-					<label class="block text-sm font-medium text-stone-300 mb-2">
-						Rol 
-					</label>
+					<label class="block text-sm font-medium text-stone-300 mb-2"> Rol </label>
 					<input
 						type="text"
 						bind:value={miembroActual.role}
@@ -425,8 +420,9 @@
 							<option value={color.value}>{color.label}</option>
 						{/each}
 					</select>
-					<div class="mt-2 h-16 rounded-lg border-4 {miembroActual.accent_color} bg-stone-800">
-					</div>
+					<div
+						class="mt-2 h-16 rounded-lg border-4 {miembroActual.accent_color} bg-stone-800"
+					></div>
 				</div>
 
 				<!-- Botones -->

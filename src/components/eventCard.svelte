@@ -19,7 +19,9 @@
 
 	<div class="p-5">
 		<a href={`/events/event/${id}`} class="block">
-			<h5 class="mb-2 text-xl font-bold tracking-tight text-white hover:text-stone-300 transition-colors">
+			<h5
+				class="mb-2 text-xl font-bold tracking-tight text-white hover:text-stone-300 transition-colors"
+			>
 				{nombreEvento}
 			</h5>
 		</a>

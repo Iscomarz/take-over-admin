@@ -1,12 +1,12 @@
 <script>
-	export let mensaje = "";
+	export let mensaje = '';
 	export let onConfirm;
 	export let onCancel;
-    export let titulo = "";
+	export let titulo = '';
 </script>
 
 <div class="dialogo">
-    <h3>{titulo}</h3>
+	<h3>{titulo}</h3>
 	<p>{mensaje}</p>
 	<div class="botones">
 		<button on:click={onConfirm} class="confirmar">Confirmar</button>

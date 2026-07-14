@@ -32,19 +32,17 @@
 	let mostrarDropdown = false;
 
 	onMount(async () => {
-		
-
 		await traerUsuario();
 		await cargarDatosIniciales();
-		
+
 		// Cargar clientes para el buscador
 		todosLosClientes = await obtenerClientesUnicos();
 	});
 
 	// Reactividad para vincular IDs con Objetos
-	$: eventoSelec = eventos.find(e => e.idevento == selectedEventoId) || {};
-	$: faseSelec = fasesEvento.find(f => f.idFase == selectedFaseId) || {};
-	$: formaPagoSelect = formasPago.find(p => p.idformapago == selectedPagoId) || {};
+	$: eventoSelec = eventos.find((e) => e.idevento == selectedEventoId) || {};
+	$: faseSelec = fasesEvento.find((f) => f.idFase == selectedFaseId) || {};
+	$: formaPagoSelect = formasPago.find((p) => p.idformapago == selectedPagoId) || {};
 
 	// Cuando cambia el evento, traer sus fases
 	$: if (selectedEventoId) {
@@ -244,15 +242,14 @@
 
 			// Venta exitosa
 			toast.success('✓ Venta registrada correctamente');
-			
+
 			// Limpiar formulario
 			limpiarForm();
-			
+
 			// Regresar a validate después de 1 segundo
 			setTimeout(() => {
 				goto('/validate');
 			}, 1000);
-
 		} catch (error) {
 			console.error('Error en la venta:', error);
 			toast.error('Error al procesar la venta');
@@ -281,10 +278,7 @@
 	<div class="max-w-2xl mx-auto px-4 py-6">
 		<!-- Header -->
 		<div class="flex items-center mb-6">
-			<button
-				on:click={cancelar}
-				class="mr-4 p-2 hover:bg-stone-700 rounded-lg transition-colors"
-			>
+			<button on:click={cancelar} class="mr-4 p-2 hover:bg-stone-700 rounded-lg transition-colors">
 				<svg
 					xmlns="http://www.w3.org/2000/svg"
 					class="w-6 h-6"
@@ -311,7 +305,9 @@
 				<!-- Evento -->
 				<div>
 					<label for="events" class="block text-sm font-medium mb-2 text-stone-300"
-						>Evento <span class="text-stone-500 text-xs text-normal">(Bloqueado al evento activo)</span></label
+						>Evento <span class="text-stone-500 text-xs text-normal"
+							>(Bloqueado al evento activo)</span
+						></label
 					>
 					<select
 						disabled
@@ -352,16 +348,20 @@
 					<label for="cantidad" class="block text-sm font-medium mb-2 text-stone-300"
 						>Cantidad <span class="text-red-500">*</span></label
 					>
-					<div class="flex items-center gap-4 bg-stone-700 rounded-xl p-1 border border-stone-600 w-fit">
-						<button 
+					<div
+						class="flex items-center gap-4 bg-stone-700 rounded-xl p-1 border border-stone-600 w-fit"
+					>
+						<button
 							type="button"
-							on:click={() => { if (cantidad > 1) cantidad-- }}
+							on:click={() => {
+								if (cantidad > 1) cantidad--;
+							}}
 							class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-stone-600 transition-colors text-white font-bold"
 						>
 							-
 						</button>
 						<div class="w-12 text-center font-bold text-lg">{cantidad}</div>
-						<button 
+						<button
 							type="button"
 							on:click={() => cantidad++}
 							class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-stone-600 transition-colors text-white font-bold"
@@ -410,7 +410,9 @@
 					<input
 						bind:value={nombre}
 						on:input={handleInputNombre}
-						on:focus={() => { if (clientesFiltrados.length > 0 && nombre.length > 1) mostrarDropdown = true; }}
+						on:focus={() => {
+							if (clientesFiltrados.length > 0 && nombre.length > 1) mostrarDropdown = true;
+						}}
 						type="text"
 						id="nombre"
 						autocomplete="off"
@@ -419,7 +421,9 @@
 					/>
 
 					{#if mostrarDropdown}
-						<div class="absolute z-50 w-full mt-1 bg-stone-800 border border-stone-600 rounded-xl shadow-2xl max-h-60 overflow-y-auto divide-y divide-stone-700 font-sans">
+						<div
+							class="absolute z-50 w-full mt-1 bg-stone-800 border border-stone-600 rounded-xl shadow-2xl max-h-60 overflow-y-auto divide-y divide-stone-700 font-sans"
+						>
 							{#each clientesFiltrados as cliente}
 								<button
 									type="button"

@@ -3,6 +3,7 @@
 ## 📋 Tablas Necesarias
 
 ### 1. **mCampania** - Tabla principal de campañas
+
 Almacena la información general de cada campaña de email marketing.
 
 ```sql
@@ -28,6 +29,7 @@ CREATE INDEX idx_campania_fecha_creacion ON mCampania(fecha_creacion DESC);
 ```
 
 **Campos:**
+
 - `id`: Identificador único de la campaña
 - `titulo`: Título interno de la campaña (máx 100 caracteres)
 - `asunto`: Asunto del correo (máx 200 caracteres)
@@ -43,6 +45,7 @@ CREATE INDEX idx_campania_fecha_creacion ON mCampania(fecha_creacion DESC);
 ---
 
 ### 2. **mCampaniaDestinatario** - Relación campaña-destinatarios
+
 Tabla intermedia que relaciona campañas con los destinatarios específicos.
 
 ```sql
@@ -58,7 +61,7 @@ CREATE TABLE mCampaniaDestinatario (
     click BOOLEAN DEFAULT false, -- Para tracking de clicks (opcional)
     fecha_click TIMESTAMP WITH TIME ZONE, -- Para tracking (opcional)
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    
+
     -- Evitar duplicados
     UNIQUE(campania_id, cliente_id)
 );
@@ -70,6 +73,7 @@ CREATE INDEX idx_campania_destinatario_enviado ON mCampaniaDestinatario(enviado)
 ```
 
 **Campos:**
+
 - `id`: Identificador único
 - `campania_id`: Referencia a la campaña
 - `cliente_id`: ID del registro en mVenta (el cliente)
@@ -84,6 +88,7 @@ CREATE INDEX idx_campania_destinatario_enviado ON mCampaniaDestinatario(enviado)
 ---
 
 ### 3. **mCampaniaEvento** (Opcional) - Filtro por eventos
+
 Si quieres relacionar campañas con eventos específicos.
 
 ```sql
@@ -92,7 +97,7 @@ CREATE TABLE mCampaniaEvento (
     campania_id UUID NOT NULL REFERENCES mCampania(id) ON DELETE CASCADE,
     evento_id UUID NOT NULL, -- Referencia a mEvento
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    
+
     UNIQUE(campania_id, evento_id)
 );
 
@@ -143,8 +148,9 @@ CREATE POLICY "Usuarios pueden actualizar destinatarios" ON mCampaniaDestinatari
 ## 📊 Consultas Útiles
 
 ### Ver campañas con estadísticas
+
 ```sql
-SELECT 
+SELECT
     c.*,
     COUNT(cd.id) as total_destinatarios,
     COUNT(CASE WHEN cd.enviado = true THEN 1 END) as enviados,
@@ -156,11 +162,12 @@ ORDER BY c.fecha_creacion DESC;
 ```
 
 ### Clientes únicos de mVenta
+
 ```sql
-SELECT DISTINCT ON (LOWER(correo)) 
-    id, 
-    correo, 
-    nombre, 
+SELECT DISTINCT ON (LOWER(correo))
+    id,
+    correo,
+    nombre,
     evento_id
 FROM mVenta
 WHERE correo IS NOT NULL AND correo != ''
@@ -168,8 +175,9 @@ ORDER BY LOWER(correo), created_at DESC;
 ```
 
 ### Destinatarios de una campaña con info del cliente
+
 ```sql
-SELECT 
+SELECT
     cd.*,
     mv.correo,
     mv.nombre
@@ -183,6 +191,7 @@ WHERE cd.campania_id = 'ID_DE_LA_CAMPANIA';
 ## 🚀 Mejoras Futuras (Opcionales)
 
 ### 1. **Plantillas Predefinidas**
+
 Tabla para guardar plantillas HTML reutilizables:
 
 ```sql
@@ -197,14 +206,16 @@ CREATE TABLE mPlantillaEmail (
 ```
 
 ### 2. **Programación de Envíos**
+
 Para enviar campañas en el futuro:
 
 ```sql
-ALTER TABLE mCampania 
+ALTER TABLE mCampania
 ADD COLUMN fecha_programada TIMESTAMP WITH TIME ZONE;
 ```
 
 ### 3. **Segmentación Avanzada**
+
 Tabla para guardar segmentos de clientes:
 
 ```sql
@@ -223,6 +234,7 @@ CREATE TABLE mCampaniaSegmento (
 ```
 
 ### 4. **Historial de Interacciones**
+
 Para tracking avanzado:
 
 ```sql
@@ -242,23 +254,27 @@ CREATE TABLE mCampaniaInteraccion (
 ## 📝 Notas Importantes
 
 1. **Servicio de Correo**: Necesitarás configurar un servicio como:
+
    - **Nodemailer** (SMTP)
    - **SendGrid** (API)
    - **AWS SES** (Amazon)
    - **Resend** (Moderno y fácil)
 
 2. **Variables del Sistema**: Para el reemplazo de `{{nombre}}`, puedes extender a:
+
    - `{{nombre}}`
    - `{{correo}}`
    - `{{evento}}`
    - `{{fecha_evento}}`
 
 3. **Rate Limiting**: Implementa límites para evitar spam:
+
    - Máximo X correos por minuto
    - Delays entre envíos
    - Validación de correos
 
-4. **Compliance**: 
+4. **Compliance**:
+
    - Agregar enlace de "Unsubscribe"
    - Almacenar consentimiento de marketing
    - Cumplir con GDPR/leyes locales

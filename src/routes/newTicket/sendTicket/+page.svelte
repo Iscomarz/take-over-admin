@@ -12,7 +12,6 @@
 	let token = '';
 
 	onMount(async () => {
-		
 		if (ticketStore) {
 			// Generar el ticket en formato PDF (array buffer)
 			pdfBuffer = await generarTicket(
@@ -73,7 +72,8 @@
 					></iframe>
 				</div>
 
-				<!-- Botones de acci\u00f3n --><div class="flex flex-col sm:flex-row gap-4">
+				<!-- Botones de acci\u00f3n -->
+				<div class="flex flex-col sm:flex-row gap-4">
 					<a
 						href={pdfUrl}
 						download="ticket.pdf"

@@ -7,30 +7,42 @@
 	let openEventos = false;
 	let openHerramientas = false;
 	let openCatalogos = false;
+	let openDifusion = false;
 
 	onMount(() => {
 		checkSession();
 	});
 
-  async function checkSession() {
-        const { data } = await supabase.auth.getSession();
-        userEmail = data?.session?.user?.email ?? '';
-        isValidator = userEmail === 'validaciones@takeover.com';
-    }
+	async function checkSession() {
+		const { data } = await supabase.auth.getSession();
+		userEmail = data?.session?.user?.email ?? '';
+		isValidator = userEmail === 'validaciones@takeover.com';
+	}
 
 	function toggleGroup(group) {
 		if (group === 'eventos') openEventos = !openEventos;
 		if (group === 'herramientas') openHerramientas = !openHerramientas;
 		if (group === 'catalogos') openCatalogos = !openCatalogos;
+		if (group === 'difusion') openDifusion = !openDifusion;
 	}
 </script>
+
 <section class="menu">
 	{#if isValidator}
 		<a class="menu-item" href="/validate">✅ Validar QR</a>
 	{:else}
 		<a class="menu-item" href="/home">
 			<span class="icon" aria-hidden="true">
-				<svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+				<svg
+					class="icon-svg"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="1.5"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					xmlns="http://www.w3.org/2000/svg"
+				>
 					<path d="M3 9.5L12 3l9 6.5"></path>
 					<path d="M9 22V12h6v10"></path>
 				</svg>
@@ -39,9 +51,23 @@
 		</a>
 
 		<div class="menu-group">
-			<button class="menu-label" on:click={() => toggleGroup('eventos')} aria-expanded={openEventos} aria-controls="eventos-list">
+			<button
+				class="menu-label"
+				on:click={() => toggleGroup('eventos')}
+				aria-expanded={openEventos}
+				aria-controls="eventos-list"
+			>
 				<span class="icon" aria-hidden="true">
-					<svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+					<svg
+						class="icon-svg"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="1.5"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						xmlns="http://www.w3.org/2000/svg"
+					>
 						<rect x="3" y="5" width="18" height="16" rx="2"></rect>
 						<path d="M16 3v4M8 3v4"></path>
 					</svg>
@@ -49,53 +75,149 @@
 				<span>Eventos</span>
 			</button>
 			<div id="eventos-list" class="submenu-list {openEventos ? 'open' : ''}">
-			<a class="submenu" href="/events">
-				<span class="icon" aria-hidden="true">
-					<svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
-						<rect x="3" y="5" width="18" height="16" rx="2"></rect>
-						<path d="M8 3v4M16 3v4"></path>
-					</svg>
-				</span>
-				<span>Ver Todos</span>
-			</a>
-			<a class="submenu" href="/newEvent">
-				<span class="icon" aria-hidden="true">
-					<svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
-						<path d="M12 5v14"></path>
-						<path d="M5 12h14"></path>
-					</svg>
-				</span>
-				<span>Crear Nuevo</span>
-			</a>
+				<a class="submenu" href="/events">
+					<span class="icon" aria-hidden="true">
+						<svg
+							class="icon-svg"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="1.5"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							xmlns="http://www.w3.org/2000/svg"
+						>
+							<rect x="3" y="5" width="18" height="16" rx="2"></rect>
+							<path d="M8 3v4M16 3v4"></path>
+						</svg>
+					</span>
+					<span>Ver Todos</span>
+				</a>
+				<a class="submenu" href="/newEvent">
+					<span class="icon" aria-hidden="true">
+						<svg
+							class="icon-svg"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="1.5"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							xmlns="http://www.w3.org/2000/svg"
+						>
+							<path d="M12 5v14"></path>
+							<path d="M5 12h14"></path>
+						</svg>
+					</span>
+					<span>Crear Nuevo</span>
+				</a>
 			</div>
 		</div>
 		<div class="divider"></div>
 
-
-
 		<a class="menu-item" href="/teamMembers">
 			<span class="icon" aria-hidden="true">
-				<svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+				<svg
+					class="icon-svg"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="1.5"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					xmlns="http://www.w3.org/2000/svg"
+				>
 					<path d="M17 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
 					<circle cx="12" cy="7" r="4"></circle>
 				</svg>
 			</span>
 			<span>Equipo</span>
 		</a>
-		<a class="menu-item" href="/campanias">
-			<span class="icon" aria-hidden="true">
-				<svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
-					<path d="M22 2L11 13"></path>
-					<path d="M22 2l-7 20-4-9-9-4 20-7z"></path>
-				</svg>
-			</span>
-			<span>Campañas</span>
-		</a>
 		<div class="menu-group">
-			<button class="menu-label flex items-center justify-between w-full" on:click={() => toggleGroup('catalogos')} aria-expanded={openCatalogos} aria-controls="catalogos-list">
+			<button
+				class="menu-label flex items-center justify-between w-full"
+				on:click={() => toggleGroup('difusion')}
+				aria-expanded={openDifusion}
+				aria-controls="difusion-list"
+			>
 				<div class="flex items-center gap-3">
 					<span class="icon" aria-hidden="true">
-						<svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+						<svg
+							class="icon-svg"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="1.5"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							xmlns="http://www.w3.org/2000/svg"
+						>
+							<path d="M11 5L6 9H2v6h4l5 4V5z"></path>
+							<path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+							<path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+						</svg>
+					</span>
+					<span>Difusión</span>
+				</div>
+			</button>
+			<div id="difusion-list" class="submenu-list {openDifusion ? 'open' : ''}">
+				<a class="submenu flex items-center gap-3" href="/campanias">
+					<span class="icon" aria-hidden="true">
+						<svg
+							class="icon-svg"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="1.5"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							xmlns="http://www.w3.org/2000/svg"
+						>
+							<path d="M22 2L11 13"></path>
+							<path d="M22 2l-7 20-4-9-9-4 20-7z"></path>
+						</svg>
+					</span>
+					<span>Campañas</span>
+				</a>
+				<a class="submenu flex items-center gap-3" href="/recordatorios">
+					<span class="icon" aria-hidden="true">
+						<svg
+							class="icon-svg"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="1.5"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							xmlns="http://www.w3.org/2000/svg"
+						>
+							<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+							<path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+						</svg>
+					</span>
+					<span>Recordatorios</span>
+				</a>
+			</div>
+		</div>
+		<div class="menu-group">
+			<button
+				class="menu-label flex items-center justify-between w-full"
+				on:click={() => toggleGroup('catalogos')}
+				aria-expanded={openCatalogos}
+				aria-controls="catalogos-list"
+			>
+				<div class="flex items-center gap-3">
+					<span class="icon" aria-hidden="true">
+						<svg
+							class="icon-svg"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="1.5"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							xmlns="http://www.w3.org/2000/svg"
+						>
 							<path d="M4 6h16M4 12h16M4 18h16"></path>
 						</svg>
 					</span>
@@ -105,16 +227,42 @@
 			<div id="catalogos-list" class="submenu-list {openCatalogos ? 'open' : ''}">
 				<a class="submenu flex items-center gap-3" href="/catalogos/venues">
 					<span class="icon" aria-hidden="true">
-						<svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
-							<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle>
+						<svg
+							class="icon-svg"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="1.5"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							xmlns="http://www.w3.org/2000/svg"
+						>
+							<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle
+								cx="12"
+								cy="10"
+								r="3"
+							></circle>
 						</svg>
 					</span>
 					<span>Venues</span>
 				</a>
 				<a class="submenu flex items-center gap-3" href="/catalogos/generos">
 					<span class="icon" aria-hidden="true">
-						<svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
-							<path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle>
+						<svg
+							class="icon-svg"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="1.5"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							xmlns="http://www.w3.org/2000/svg"
+						>
+							<path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle
+								cx="18"
+								cy="16"
+								r="3"
+							></circle>
 						</svg>
 					</span>
 					<span>Géneros Musicales</span>
@@ -137,14 +285,14 @@
 	}
 
 	.menu-item {
-			display: flex;
-			align-items: center;
-			gap: 0.75rem;
-			padding: 8px 12px;
-			border-radius: 8px;
-			text-decoration: none;
-			color: inherit;
-		}
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		padding: 8px 12px;
+		border-radius: 8px;
+		text-decoration: none;
+		color: inherit;
+	}
 
 	.icon {
 		display: inline-flex;
@@ -172,40 +320,40 @@
 	}
 
 	.menu-item:hover {
-			background: rgba(255,255,255,0.02);
-		}
+		background: rgba(255, 255, 255, 0.02);
+	}
 
 	.menu-group {
-			width: 100%;
-			margin-top: 6px;
-		}
+		width: 100%;
+		margin-top: 6px;
+	}
 
 	.menu-label {
-			font-size: 0.85rem;
-			font-weight: 700;
-			color: #bfbfbf;
-			padding: 8px 12px;
-			text-transform: uppercase;
-			letter-spacing: 0.03em;
-		}
+		font-size: 0.85rem;
+		font-weight: 700;
+		color: #bfbfbf;
+		padding: 8px 12px;
+		text-transform: uppercase;
+		letter-spacing: 0.03em;
+	}
 
 	.submenu {
-			display: block;
-			padding: 6px 24px;
-			text-decoration: none;
-			color: #eaeaea;
-			border-radius: 6px;
-			margin: 4px 0;
-		}
+		display: block;
+		padding: 6px 24px;
+		text-decoration: none;
+		color: #eaeaea;
+		border-radius: 6px;
+		margin: 4px 0;
+	}
 
 	.submenu:hover {
-			background: rgba(255,255,255,0.02);
-		}
+		background: rgba(255, 255, 255, 0.02);
+	}
 
-.divider {
+	.divider {
 		width: 100%;
 		height: 1px;
-		background: rgba(255,255,255,0.04);
+		background: rgba(255, 255, 255, 0.04);
 		margin: 8px 0;
 		border-radius: 2px;
 	}
