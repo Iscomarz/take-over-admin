@@ -272,6 +272,14 @@
 	function handleFiles(files) {
 		const validImagesTypes = ['image/png', 'image/jpeg'];
 		const [file] = files;
+		if (!file) return;
+
+		// Verificar el tamaño de la imagen (máximo 2MB)
+		const MAX_SIZE = 2 * 1024 * 1024; // 2MB en bytes
+		if (file.size > MAX_SIZE) {
+			toast.error('La imagen excede el límite de 2MB. Selecciona una imagen de menor peso.');
+			return;
+		}
 
 		//Verificar el tipo de archivo
 		if (validImagesTypes.includes(file.type)) {
