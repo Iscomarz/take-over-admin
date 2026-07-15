@@ -369,12 +369,52 @@
 			generosOriginales = [...generos];
 
 			for (let i = 0; i < fases.length; i++) {
-				const { error: errorFase } = await supabase
-					.from('cFaseEvento')
-					.update(fases[i])
-					.eq('idFase', fases[i].idFase);
-				if (errorFase) {
-					console.error('Error actualizando fase:', errorFase);
+				const isTemp = typeof fases[i].idFase === 'string' && fases[i].idFase.startsWith('temp_');
+				if (isTemp || !fases[i].idFase) {
+					// Nueva fase: insertar en base de datos sin el idFase temporal
+					const { data: newFaseData, error: errorFase } = await supabase
+						.from('cFaseEvento')
+						.insert([
+							{
+								idEvento: id,
+								nombreFace: fases[i].nombreFace,
+								precio: fases[i].precio,
+								limite: fases[i].limite,
+								fechaExpira: fases[i].fechaExpira || null,
+								oculto: fases[i].oculto || false,
+								soldout: fases[i].soldout || false,
+								activo: fases[i].activo ?? true,
+								idPrecioStripe: fases[i].idPrecioStripe || null,
+								descripcion: fases[i].descripcion || null
+							}
+						])
+						.select();
+
+					if (errorFase) {
+						console.error('Error insertando fase:', errorFase);
+					} else if (newFaseData && newFaseData.length > 0) {
+						fases[i] = newFaseData[0];
+					}
+				} else {
+					// Fase existente: actualizar
+					const { error: errorFase } = await supabase
+						.from('cFaseEvento')
+						.update({
+							nombreFace: fases[i].nombreFace,
+							precio: fases[i].precio,
+							limite: fases[i].limite,
+							fechaExpira: fases[i].fechaExpira || null,
+							oculto: fases[i].oculto,
+							soldout: fases[i].soldout,
+							activo: fases[i].activo,
+							idPrecioStripe: fases[i].idPrecioStripe || null,
+							descripcion: fases[i].descripcion || null
+						})
+						.eq('idFase', fases[i].idFase);
+
+					if (errorFase) {
+						console.error('Error actualizando fase:', errorFase);
+					}
 				}
 			}
 			toast.success('Evento actualizado con éxito', {
@@ -386,29 +426,42 @@
 
 	function editarFase(index, updatedFase) {
 		fases[index] = { ...fases[index], ...updatedFase };
+		fases = fases; // Forzar reactividad
 	}
 
 	async function borrarFase(index) {
-		const { error } = await supabase.from('cFaseEvento').delete().eq('idFase', fases[index].idFase);
-		if (error) {
-			console.error('Error eliminando fase:', error);
-		} else {
-			fases.splice(index, 1);
+		const isTemp =
+			typeof fases[index].idFase === 'string' && fases[index].idFase.startsWith('temp_');
+		if (fases[index].idFase && !isTemp) {
+			const { error } = await supabase
+				.from('cFaseEvento')
+				.delete()
+				.eq('idFase', fases[index].idFase);
+
+			if (error) {
+				console.error('Error eliminando fase:', error);
+				toast.error('Error al eliminar la fase de la base de datos');
+				return;
+			}
 		}
+		fases = fases.filter((_, i) => i !== index);
 	}
 
 	function agregarNuevaFase() {
 		const nuevaFase = {
+			idFase: 'temp_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
 			nombreFace: '',
 			precio: 0,
 			limite: null,
 			fechaExpira: null,
-			idEvento: eventoId,
+			idEvento: id,
 			oculto: false,
 			soldout: false,
-			activo: true
+			activo: true,
+			idPrecioStripe: '',
+			descripcion: ''
 		};
-		fases.push(nuevaFase);
+		fases = [...fases, nuevaFase];
 	}
 
 	function atras() {
@@ -1337,7 +1390,7 @@
 						<div class="mt-8 pt-6 border-t border-stone-700/50">
 							<h2 class="text-lg font-semibold mb-4">Tipos de Tickets (Fases)</h2>
 							<div class="space-y-2">
-								{#each fases as fase, index}
+								{#each fases as fase, index (fase.idFase || index)}
 									<TicketCard {fase} {index} {borrarFase} guardarFase={editarFase} {editar} />
 								{/each}
 							</div>

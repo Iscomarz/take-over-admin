@@ -25,6 +25,13 @@
 	let precio = '';
 	let fechaExpira = '';
 	let limite;
+	let idPrecioStripe = '';
+	let descripcion = '';
+	let activo = true;
+	let oculto = false;
+	let stripePrecios = [];
+	let cargandoStripe = false;
+	let creandoStripe = false;
 	let fases = [];
 	let token = '';
 	let idUsuario = '';
@@ -34,14 +41,84 @@
 	let imagePreviewUrl = '';
 	let imageName = '';
 
-	onMount(() => {});
+	onMount(async () => {
+		try {
+			cargandoStripe = true;
+			const res = await fetch('/api/stripe/precios');
+			const data = await res.json();
+			if (data.success) {
+				stripePrecios = data.prices;
+			}
+		} catch (err) {
+			console.error('Error cargando precios de Stripe:', err);
+		} finally {
+			cargandoStripe = false;
+		}
+	});
+
+	async function crearPrecioStripe() {
+		if (!nombreFace || !precio) {
+			toast.error('Nombre de fase y precio son requeridos para crear el producto en Stripe');
+			return;
+		}
+
+		creandoStripe = true;
+		const idToast = toast.loading('Creando producto y precio en Stripe...');
+		try {
+			const res = await fetch('/api/stripe/precios', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ nombre: nombreFace, precio: Number(precio) })
+			});
+			const data = await res.json();
+			if (data.success) {
+				idPrecioStripe = data.idPrecioStripe;
+				precio = data.precioCalculado;
+				toast.success('¡Producto creado en Stripe con éxito!', { id: idToast });
+
+				// Actualizar lista local de precios para incluir el nuevo
+				stripePrecios = [
+					...stripePrecios,
+					{
+						idPrecioStripe: data.idPrecioStripe,
+						nombre: nombreFace,
+						precio: data.precioCalculado,
+						moneda: 'mxn'
+					}
+				];
+			} else {
+				toast.error(`Error de Stripe: ${data.error}`, { id: idToast });
+			}
+		} catch (err) {
+			console.error(err);
+			toast.error('Ocurrió un error al crear el producto en Stripe', { id: idToast });
+		} finally {
+			creandoStripe = false;
+		}
+	}
 
 	function agregarFase() {
-		fases = [...fases, { nombreFace, precio, fechaExpira, limite }]; // Crear nueva referencia del array
+		fases = [
+			...fases,
+			{
+				nombreFace,
+				precio,
+				fechaExpira: fechaExpira || null,
+				limite: limite || null,
+				idPrecioStripe: idPrecioStripe || null,
+				descripcion: descripcion || null,
+				activo,
+				oculto
+			}
+		]; // Crear nueva referencia del array
 		nombreFace = '';
 		precio = '';
 		fechaExpira = '';
 		limite = null;
+		idPrecioStripe = '';
+		descripcion = '';
+		activo = true;
+		oculto = false;
 	}
 
 	function borrarFase(index) {
@@ -133,8 +210,12 @@
 							idEvento: eventoId,
 							nombreFace: fase.nombreFace,
 							precio: fase.precio,
-							fechaExpira: fase.fechaExpira,
-							limite: fase.limite
+							fechaExpira: fase.fechaExpira || null,
+							limite: fase.limite || null,
+							idPrecioStripe: fase.idPrecioStripe || null,
+							descripcion: fase.descripcion || null,
+							activo: fase.activo ?? true,
+							oculto: fase.oculto ?? false
 						}
 					]);
 
@@ -305,6 +386,38 @@
 				<!-- Formulario para agregar fase -->
 				<div class="bg-stone-700/50 rounded-xl p-4 mb-4">
 					<p class="text-stone-300 text-sm mb-3 font-medium">Agregar Nueva Fase</p>
+
+					<!-- Autocompletado de Stripe -->
+					<div class="mb-4">
+						<label for="stripeSelect" class="block text-xs text-stone-400 mb-1"
+							>Vincular a Precio de Stripe Existente (Opcional)</label
+						>
+						<select
+							id="stripeSelect"
+							on:change={(e) => {
+								const selected = stripePrecios.find((p) => p.idPrecioStripe === e.target.value);
+								if (selected) {
+									nombreFace = selected.nombre;
+									precio = selected.precio;
+									idPrecioStripe = selected.idPrecioStripe;
+								}
+							}}
+							class="w-full bg-stone-600 text-white border border-stone-500 rounded-lg p-2 focus:ring-2 focus:ring-stone-400 focus:border-transparent text-sm"
+						>
+							<option value=""
+								>-- {cargandoStripe
+									? 'Cargando precios de Stripe...'
+									: 'Seleccionar precio existente'} --</option
+							>
+							{#each stripePrecios as sp}
+								<option value={sp.idPrecioStripe}>
+									{sp.nombre} (${sp.precio}
+									{sp.moneda.toUpperCase()}) - {sp.idPrecioStripe}
+								</option>
+							{/each}
+						</select>
+					</div>
+
 					<div class="grid grid-cols-1 md:grid-cols-4 gap-3">
 						<div>
 							<label for="nombre" class="block text-xs text-stone-400 mb-1"
@@ -351,6 +464,65 @@
 								placeholder="Sin límite"
 							/>
 						</div>
+					</div>
+
+					<!-- Nuevos campos: idPrecioStripe y descripcion -->
+					<div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
+						<div>
+							<label for="idPrecioStripe" class="block text-xs text-stone-400 mb-1"
+								>ID Precio Stripe</label
+							>
+							<div class="flex gap-2">
+								<input
+									name="idPrecioStripe"
+									bind:value={idPrecioStripe}
+									type="text"
+									class="flex-1 bg-stone-600 text-white border border-stone-500 rounded-lg p-2 focus:ring-2 focus:ring-stone-400 focus:border-transparent text-sm"
+									placeholder="price_..."
+								/>
+								{#if !idPrecioStripe}
+									<button
+										type="button"
+										on:click={crearPrecioStripe}
+										disabled={creandoStripe || !nombreFace || !precio}
+										class="bg-green-700 hover:bg-green-600 text-white px-3 rounded-lg text-xs font-semibold border border-green-600 transition-colors whitespace-nowrap disabled:opacity-50"
+									>
+										Crear en Stripe
+									</button>
+								{/if}
+							</div>
+						</div>
+						<div>
+							<label for="descripcion" class="block text-xs text-stone-400 mb-1"
+								>Descripción de Fase (opcional)</label
+							>
+							<input
+								name="descripcion"
+								bind:value={descripcion}
+								type="text"
+								class="w-full bg-stone-600 text-white border border-stone-500 rounded-lg p-2 focus:ring-2 focus:ring-stone-400 focus:border-transparent text-sm"
+								placeholder="Información adicional sobre el ticket"
+							/>
+						</div>
+					</div>
+
+					<!-- Controles booleanos -->
+					<div class="mt-4 flex flex-wrap gap-6">
+						<label class="inline-flex items-center cursor-pointer">
+							<input type="checkbox" bind:checked={activo} class="sr-only peer" />
+							<div
+								class="relative w-11 h-6 bg-stone-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-stone-500 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-stone-500 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"
+							></div>
+							<span class="ms-3 text-sm font-medium text-stone-300">Activo</span>
+						</label>
+
+						<label class="inline-flex items-center cursor-pointer">
+							<input type="checkbox" bind:checked={oculto} class="sr-only peer" />
+							<div
+								class="relative w-11 h-6 bg-stone-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-stone-500 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-stone-500 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"
+							></div>
+							<span class="ms-3 text-sm font-medium text-stone-300">Oculto</span>
+						</label>
 					</div>
 					<button
 						type="button"
