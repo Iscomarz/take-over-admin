@@ -201,6 +201,12 @@
 								href="/campanias"
 								class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Campañas</a
 							>
+							<a
+								on:click={toggleDropdown}
+								href="/sounds"
+								class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+								>Sound of Take Over</a
+							>
 
 							<div class="border-t border-gray-200 mt-1">
 								<button
