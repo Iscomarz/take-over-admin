@@ -6,11 +6,11 @@
 	import { tick } from 'svelte';
 	import { onMount } from 'svelte';
 
-	let showDropdown = false; // Estado para controlar la visibilidad del dropdown
+	let showDropdown = false;
 	let dropdownButton;
 	let openEventos = false;
-	let openHerramientas = false;
 	let openCatalogos = false;
+	let openDifusion = false;
 
 	//control de email
 	let userEmail = '';
@@ -72,8 +72,8 @@
 	function toggleGroup(group, event) {
 		event.stopPropagation();
 		if (group === 'eventos') openEventos = !openEventos;
-		if (group === 'herramientas') openHerramientas = !openHerramientas;
 		if (group === 'catalogos') openCatalogos = !openCatalogos;
+		if (group === 'difusion') openDifusion = !openDifusion;
 	}
 </script>
 
@@ -114,104 +114,60 @@
 			<!-- Mostrar u ocultar el dropdown basado en showDropdown -->
 			{#if showDropdown}
 				<div
-					class="absolute right-0 z-10 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+					class="dropdown-menu"
 					role="menu"
 					aria-orientation="vertical"
 					aria-labelledby="menu-button"
 					tabindex="-1"
 				>
-					<div class="py-1" role="none">
-						{#if isValidator}
-							<a
-								on:click={toggleDropdown}
-								href="/validate"
-								class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-								role="menuitem"
-								tabindex="-1"
-								id="menu-item-4">Validar QR</a
-							>
-							<button
-								on:click={cerrarSesion}
-								type="submit"
-								class="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
-								role="menuitem"
-								tabindex="-1"
-								id="menu-item-3">Salir</button
-							>
-						{:else}
-							<!-- Grupo Eventos -->
-							<div class="border-b border-gray-200">
-								<button
-									class="w-full text-left px-4 py-2 text-sm font-semibold text-gray-900 hover:bg-gray-50 flex justify-between items-center"
-									on:click={(e) => toggleGroup('eventos', e)}
-								>
-									Eventos
-									<span class="transition-transform {openEventos ? 'rotate-180' : ''}">▼</span>
-								</button>
-								{#if openEventos}
-									<div class="bg-gray-50">
-										<a
-											on:click={toggleDropdown}
-											href="/events"
-											class="block px-8 py-2 text-sm text-gray-700 hover:bg-gray-100">Ver Todos</a
-										>
-										<a
-											on:click={toggleDropdown}
-											href="/newEvent"
-											class="block px-8 py-2 text-sm text-gray-700 hover:bg-gray-100">Crear Nuevo</a
-										>
-									</div>
-								{/if}
-							</div>
+					{#if isValidator}
+						<a on:click={toggleDropdown} href="/validate" class="dropdown-item" role="menuitem">✅ Validar QR</a>
+						<div class="dropdown-divider"></div>
+						<button on:click={cerrarSesion} class="dropdown-item dropdown-signout">Salir</button>
+					{:else}
+						<!-- Home -->
+						<a on:click={toggleDropdown} href="/home" class="dropdown-item">Home</a>
 
-							<!-- Grupo Catálogos -->
-							<div class="border-b border-gray-200">
-								<button
-									class="w-full text-left px-4 py-2 text-sm font-semibold text-gray-900 hover:bg-gray-50 flex justify-between items-center"
-									on:click={(e) => toggleGroup('catalogos', e)}
-								>
-									Catálogos
-									<span class="transition-transform {openCatalogos ? 'rotate-180' : ''}">▼</span>
-								</button>
-								{#if openCatalogos}
-									<div class="bg-gray-50">
-										<a
-											on:click={toggleDropdown}
-											href="/catalogos/venues"
-											class="block px-8 py-2 text-sm text-gray-700 hover:bg-gray-100">Venues</a
-										>
-										<a
-											on:click={toggleDropdown}
-											href="/catalogos/generos"
-											class="block px-8 py-2 text-sm text-gray-700 hover:bg-gray-100"
-											>Géneros Musicales</a
-										>
-									</div>
-								{/if}
-							</div>
+						<!-- Eventos -->
+						<a on:click={toggleDropdown} href="/events" class="dropdown-item">Eventos</a>
 
-							<!-- Equipo y Campañas -->
-							<a
-								on:click={toggleDropdown}
-								href="/teamMembers"
-								class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Equipo</a
-							>
-							<a
-								on:click={toggleDropdown}
-								href="/campanias"
-								class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Campañas</a
-							>
+						<!-- Equipo -->
+						<a on:click={toggleDropdown} href="/teamMembers" class="dropdown-item">Equipo</a>
 
-							<div class="border-t border-gray-200 mt-1">
-								<button
-									on:click={cerrarSesion}
-									type="submit"
-									class="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
-									>Salir</button
-								>
+						<div class="dropdown-divider"></div>
+
+						<!-- Difusión group -->
+						<button class="dropdown-group-label" on:click={(e) => toggleGroup('difusion', e)}>
+							Difusión <span class="chevron {openDifusion ? 'open' : ''}">▼</span>
+						</button>
+						{#if openDifusion}
+							<div class="dropdown-subgroup">
+								<a on:click={toggleDropdown} href="/campanias" class="dropdown-subitem">Campañas</a>
+								<a on:click={toggleDropdown} href="/recordatorios" class="dropdown-subitem">Recordatorios</a>
 							</div>
 						{/if}
-					</div>
+
+						<!-- Catálogos group -->
+						<button class="dropdown-group-label" on:click={(e) => toggleGroup('catalogos', e)}>
+							Catálogos <span class="chevron {openCatalogos ? 'open' : ''}">▼</span>
+						</button>
+						{#if openCatalogos}
+							<div class="dropdown-subgroup">
+								<a on:click={toggleDropdown} href="/catalogos/venues" class="dropdown-subitem">Venues</a>
+								<a on:click={toggleDropdown} href="/catalogos/generos" class="dropdown-subitem">Géneros Musicales</a>
+							</div>
+						{/if}
+
+						<div class="dropdown-divider"></div>
+
+						<!-- Config -->
+						<a on:click={toggleDropdown} href="/config" class="dropdown-item">Config</a>
+
+						<div class="dropdown-divider"></div>
+
+						<!-- Salir -->
+						<button on:click={cerrarSesion} class="dropdown-item dropdown-signout">Salir</button>
+					{/if}
 				</div>
 			{/if}
 		</div>
@@ -252,6 +208,106 @@
 
 	#dropdownHoverMenu {
 		display: none;
+	}
+
+	/* Dropdown panel */
+	.dropdown-menu {
+		position: absolute;
+		right: 0;
+		z-index: 50;
+		margin-top: 0.5rem;
+		width: 220px;
+		background: #111;
+		border: 1px solid rgba(255, 255, 255, 0.08);
+		border-radius: 10px;
+		box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+		overflow: hidden;
+		padding: 0.4rem 0;
+	}
+
+	.dropdown-item {
+		display: block;
+		width: 100%;
+		text-align: left;
+		padding: 0.6rem 1.2rem;
+		font-size: 0.9rem;
+		color: rgba(255, 255, 255, 0.8);
+		background: none;
+		border: none;
+		cursor: pointer;
+		text-decoration: none;
+		font-family: inherit;
+		transition: background 0.15s ease;
+	}
+
+	.dropdown-item:hover {
+		background: rgba(255, 255, 255, 0.05);
+		color: #fff;
+	}
+
+	.dropdown-group-label {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		width: 100%;
+		padding: 0.5rem 1.2rem;
+		font-size: 0.8rem;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		color: rgba(255, 255, 255, 0.35);
+		background: none;
+		border: none;
+		cursor: pointer;
+		font-family: inherit;
+		transition: color 0.15s ease;
+	}
+
+	.dropdown-group-label:hover {
+		color: rgba(255, 255, 255, 0.6);
+	}
+
+	.chevron {
+		font-size: 0.65rem;
+		transition: transform 0.2s ease;
+		display: inline-block;
+	}
+
+	.chevron.open {
+		transform: rotate(180deg);
+	}
+
+	.dropdown-subgroup {
+		padding-bottom: 0.3rem;
+	}
+
+	.dropdown-subitem {
+		display: block;
+		padding: 0.5rem 1.2rem 0.5rem 2rem;
+		font-size: 0.88rem;
+		color: rgba(255, 255, 255, 0.6);
+		text-decoration: none;
+		transition: background 0.15s ease;
+	}
+
+	.dropdown-subitem:hover {
+		background: rgba(255, 255, 255, 0.04);
+		color: rgba(255, 255, 255, 0.9);
+	}
+
+	.dropdown-divider {
+		height: 1px;
+		background: rgba(255, 255, 255, 0.06);
+		margin: 0.3rem 0;
+	}
+
+	.dropdown-signout {
+		color: rgba(255, 95, 86, 0.8);
+	}
+
+	.dropdown-signout:hover {
+		color: #ff5f56;
+		background: rgba(255, 95, 86, 0.06);
 	}
 
 	@media (max-width: 768px) {
