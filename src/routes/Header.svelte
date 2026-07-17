@@ -162,6 +162,7 @@
 
 						<!-- Sound of Take Over -->
 						<a on:click={toggleDropdown} href="/sounds" class="dropdown-item">Sound of Take Over</a>
+						<a on:click={toggleDropdown} href="/galeria" class="dropdown-item">Vibe Wall</a>
 
 						<!-- Config -->
 						<a on:click={toggleDropdown} href="/config" class="dropdown-item">Config</a>
