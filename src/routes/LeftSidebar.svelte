@@ -246,6 +246,17 @@
 			<span>Sound of Take Over</span>
 		</a>
 
+		<a class="menu-item" href="/galeria">
+			<span class="icon" aria-hidden="true">
+				<svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+					<rect x="3" y="4" width="18" height="16" rx="2"></rect>
+					<circle cx="8.5" cy="9" r="1.5"></circle>
+					<path d="m21 15-5-5L5 20"></path>
+				</svg>
+			</span>
+			<span>Vibe Wall</span>
+		</a>
+
 		<a class="menu-item" href="/config">
 			<span class="icon" aria-hidden="true">
 				<svg
