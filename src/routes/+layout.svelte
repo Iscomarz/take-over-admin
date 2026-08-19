@@ -4,6 +4,7 @@
 	import { onMount, tick } from 'svelte';
 	import { goto } from '$app/navigation';
 	import supabase from '$lib/supabase';
+	import { authStore, obtenerPerfilUsuario } from '$lib/stores/authStore';
 	import Header from './Header.svelte';
 	import LeftSidebar from './LeftSidebar.svelte';
 	import '../app.css';
@@ -12,12 +13,38 @@
 	$: currentPath = $page.url.pathname;
 	$: showHeader = currentPath !== '/';
 
+	const RUTAS_PERMITIDAS_TAQUILLA = [
+		'/',
+		'/home',
+		'/validate',
+		'/ventaTaquilla',
+		'/newTicket'
+	];
+
+	function esRutaPermitidaTaquilla(path) {
+		return RUTAS_PERMITIDAS_TAQUILLA.some(
+			(ruta) => path === ruta || path.startsWith('/validate') || path.startsWith('/newTicket')
+		);
+	}
+
+	// Route guard reactivo para cambios de ruta
+	$: if (browser && $authStore.profile && $authStore.isTaquilla && currentPath !== '/') {
+		if (!esRutaPermitidaTaquilla(currentPath)) {
+			goto('/home');
+		}
+	}
+
 	onMount(() => {
-		const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+		const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
 			if (session) {
 				const maxAge = session.expires_in || 3600;
 				document.cookie = `sb-access-token=${session.access_token}; path=/; max-age=${maxAge}; SameSite=Lax; Secure`;
 				document.cookie = `sb-refresh-token=${session.refresh_token}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax; Secure`;
+				
+				const perfil = await obtenerPerfilUsuario();
+				if (perfil?.rol === 'taquilla' && currentPath !== '/' && !esRutaPermitidaTaquilla(currentPath)) {
+					goto('/home');
+				}
 			} else {
 				document.cookie = 'sb-access-token=; path=/; max-age=0; SameSite=Lax; Secure';
 				document.cookie = 'sb-refresh-token=; path=/; max-age=0; SameSite=Lax; Secure';
@@ -30,11 +57,16 @@
 			}
 		});
 
-		supabase.auth.getSession().then(({ data: { session } }) => {
+		supabase.auth.getSession().then(async ({ data: { session } }) => {
 			if (!session && currentPath !== '/') {
 				goto('/');
-			} else if (session && currentPath === '/') {
-				goto('/home');
+			} else if (session) {
+				const perfil = await obtenerPerfilUsuario();
+				if (currentPath === '/') {
+					goto('/home');
+				} else if (perfil?.rol === 'taquilla' && !esRutaPermitidaTaquilla(currentPath)) {
+					goto('/home');
+				}
 			}
 		});
 

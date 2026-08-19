@@ -7,6 +7,7 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { obtenerClientesUnicos } from '../../services/campania-service';
+	import { authStore, obtenerPerfilUsuario } from '$lib/stores/authStore';
 
 	import { tick } from 'svelte';
 
@@ -404,7 +405,9 @@
 	}
 
 	function atras() {
-		if (eventIdUrl) {
+		if ($authStore.isTaquilla) {
+			goto('/home');
+		} else if (eventIdUrl) {
 			goto(`/events/event/${eventIdUrl}`);
 		} else {
 			goto('/events');

@@ -6,6 +6,7 @@
 	import toast, { Toaster } from 'svelte-french-toast';
 	import supabase from '$lib/supabase';
 	import { referenciaValida } from '$lib/stores/qrValidate';
+	import { authStore, obtenerPerfilUsuario } from '$lib/stores/authStore';
 	import ValidationModal from '../../components/ValidationModal.svelte';
 
 	let qrCodeMessage = '';
@@ -221,10 +222,12 @@
 	}
 
 	function atras() {
-		if (eventIdUrl) {
+		if ($authStore.isTaquilla) {
+			goto('/home');
+		} else if (eventIdUrl) {
 			goto(`/events/event/${eventIdUrl}`);
 		} else {
-			goto('/events');
+			goto('/home');
 		}
 	}
 
