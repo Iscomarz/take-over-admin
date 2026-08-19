@@ -190,173 +190,174 @@
 					}
 				])
 				.select();
+
 			if (errorPago) {
 				console.log('Error al guardar en mPago:', errorPago);
 				toast.error('Error al guardar el pago');
 				return; // Detener si hay error
-			} else {
-				// Paso 2: Buscar o crear cliente
-				let clienteId;
-				const correoGenerico = 'sin-correo@correo.com';
-				const correoFinal = correoLimpio || correoGenerico;
+			}
 
-				if (correoLimpio) {
-					// Buscar cliente existente por correo
-					const { data: clienteExistente } = await supabase
-						.from('mCliente')
-						.select('cliente_id')
-						.eq('correo', correoLimpio)
-						.maybeSingle();
+			// Paso 2: Buscar o crear cliente
+			let clienteId;
+			const correoGenerico = 'sin-correo@correo.com';
+			const correoFinal = correoLimpio || correoGenerico;
 
-					if (clienteExistente) {
-						clienteId = clienteExistente.cliente_id;
-					} else {
-						// Crear nuevo cliente con nombre y correo proporcionados
-						const { data: nuevoCliente, error: errorCliente } = await supabase
-							.from('mCliente')
-							.insert([
-								{
-									nombre: nombreLimpio,
-									correo: correoLimpio,
-									fecha_registro: new Date()
-								}
-							])
-							.select()
-							.single();
+			if (correoLimpio) {
+				// Buscar cliente existente por correo
+				const { data: clienteExistente } = await supabase
+					.from('mCliente')
+					.select('cliente_id')
+					.eq('correo', correoLimpio)
+					.maybeSingle();
 
-						if (errorCliente) {
-							console.log('Error al crear cliente:', errorCliente);
-							toast.error('Error al registrar cliente');
-							return;
-						}
-						clienteId = nuevoCliente.cliente_id;
-					}
+				if (clienteExistente) {
+					clienteId = clienteExistente.cliente_id;
 				} else {
-					// Buscar cliente existente por nombre
-					const { data: clienteExistente } = await supabase
+					// Crear nuevo cliente con nombre y correo proporcionados
+					const { data: nuevoCliente, error: errorCliente } = await supabase
 						.from('mCliente')
-						.select('cliente_id')
-						.ilike('nombre', nombreLimpio)
-						.maybeSingle();
+						.insert([
+							{
+								nombre: nombreLimpio,
+								correo: correoLimpio,
+								fecha_registro: new Date()
+							}
+						])
+						.select()
+						.single();
 
-					if (clienteExistente) {
-						clienteId = clienteExistente.cliente_id;
-					} else {
-						// Crear nuevo cliente con correo genérico
-						const { data: nuevoCliente, error: errorCliente } = await supabase
-							.from('mCliente')
-							.insert([
-								{
-									nombre: nombreLimpio,
-									correo: correoGenerico,
-									fecha_registro: new Date()
-								}
-							])
-							.select()
-							.single();
-
-						if (errorCliente) {
-							console.log('Error al crear cliente:', errorCliente);
-							toast.error('Error al registrar cliente');
-							return;
-						}
-						clienteId = nuevoCliente.cliente_id;
+					if (errorCliente) {
+						console.log('Error al crear cliente:', errorCliente);
+						toast.error('Error al registrar cliente');
+						return;
 					}
+					clienteId = nuevoCliente.cliente_id;
 				}
+			} else {
+				// Buscar cliente existente por nombre
+				const { data: clienteExistente } = await supabase
+					.from('mCliente')
+					.select('cliente_id')
+					.ilike('nombre', nombreLimpio)
+					.maybeSingle();
 
-				// Paso 3: Guardar en tabla mVenta
-				const { data: dataVenta, error: errorVenta } = await supabase
-					.from('mVenta')
+				if (clienteExistente) {
+					clienteId = clienteExistente.cliente_id;
+				} else {
+					// Crear nuevo cliente con correo genérico
+					const { data: nuevoCliente, error: errorCliente } = await supabase
+						.from('mCliente')
+						.insert([
+							{
+								nombre: nombreLimpio,
+								correo: correoGenerico,
+								fecha_registro: new Date()
+							}
+						])
+						.select()
+						.single();
+
+					if (errorCliente) {
+						console.log('Error al crear cliente:', errorCliente);
+						toast.error('Error al registrar cliente');
+						return;
+					}
+					clienteId = nuevoCliente.cliente_id;
+				}
+			}
+
+			// Paso 3: Guardar en tabla mVenta
+			const { data: dataVenta, error: errorVenta } = await supabase
+				.from('mVenta')
+				.insert([
+					{
+						idEvento: eventoSelec.idevento,
+						idUsuario: idUsuario.id,
+						cliente_id: clienteId,
+						fechaVenta: new Date(),
+						cantidadTickets: cantidad,
+						idPago: dataPago[0].idpago,
+						idFaseEvento: faseSelec.idFase
+					}
+				])
+				.select();
+
+			if (errorVenta) {
+				console.log('Error al insertar venta', errorVenta);
+				toast.error('Error al registrar la venta');
+				return;
+			}
+
+			mVenta = {
+				...dataVenta[0],
+				nombre: nombreLimpio,
+				correo: correoFinal
+			};
+
+			for (let i = 1; i <= cantidad; i++) {
+				// Generar referencia aleatoria de 8 dígitos
+				let referencia = Math.floor(10000000 + Math.random() * 90000000);
+
+				// Crear un salt único
+				let salt = crypto.randomUUID();
+
+				// Combinar la referencia con el salt y aplicar una función hash (SHA-256)
+				let codigoQR = await crypto.subtle
+					.digest('SHA-256', new TextEncoder().encode(referencia + salt))
+					.then((hashBuffer) => {
+						// Convertir el resultado a una cadena hexadecimal
+						return Array.from(new Uint8Array(hashBuffer))
+							.map((b) => b.toString(16).padStart(2, '0'))
+							.join('');
+					});
+
+				let base64QR = await generarQRCode(codigoQR);
+
+				let pathQR = await subirQRASupabase(base64QR, referencia);
+
+				// Paso 4: Guardar en tabla ticket
+				const { data: dataTicket, error: errorTicket } = await supabase
+					.from('ticket')
 					.insert([
 						{
-							idEvento: eventoSelec.idevento,
-							idUsuario: idUsuario.id,
-							cliente_id: clienteId,
-							fechaVenta: new Date(),
-							cantidadTickets: cantidad,
-							idPago: dataPago[0].idpago,
-							idFaseEvento: faseSelec.idFase
+							codigoQR: codigoQR,
+							validado: false,
+							pathStorage: pathQR,
+							idVenta: dataVenta[0].idventa,
+							idFase: faseSelec.idFase,
+							referencia: referencia,
+							fechaValidacion: null
 						}
 					])
 					.select();
+				tickets.push(dataTicket[0]);
 
-				if (errorVenta) {
-					console.log('Error al insertar venta', errorVenta);
-					toast.error('Error al registrar la venta');
-					return;
+				if (errorTicket) {
+					console.log('Error al insertar ticket', errorTicket);
 				} else {
-					mVenta = {
-						...dataVenta[0],
-						nombre: nombreLimpio,
-						correo: correoFinal
-					};
-						for (let i = 1; i <= cantidad; i++) {
-							// Generar referencia aleatoria de 8 dígitos
-							let referencia = Math.floor(10000000 + Math.random() * 90000000);
-
-							// Crear un salt único
-							let salt = crypto.randomUUID();
-
-							// Combinar la referencia con el salt y aplicar una función hash (SHA-256)
-							let codigoQR = await crypto.subtle
-								.digest('SHA-256', new TextEncoder().encode(referencia + salt))
-								.then((hashBuffer) => {
-									// Convertir el resultado a una cadena hexadecimal
-									return Array.from(new Uint8Array(hashBuffer))
-										.map((b) => b.toString(16).padStart(2, '0'))
-										.join('');
-								});
-
-							let base64QR = await generarQRCode(codigoQR);
-
-							let pathQR = await subirQRASupabase(base64QR, referencia);
-
-							//paso 4 Guardar en tabla ticket
-							const { data: dataTicket, error: errorTicket } = await supabase
-								.from('ticket')
-								.insert([
-									{
-										codigoQR: codigoQR,
-										validado: false,
-										pathStorage: pathQR,
-										idVenta: dataVenta[0].idventa,
-										idFase: faseSelec.idFase,
-										referencia: referencia,
-										fechaValidacion: null
-									}
-								])
-								.select();
-							tickets.push(dataTicket[0]);
-
-							if (errorTicket) {
-								console.log('Error al insertar ticket', errorTicket);
-							} else {
-								if (cantidad == i) {
-									cargaCompleta = true;
-								}
-							}
-						}
+					if (cantidad == i) {
+						cargaCompleta = true;
 					}
 				}
-
-				if (cargaCompleta) {
-					ticket.set({
-						eventoSelec,
-						mVenta,
-						tickets
-					});
-					limpiarForm();
-					cargaCompleta = false;
-					goto('/newTicket/sendTicket');
-				} else {
-					toast.error('Error al generar');
-				}
-			} catch (err) {
-				console.error(err);
-				toast.error('Ocurrió un error al procesar el ticket');
-			} finally {
-				cargando = false;
 			}
+
+			if (cargaCompleta) {
+				ticket.set({
+					eventoSelec,
+					mVenta,
+					tickets
+				});
+				limpiarForm();
+				cargaCompleta = false;
+				goto('/newTicket/sendTicket');
+			} else {
+				toast.error('Error al generar');
+			}
+		} catch (err) {
+			console.error(err);
+			toast.error('Ocurrió un error al procesar el ticket');
+		} finally {
+			cargando = false;
 		}
 	}
 
