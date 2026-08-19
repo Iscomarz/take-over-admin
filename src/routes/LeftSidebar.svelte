@@ -1,23 +1,19 @@
 <script>
-	import supabase from '$lib/supabase';
+	import { authStore, obtenerPerfilUsuario } from '$lib/stores/authStore';
 	import { onMount } from 'svelte';
 
-	let userEmail = '';
-	let isValidator = false;
 	let openEventos = false;
 	let openHerramientas = false;
 	let openCatalogos = false;
 	let openDifusion = false;
 
-	onMount(() => {
-		checkSession();
-	});
+	$: isTaquilla = $authStore.isTaquilla;
 
-	async function checkSession() {
-		const { data } = await supabase.auth.getSession();
-		userEmail = data?.session?.user?.email ?? '';
-		isValidator = userEmail === 'validaciones@takeover.com';
-	}
+	onMount(async () => {
+		if (!$authStore.profile) {
+			await obtenerPerfilUsuario();
+		}
+	});
 
 	function toggleGroup(group) {
 		if (group === 'eventos') openEventos = !openEventos;
@@ -28,8 +24,62 @@
 </script>
 
 <section class="menu">
-	{#if isValidator}
-		<a class="menu-item" href="/validate">✅ Validar QR</a>
+	{#if isTaquilla}
+		<a class="menu-item" href="/home">
+			<span class="icon" aria-hidden="true">
+				<svg
+					class="icon-svg"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="1.5"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					xmlns="http://www.w3.org/2000/svg"
+				>
+					<path d="M3 9.5L12 3l9 6.5"></path>
+					<path d="M9 22V12h6v10"></path>
+				</svg>
+			</span>
+			<span>Taquilla / Home</span>
+		</a>
+		<a class="menu-item" href="/validate">
+			<span class="icon" aria-hidden="true">
+				<svg
+					class="icon-svg"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="1.5"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					xmlns="http://www.w3.org/2000/svg"
+				>
+					<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+					<path d="m9 12 2 2 4-4"></path>
+				</svg>
+			</span>
+			<span>Validar QR</span>
+		</a>
+		<a class="menu-item" href="/ventaTaquilla">
+			<span class="icon" aria-hidden="true">
+				<svg
+					class="icon-svg"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="1.5"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					xmlns="http://www.w3.org/2000/svg"
+				>
+					<rect x="2" y="6" width="20" height="12" rx="2"></rect>
+					<circle cx="12" cy="12" r="2"></circle>
+					<path d="M6 12h.01M18 12h.01"></path>
+				</svg>
+			</span>
+			<span>Venta Taquilla</span>
+		</a>
 	{:else}
 		<a class="menu-item" href="/home">
 			<span class="icon" aria-hidden="true">
