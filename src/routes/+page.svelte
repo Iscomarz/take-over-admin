@@ -2,6 +2,7 @@
 	import supabase from '$lib/supabase';
 	import { goto } from '$app/navigation';
 	import toast, { Toaster } from 'svelte-french-toast';
+	import { authStore, obtenerPerfilUsuario } from '$lib/stores/authStore';
 	import 'flatpickr/dist/flatpickr.min.css';
 
 	let email = '';
@@ -38,6 +39,13 @@
 
 			// Si la respuesta es correcta y contiene la sesión
 			if (data.session) {
+				const maxAge = data.session.expires_in || 3600;
+				const secureFlag = typeof window !== 'undefined' && window.location.protocol === 'https:' ? '; Secure' : '';
+				document.cookie = `sb-access-token=${data.session.access_token}; path=/; max-age=${maxAge}; SameSite=Lax${secureFlag}`;
+				document.cookie = `sb-refresh-token=${data.session.refresh_token}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax${secureFlag}`;
+
+				await obtenerPerfilUsuario();
+
 				toast.success('Bienvenido!', {
 					duration: 4000
 				});
