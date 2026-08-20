@@ -45,6 +45,9 @@
 		let { data: mEvento, error } = await supabase.from('mEvento').select('*').eq('idevento', id);
 		if (mEvento && mEvento.length > 0) {
 			evento = mEvento[0];
+			if (evento.visibleProd === null || typeof evento.visibleProd === 'undefined') {
+				evento.visibleProd = true;
+			}
 		}
 
 		if (error) {
@@ -311,6 +314,19 @@
 			if (venueSeleccionado) {
 				evento.venue = venueSeleccionado.nombre_venue;
 				evento.direccion = venueSeleccionado.direccion_venue;
+			}
+		}
+
+		if (evento.fechaInicio) {
+			const dInicio = new Date(evento.fechaInicio);
+			if (!isNaN(dInicio.getTime())) {
+				evento.fechaInicio = dInicio.toISOString();
+			}
+		}
+		if (evento.fechaFin) {
+			const dFin = new Date(evento.fechaFin);
+			if (!isNaN(dFin.getTime())) {
+				evento.fechaFin = dFin.toISOString();
 			}
 		}
 
@@ -1288,8 +1304,10 @@
 													class="w-full bg-stone-700 text-white border border-stone-600 rounded-xl p-3 focus:ring-2 focus:ring-stone-500 focus:border-transparent"
 													placeholder="Fecha de inicio"
 													use:flatpickrAction={{
-														onChange: (selectedDates, dateStr) => {
-															evento.fechaInicio = dateStr;
+														onChange: (selectedDates) => {
+															if (selectedDates && selectedDates[0]) {
+																evento.fechaInicio = selectedDates[0].toISOString();
+															}
 														},
 														defaultDate: evento.fechaInicio ? new Date(evento.fechaInicio) : null
 													}}
@@ -1306,13 +1324,37 @@
 													class="w-full bg-stone-700 text-white border border-stone-600 rounded-xl p-3 focus:ring-2 focus:ring-stone-500 focus:border-transparent"
 													placeholder="Fecha de fin"
 													use:flatpickrAction={{
-														onChange: (selectedDates, dateStr) => {
-															evento.fechaFin = dateStr;
+														onChange: (selectedDates) => {
+															if (selectedDates && selectedDates[0]) {
+																evento.fechaFin = selectedDates[0].toISOString();
+															}
 														},
 														defaultDate: evento.fechaFin ? new Date(evento.fechaFin) : null
 													}}
 												/>
 											</div>
+										</div>
+
+										<div class="bg-stone-700/40 border border-stone-600/70 rounded-xl p-4 flex items-center justify-between">
+											<div>
+												<label for="visibleProdToggle" class="block text-sm font-semibold text-stone-200 cursor-pointer">
+													Visible en Producción (visibleProd)
+												</label>
+												<p class="text-xs text-stone-400 mt-0.5">
+													Determina si el evento se muestra en eventos pasados en la web pública cuando esté inactivo.
+												</p>
+											</div>
+											<label class="relative inline-flex items-center cursor-pointer">
+												<input
+													type="checkbox"
+													id="visibleProdToggle"
+													bind:checked={evento.visibleProd}
+													class="sr-only peer"
+												/>
+												<div
+													class="w-11 h-6 bg-stone-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-stone-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"
+												></div>
+											</label>
 										</div>
 									</div>
 								</form>
@@ -1388,6 +1430,16 @@
 											<p class="text-sm font-semibold text-stone-400 mb-1">Fecha Fin</p>
 											<p class="text-base">{formatoFecha(evento.fechaFin)}</p>
 										</div>
+									</div>
+									<div>
+										<p class="text-sm font-semibold text-stone-400 mb-1">Visibilidad en Producción</p>
+										<span
+											class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold {evento.visibleProd !== false
+												? 'bg-emerald-900/40 text-emerald-300 border border-emerald-700/50'
+												: 'bg-stone-700 text-stone-400 border border-stone-600'}"
+										>
+											{evento.visibleProd !== false ? '✓ Visible en Producción' : '✕ Oculto en Producción'}
+										</span>
 									</div>
 								</div>
 							</div>

@@ -153,7 +153,8 @@
 						fechaFin: fechaFin,
 						usuario: idUsuario,
 						descripcionCorta: descripcionCorta,
-						pathImage: `${nombreEvento.replace(/ /g, '')}_img.png`
+						pathImage: `${nombreEvento.replace(/ /g, '')}_img.png`,
+						visibleProd: true
 					}
 				])
 				.select(); // Aseguramos que usamos select() para obtener los datos insertados

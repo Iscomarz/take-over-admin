@@ -9,6 +9,7 @@ export const eventoStore = writable({
 	direccion: '',
 	aforo: '',
 	descripcionCorta: '',
+	visibleProd: true,
 	fases: [],
 	generos: []
 });
