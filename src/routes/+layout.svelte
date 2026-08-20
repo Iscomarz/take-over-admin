@@ -36,16 +36,11 @@
 
 	onMount(() => {
 		const secureFlag = window.location.protocol === 'https:' ? '; Secure' : '';
-		const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+		const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
 			if (session) {
 				const maxAge = session.expires_in || 3600;
 				document.cookie = `sb-access-token=${session.access_token}; path=/; max-age=${maxAge}; SameSite=Lax${secureFlag}`;
 				document.cookie = `sb-refresh-token=${session.refresh_token}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax${secureFlag}`;
-				
-				const perfil = await obtenerPerfilUsuario();
-				if (perfil?.rol === 'taquilla' && currentPath !== '/' && !esRutaPermitidaTaquilla(currentPath)) {
-					goto('/home');
-				}
 			} else if (event === 'SIGNED_OUT') {
 				document.cookie = `sb-access-token=; path=/; max-age=0; SameSite=Lax${secureFlag}`;
 				document.cookie = `sb-refresh-token=; path=/; max-age=0; SameSite=Lax${secureFlag}`;
@@ -58,11 +53,10 @@
 			}
 		});
 
-		supabase.auth.getSession().then(async ({ data: { session } }) => {
+		supabase.auth.getSession().then(({ data: { session } }) => {
 			if (!session && currentPath !== '/') {
 				goto('/');
 			} else if (session && currentPath === '/') {
-				await obtenerPerfilUsuario();
 				goto('/home');
 			}
 		});
