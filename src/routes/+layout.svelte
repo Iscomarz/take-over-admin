@@ -44,7 +44,7 @@
 				
 				const perfil = await obtenerPerfilUsuario();
 				if (perfil?.rol === 'taquilla' && currentPath !== '/' && !esRutaPermitidaTaquilla(currentPath)) {
-					window.location.href = '/home';
+					goto('/home');
 				}
 			} else if (event === 'SIGNED_OUT') {
 				document.cookie = `sb-access-token=; path=/; max-age=0; SameSite=Lax${secureFlag}`;
@@ -53,21 +53,17 @@
 					localStorage.removeItem('token');
 				}
 				if (currentPath !== '/') {
-					window.location.href = '/';
+					goto('/');
 				}
 			}
 		});
 
 		supabase.auth.getSession().then(async ({ data: { session } }) => {
 			if (!session && currentPath !== '/') {
-				window.location.href = '/';
-			} else if (session) {
-				const perfil = await obtenerPerfilUsuario();
-				if (currentPath === '/') {
-					window.location.href = '/home';
-				} else if (perfil?.rol === 'taquilla' && !esRutaPermitidaTaquilla(currentPath)) {
-					window.location.href = '/home';
-				}
+				goto('/');
+			} else if (session && currentPath === '/') {
+				await obtenerPerfilUsuario();
+				goto('/home');
 			}
 		});
 
