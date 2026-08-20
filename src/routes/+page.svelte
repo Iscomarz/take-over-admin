@@ -47,7 +47,7 @@
 				document.cookie = `sb-access-token=${data.session.access_token}; path=/; max-age=${maxAge}; SameSite=Lax${secureFlag}`;
 				document.cookie = `sb-refresh-token=${data.session.refresh_token}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax${secureFlag}`;
 
-				await obtenerPerfilUsuario();
+				await obtenerPerfilUsuario(data.session.user);
 
 				toast.success('¡Bienvenido!', {
 					duration: 3000
