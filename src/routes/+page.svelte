@@ -7,6 +7,7 @@
 
 	let email = '';
 	let pass = '';
+	let loading = false;
 
 	// // Función para registrar un usuario si en un futuro se registran mas usuarios
 	// async function registrar() {
@@ -26,19 +27,21 @@
 	async function login(event) {
 		event.preventDefault(); // Evitar que el formulario se recargue al enviar
 
+		if (loading) return;
+		loading = true;
+
 		try {
 			const { data, error } = await supabase.auth.signInWithPassword({
-				email: email,
+				email: email.trim(),
 				password: pass
 			});
 
 			if (error) {
-				// Si ocurre un error, mostrar el mensaje de error
-				throw new Error(error.message);
+				throw error;
 			}
 
 			// Si la respuesta es correcta y contiene la sesión
-			if (data.session) {
+			if (data?.session) {
 				const maxAge = data.session.expires_in || 3600;
 				const secureFlag = typeof window !== 'undefined' && window.location.protocol === 'https:' ? '; Secure' : '';
 				document.cookie = `sb-access-token=${data.session.access_token}; path=/; max-age=${maxAge}; SameSite=Lax${secureFlag}`;
@@ -46,17 +49,23 @@
 
 				await obtenerPerfilUsuario();
 
-				toast.success('Bienvenido!', {
+				toast.success('¡Bienvenido!', {
 					duration: 4000
 				});
-				goto('/home');
+
+				// Hard navigation para asegurar que las cookies viajen en los headers al server hook
+				window.location.href = '/home';
 			} else {
-				throw new Error('No se pudo obtener la sesión.');
+				throw new Error('No se pudo obtener la sesión de usuario.');
 			}
 		} catch (err) {
-			// Manejar cualquier error durante el inicio de sesión
-			console.error('Error de inicio de sesión:', err.message);
-			toast.error('Contraseña o usuario inválido.');
+			console.error('Error de inicio de sesión:', err);
+			const mensaje = err.message === 'Invalid login credentials' 
+				? 'Contraseña o correo inválido.' 
+				: (err.message || 'Error al iniciar sesión.');
+			toast.error(mensaje);
+		} finally {
+			loading = false;
 		}
 	}
 </script>
@@ -104,7 +113,33 @@
 							required
 						/>
 					</div>
-					<button type="submit" class="signIn">Sign in</button>
+					<button type="submit" class="signIn" disabled={loading}>
+						{#if loading}
+							<svg
+								class="animate-spin -ml-1 mr-3 h-5 w-5 text-black"
+								xmlns="http://www.w3.org/2000/svg"
+								fill="none"
+								viewBox="0 0 24 24"
+							>
+								<circle
+									class="opacity-25"
+									cx="12"
+									cy="12"
+									r="10"
+									stroke="currentColor"
+									stroke-width="4"
+								></circle>
+								<path
+									class="opacity-75"
+									fill="currentColor"
+									d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+								></path>
+							</svg>
+							Iniciando sesión...
+						{:else}
+							Sign in
+						{/if}
+					</button>
 				</form>
 			</div>
 		</div>
@@ -130,6 +165,11 @@
 		border-radius: 10px;
 		font-weight: bold;
 		margin-top: 40px !important;
+		transition: opacity 0.2s ease, transform 0.1s ease;
+	}
+	.signIn:disabled {
+		opacity: 0.6;
+		cursor: not-allowed;
 	}
 
 	img {
