@@ -1,43 +1,28 @@
 -- ==============================================================================
--- FIX: Infinite recursion on public."mPerfil" RLS policies (Error 42P17)
+-- FIX: Limpieza total de policies recursivas en public."mPerfil" (Error 42P17)
 -- ==============================================================================
 
--- 1. Función security definer para comprobar admin sin disparar RLS recursivo
-create or replace function public.is_admin()
-returns boolean
-language sql
-security definer
-set search_path = public
-stable
-as $$
-  select exists (
-    select 1 from public."mPerfil"
-    where id = auth.uid() and rol = 'admin'
-  );
-$$;
-
--- 2. Eliminar policies recursivas anteriores
+-- 1. Eliminar todas las políticas existentes en mPerfil para evitar recursión
 drop policy if exists "Usuarios pueden leer su propio perfil" on public."mPerfil";
 drop policy if exists "Admins pueden leer todos los perfiles" on public."mPerfil";
 drop policy if exists "Admins pueden actualizar perfiles" on public."mPerfil";
+drop policy if exists "allow_select_own_profile" on public."mPerfil";
+drop policy if exists "allow_update_own_profile" on public."mPerfil";
 
--- 3. Policy para que cada usuario autenticado lea su propio perfil (no recursiva)
-create policy "Usuarios pueden leer su propio perfil"
-    on public."mPerfil"
-    for select
-    to authenticated
-    using (auth.uid() = id);
+-- 2. Asegurar que RLS esté habilitado
+alter table public."mPerfil" enable row level security;
 
--- 4. Admins pueden leer todos los perfiles usando la función security definer
-create policy "Admins pueden leer todos los perfiles"
-    on public."mPerfil"
-    for select
-    to authenticated
-    using (public.is_admin());
+-- 3. Política directa: cada usuario autenticado solo lee su propia fila (CERO subqueries = CERO recursión)
+create policy "allow_select_own_profile"
+on public."mPerfil"
+for select
+to authenticated
+using (auth.uid() = id);
 
--- 5. Admins pueden actualizar perfiles usando la función security definer
-create policy "Admins pueden actualizar perfiles"
-    on public."mPerfil"
-    for update
-    to authenticated
-    using (public.is_admin());
+-- 4. Política directa de actualización: cada usuario autenticado solo edita su propia fila
+create policy "allow_update_own_profile"
+on public."mPerfil"
+for update
+to authenticated
+using (auth.uid() = id)
+with check (auth.uid() = id);
