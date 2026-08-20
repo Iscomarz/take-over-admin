@@ -47,13 +47,11 @@
 				document.cookie = `sb-access-token=${data.session.access_token}; path=/; max-age=${maxAge}; SameSite=Lax${secureFlag}`;
 				document.cookie = `sb-refresh-token=${data.session.refresh_token}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax${secureFlag}`;
 
-				await obtenerPerfilUsuario(data.session.user);
-
 				toast.success('¡Bienvenido!', {
 					duration: 3000
 				});
 
-				await goto('/home');
+				goto('/home');
 			} else {
 				throw new Error('No se pudo obtener la sesión de usuario.');
 			}
