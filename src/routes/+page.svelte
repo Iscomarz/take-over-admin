@@ -50,11 +50,10 @@
 				await obtenerPerfilUsuario();
 
 				toast.success('¡Bienvenido!', {
-					duration: 4000
+					duration: 3000
 				});
 
-				// Hard navigation para asegurar que las cookies viajen en los headers al server hook
-				window.location.href = '/home';
+				await goto('/home');
 			} else {
 				throw new Error('No se pudo obtener la sesión de usuario.');
 			}
