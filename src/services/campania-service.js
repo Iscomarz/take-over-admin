@@ -14,22 +14,74 @@ export async function obtenerClientesUnicos() {
 	try {
 		const { data, error } = await supabase
 			.from('mCliente')
-			.select('cliente_id, correo, nombre, desuscrito, fecha_registro, ultima_compra')
-			.eq('desuscrito', false)
-			.order('nombre');
+			.select(`
+				cliente_id,
+				correo,
+				nombre,
+				desuscrito,
+				fecha_registro,
+				ultima_compra,
+				mVenta (
+					idventa,
+					fechaVenta,
+					idEvento
+				)
+			`)
+			.eq('desuscrito', false);
 
 		if (error) throw error;
 
-		// Transformar para mantener compatibilidad si es necesario
-		const clientesUnicos = data.map((cliente) => ({
-			id: cliente.cliente_id,
-			correo: cliente.correo,
-			nombre: cliente.nombre,
-			fecha_registro: cliente.fecha_registro,
-			ultima_compra: cliente.ultima_compra,
-			compras: 0, // Podríamos calcularlo si fuera necesario
-			esFrecuente: false // Podríamos calcularlo si fuera necesario
-		}));
+		// Procesar métricas por cliente
+		const clientesUnicos = data.map((cliente) => {
+			const ventas = cliente.mVenta || [];
+			const compras = ventas.length;
+
+			// Determinar la fecha de última compra más reciente
+			let maxFechaTs = null;
+			ventas.forEach((v) => {
+				if (v.fechaVenta) {
+					const ts = new Date(v.fechaVenta).getTime();
+					if (!maxFechaTs || ts > maxFechaTs) maxFechaTs = ts;
+				}
+			});
+			if (!maxFechaTs && cliente.ultima_compra) {
+				maxFechaTs = new Date(cliente.ultima_compra).getTime();
+			}
+
+			// Extraer IDs únicos de eventos en los que ha comprado
+			const eventosIds = [...new Set(ventas.map((v) => v.idEvento).filter(Boolean))];
+
+			return {
+				id: cliente.cliente_id,
+				correo: cliente.correo,
+				nombre: cliente.nombre || 'Sin nombre',
+				fecha_registro: cliente.fecha_registro,
+				ultima_compra: maxFechaTs ? new Date(maxFechaTs).toISOString() : null,
+				ultimaCompraTs: maxFechaTs,
+				compras,
+				esFrecuente: compras >= 3,
+				eventosIds
+			};
+		});
+
+		// Ordenar:
+		// 1. Clientes más frecuentes primero (esFrecuente === true)
+		// 2. Debajo, ordenados por última venta arriba (más reciente primero) y los que hace mucho no compran abajo
+		// 3. Empates por compras descendente y luego nombre
+		clientesUnicos.sort((a, b) => {
+			if (a.esFrecuente !== b.esFrecuente) {
+				return a.esFrecuente ? -1 : 1;
+			}
+			const timeA = a.ultimaCompraTs || 0;
+			const timeB = b.ultimaCompraTs || 0;
+			if (timeA !== timeB) {
+				return timeB - timeA;
+			}
+			if (a.compras !== b.compras) {
+				return b.compras - a.compras;
+			}
+			return a.nombre.localeCompare(b.nombre);
+		});
 
 		return clientesUnicos;
 	} catch (error) {
@@ -39,50 +91,15 @@ export async function obtenerClientesUnicos() {
 }
 
 /**
- * Obtener clientes filtrados por evento
- * Incluye conteo de compras totales por CORREO y marca clientes frecuentes
- * Usa el nombre más frecuente para cada correo
- * @param {string} eventoId - ID del evento
+ * Obtener clientes filtrados por evento manteniendo el orden de frecuentes y última compra
+ * @param {string|number} eventoId - ID del evento
  * @returns {Promise<Array>} Lista de clientes del evento
  */
 export async function obtenerClientesPorEvento(eventoId) {
 	try {
-		const { data, error } = await supabase
-			.from('mVenta')
-			.select(
-				`
-				cliente_id (
-					cliente_id,
-					correo,
-					nombre
-				)
-			`
-			)
-			.eq('idEvento', eventoId);
-
-		if (error) throw error;
-
-		// Transformar los datos para eliminar duplicados (un cliente puede tener varias ventas en un evento)
-		const clientesMap = new Map();
-
-		data.forEach((venta) => {
-			const cliente = venta.cliente_id;
-			if (cliente && !clientesMap.has(cliente.cliente_id)) {
-				clientesMap.set(cliente.cliente_id, {
-					id: cliente.cliente_id,
-					correo: cliente.correo,
-					nombre: cliente.nombre,
-					evento_id: eventoId
-				});
-			}
-		});
-
-		const clientesUnicos = Array.from(clientesMap.values());
-
-		// Ordenar alfabéticamente
-		clientesUnicos.sort((a, b) => a.nombre.localeCompare(b.nombre));
-
-		return clientesUnicos;
+		const clientes = await obtenerClientesUnicos();
+		const idNum = parseInt(eventoId);
+		return clientes.filter((c) => c.eventosIds && c.eventosIds.includes(idNum));
 	} catch (error) {
 		console.error('Error al obtener clientes por evento:', error);
 		return [];

@@ -52,36 +52,20 @@
 		}
 	}
 
-	async function filtrarPorEvento() {
+	function filtrarPorEvento() {
+		busqueda = '';
 		if (eventoSeleccionado && eventoSeleccionado !== '') {
-			cargandoClientes = true;
-			const loadingToast = toast.loading('Filtrando clientes...');
-
-			try {
-				const eventoIdNumero = parseInt(eventoSeleccionado);
-
-				clientesFiltrados = await obtenerClientesPorEvento(eventoIdNumero);
-
-				toast.dismiss(loadingToast);
-				toast.success(`${clientesFiltrados.length} clientes del evento`);
-			} catch (error) {
-				console.error('Error al filtrar:', error);
-				toast.dismiss(loadingToast);
-				toast.error('Error al filtrar clientes');
-			} finally {
-				cargandoClientes = false;
-			}
-
-			// Limpiar selección
-			destinatariosSeleccionados = [];
-			seleccionarTodos = false;
+			const eventoIdNumero = parseInt(eventoSeleccionado);
+			clientesFiltrados = clientes.filter((c) => c.eventosIds?.includes(eventoIdNumero));
+			const frecuentes = clientesFiltrados.filter((c) => c.esFrecuente).length;
+			toast.success(`${clientesFiltrados.length} clientes del evento (${frecuentes} frecuentes)`);
 		} else {
-			console.log('Mostrando todos los clientes');
 			clientesFiltrados = clientes;
-			// Limpiar selección
-			destinatariosSeleccionados = [];
-			seleccionarTodos = false;
 		}
+
+		// Limpiar selección
+		destinatariosSeleccionados = [];
+		seleccionarTodos = false;
 	}
 
 	function toggleSeleccionarTodos() {
@@ -105,18 +89,15 @@
 	}
 
 	function filtrarClientesPorBusqueda() {
+		const base =
+			eventoSeleccionado && eventoSeleccionado !== ''
+				? clientes.filter((c) => c.eventosIds?.includes(parseInt(eventoSeleccionado)))
+				: clientes;
+
 		if (busqueda.trim() === '') {
-			clientesFiltrados =
-				eventoSeleccionado && eventoSeleccionado !== ''
-					? clientes.filter((c) => c.evento_id === parseInt(eventoSeleccionado))
-					: clientes;
+			clientesFiltrados = base;
 		} else {
 			const busquedaLower = busqueda.toLowerCase();
-			const base =
-				eventoSeleccionado && eventoSeleccionado !== ''
-					? clientes.filter((c) => c.evento_id === parseInt(eventoSeleccionado))
-					: clientes;
-
 			clientesFiltrados = base.filter(
 				(c) =>
 					c.nombre.toLowerCase().includes(busquedaLower) ||
@@ -355,13 +336,24 @@
 										</div>
 										<p class="text-xs text-stone-400 truncate">{cliente.correo}</p>
 									</div>
-									{#if cliente.compras}
-										<div class="text-right shrink-0">
-											<p class="text-xs font-medium text-stone-500">
+									<div class="text-right shrink-0">
+										{#if cliente.compras > 0}
+											<p class="text-xs font-medium text-stone-300">
 												{cliente.compras} compra{cliente.compras !== 1 ? 's' : ''}
 											</p>
-										</div>
-									{/if}
+										{/if}
+										{#if cliente.ultima_compra}
+											<p class="text-[11px] text-stone-400">
+												Última: {new Date(cliente.ultima_compra).toLocaleDateString('es-MX', {
+													year: 'numeric',
+													month: 'short',
+													day: 'numeric'
+												})}
+											</p>
+										{:else}
+											<p class="text-[11px] text-stone-500">Sin compras</p>
+										{/if}
+									</div>
 								</div>
 							</label>
 						{/each}
