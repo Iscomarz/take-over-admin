@@ -106,7 +106,7 @@
 						// QR válido, proceder a validar
 						const { error: updateError } = await supabase
 							.from('ticket')
-							.update({ validado: true })
+							.update({ validado: true, fechaValidacion: new Date() })
 							.eq('codigoQR', qrCodeMessage);
 
 						if (updateError) {
@@ -137,6 +137,7 @@
 				.select(
 					`	idTicket,
 						validado,
+						fechaValidacion,
 						mVenta!inner (nombre, idEvento, cliente_id(nombre)),
 						cFaseEvento (nombreFace)
 					`
@@ -156,7 +157,7 @@
 	async function validarTicket(idTicket) {
 		const { data, error } = await supabase
 			.from('ticket')
-			.update({ validado: true })
+			.update({ validado: true, fechaValidacion: new Date() })
 			.eq('idTicket', idTicket);
 
 		if (error) {
