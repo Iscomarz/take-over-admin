@@ -10,6 +10,7 @@
 	import { tick } from 'svelte';
 	import { flatpickrAction } from '$lib/utils/flatpickrAction';
 	import DialogConfirm from '../../../../components/DialogConfirm.svelte';
+	import EventMediaManager from '../../../../components/EventMediaManager.svelte';
 
 	let id;
 	let evento = {};
@@ -1493,6 +1494,9 @@
 								</div>
 							{/if}
 						</div>
+
+						<!-- Sección de Multimedia y Sets del Artista -->
+						<EventMediaManager idEvento={id} {editar} />
 					</div>
 					<!-- cierra bg-stone-800/20 -->
 				{/if}
