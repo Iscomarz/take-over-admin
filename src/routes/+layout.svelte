@@ -27,9 +27,33 @@
 		);
 	}
 
+	const RUTAS_PROHIBIDAS_VIEWER = [
+		'/newEvent',
+		'/saveEvent',
+		'/newTicket',
+		'/campanias',
+		'/newCampaign',
+		'/recordatorios',
+		'/sounds',
+		'/galeria',
+		'/config'
+	];
+
+	function esRutaProhibidaViewer(path) {
+		return RUTAS_PROHIBIDAS_VIEWER.some(
+			(ruta) => path === ruta || path.startsWith(ruta)
+		);
+	}
+
 	// Route guard reactivo para cambios de ruta
 	$: if (browser && $authStore.profile && $authStore.isTaquilla && currentPath !== '/') {
 		if (!esRutaPermitidaTaquilla(currentPath)) {
+			goto('/home');
+		}
+	}
+
+	$: if (browser && $authStore.profile && $authStore.isViewer && currentPath !== '/') {
+		if (esRutaProhibidaViewer(currentPath)) {
 			goto('/home');
 		}
 	}

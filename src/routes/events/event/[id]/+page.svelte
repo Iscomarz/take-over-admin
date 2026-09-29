@@ -4,6 +4,7 @@
 	import supabase from '$lib/supabase';
 	import toast, { Toaster } from 'svelte-french-toast';
 	import { goto } from '$app/navigation';
+	import { authStore } from '$lib/stores/authStore';
 	import TicketCard from '../../../../components/ticketCard.svelte';
 	import flatpickr from 'flatpickr';
 	import 'flatpickr/dist/flatpickr.min.css';
@@ -692,7 +693,8 @@
 				</button>
 
 				<!-- Botón 3 Puntos (Dropdown toggle) -->
-				<button
+				{#if !$authStore.isViewer}
+					<button
 					on:click={() => (mostrarMenuOpciones = !mostrarMenuOpciones)}
 					class="bg-stone-800/70 hover:bg-stone-700/90 text-stone-300 hover:text-white p-2.5 rounded-xl transition-colors border border-stone-600 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-stone-500"
 					aria-label="Más opciones"
@@ -803,6 +805,7 @@
 							</span>
 						</button>
 					</div>
+				{/if}
 				{/if}
 			</div>
 		</div>
@@ -943,29 +946,31 @@
 							</div>
 						</a>
 
-						<a
-							href={`/newTicket?eventId=${id}`}
-							class="flex items-center gap-3 p-4 bg-stone-800 rounded-xl hover:bg-stone-700 transition-colors border border-stone-700 hover:border-stone-500 group"
-						>
-							<div
-								class="p-2 bg-green-900/30 rounded-lg text-green-400 group-hover:bg-green-500 group-hover:text-black transition-colors"
+						{#if !$authStore.isViewer}
+							<a
+								href={`/newTicket?eventId=${id}`}
+								class="flex items-center gap-3 p-4 bg-stone-800 rounded-xl hover:bg-stone-700 transition-colors border border-stone-700 hover:border-stone-500 group"
 							>
-								<svg
-									xmlns="http://www.w3.org/2000/svg"
-									width="24"
-									height="24"
-									fill="currentColor"
-									viewBox="0 0 256 256"
-									><path
-										d="M232,96a8,8,0,0,1-8,8H176v16h32a8,8,0,0,1,0,16H176v16h48a8,8,0,0,1,0,16H176v16h32a8,8,0,0,1,0,16H176v16a8,8,0,0,1-16,0V56a8,8,0,0,1,16,0V88h48A8,8,0,0,1,232,96ZM64,120H96v16H64a8,8,0,0,0,0,16H96v16H80a8,8,0,0,0,0,16H96v16a8,8,0,0,0,16,0V56a8,8,0,0,0-16,0V88H64a8,8,0,0,0,0,16H96v16H64a8,8,0,0,0,0,16Z"
-									></path></svg
+								<div
+									class="p-2 bg-green-900/30 rounded-lg text-green-400 group-hover:bg-green-500 group-hover:text-black transition-colors"
 								>
-							</div>
-							<div>
-								<p class="font-bold text-white">Generar Tickets</p>
-								<p class="text-xs text-stone-400 mt-1">Enviar boletos a clientes por correo</p>
-							</div>
-						</a>
+									<svg
+										xmlns="http://www.w3.org/2000/svg"
+										width="24"
+										height="24"
+										fill="currentColor"
+										viewBox="0 0 256 256"
+										><path
+											d="M232,96a8,8,0,0,1-8,8H176v16h32a8,8,0,0,1,0,16H176v16h48a8,8,0,0,1,0,16H176v16h32a8,8,0,0,1,0,16H176v16a8,8,0,0,1-16,0V56a8,8,0,0,1,16,0V88h48A8,8,0,0,1,232,96ZM64,120H96v16H64a8,8,0,0,0,0,16H96v16H80a8,8,0,0,0,0,16H96v16a8,8,0,0,0,16,0V56a8,8,0,0,0-16,0V88H64a8,8,0,0,0,0,16H96v16H64a8,8,0,0,0,0,16Z"
+										></path></svg
+									>
+								</div>
+								<div>
+									<p class="font-bold text-white">Generar Tickets</p>
+									<p class="text-xs text-stone-400 mt-1">Enviar boletos a clientes por correo</p>
+								</div>
+							</a>
+						{/if}
 
 						<a
 							href={`/reenviarTickets?eventId=${id}`}
