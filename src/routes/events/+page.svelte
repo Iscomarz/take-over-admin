@@ -4,6 +4,7 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import toast, { Toaster } from 'svelte-french-toast';
+	import { authStore } from '$lib/stores/authStore';
 
 	let eventos = [];
 	let token = '';
@@ -107,23 +108,25 @@
 				</div>
 
 				<!-- Botón Crear Nuevo -->
-				<a
-					href="/newEvent"
-					class="bg-green-600 hover:bg-green-500 text-white py-2.5 px-4 rounded-xl font-semibold transition-all duration-200 shadow-lg border border-green-500/30 flex items-center gap-2 text-sm no-underline"
-				>
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						width="18"
-						height="18"
-						fill="currentColor"
-						viewBox="0 0 256 256"
+				{#if !$authStore.isViewer}
+					<a
+						href="/newEvent"
+						class="bg-green-600 hover:bg-green-500 text-white py-2.5 px-4 rounded-xl font-semibold transition-all duration-200 shadow-lg border border-green-500/30 flex items-center gap-2 text-sm no-underline"
 					>
-						<path
-							d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z"
-						></path>
-					</svg>
-					Crear Evento
-				</a>
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							width="18"
+							height="18"
+							fill="currentColor"
+							viewBox="0 0 256 256"
+						>
+							<path
+								d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z"
+							></path>
+						</svg>
+						Crear Evento
+					</a>
+				{/if}
 			</div>
 		</div>
 

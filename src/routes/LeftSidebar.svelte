@@ -8,6 +8,7 @@
 	let openDifusion = false;
 
 	$: isTaquilla = $authStore.isTaquilla;
+	$: isViewer = $authStore.isViewer;
 
 	onMount(async () => {
 		if (!$authStore.profile) {
@@ -158,72 +159,74 @@
 			</span>
 			<span>Equipo</span>
 		</a>
-		<div class="menu-group">
-			<button
-				class="menu-label flex items-center justify-between w-full"
-				on:click={() => toggleGroup('difusion')}
-				aria-expanded={openDifusion}
-				aria-controls="difusion-list"
-			>
-				<div class="flex items-center gap-3">
-					<span class="icon" aria-hidden="true">
-						<svg
-							class="icon-svg"
-							viewBox="0 0 24 24"
-							fill="none"
-							stroke="currentColor"
-							stroke-width="1.5"
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							xmlns="http://www.w3.org/2000/svg"
-						>
-							<path d="M11 5L6 9H2v6h4l5 4V5z"></path>
-							<path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
-							<path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
-						</svg>
-					</span>
-					<span>Difusión</span>
+		{#if !isViewer}
+			<div class="menu-group">
+				<button
+					class="menu-label flex items-center justify-between w-full"
+					on:click={() => toggleGroup('difusion')}
+					aria-expanded={openDifusion}
+					aria-controls="difusion-list"
+				>
+					<div class="flex items-center gap-3">
+						<span class="icon" aria-hidden="true">
+							<svg
+								class="icon-svg"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="1.5"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								xmlns="http://www.w3.org/2000/svg"
+							>
+								<path d="M11 5L6 9H2v6h4l5 4V5z"></path>
+								<path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+								<path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+							</svg>
+						</span>
+						<span>Difusión</span>
+					</div>
+				</button>
+				<div id="difusion-list" class="submenu-list {openDifusion ? 'open' : ''}">
+					<a class="submenu flex items-center gap-3" href="/campanias">
+						<span class="icon" aria-hidden="true">
+							<svg
+								class="icon-svg"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="1.5"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								xmlns="http://www.w3.org/2000/svg"
+							>
+								<path d="M22 2L11 13"></path>
+								<path d="M22 2l-7 20-4-9-9-4 20-7z"></path>
+							</svg>
+						</span>
+						<span>Campañas</span>
+					</a>
+					<a class="submenu flex items-center gap-3" href="/recordatorios">
+						<span class="icon" aria-hidden="true">
+							<svg
+								class="icon-svg"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="1.5"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								xmlns="http://www.w3.org/2000/svg"
+							>
+								<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+								<path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+							</svg>
+						</span>
+						<span>Recordatorios</span>
+					</a>
 				</div>
-			</button>
-			<div id="difusion-list" class="submenu-list {openDifusion ? 'open' : ''}">
-				<a class="submenu flex items-center gap-3" href="/campanias">
-					<span class="icon" aria-hidden="true">
-						<svg
-							class="icon-svg"
-							viewBox="0 0 24 24"
-							fill="none"
-							stroke="currentColor"
-							stroke-width="1.5"
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							xmlns="http://www.w3.org/2000/svg"
-						>
-							<path d="M22 2L11 13"></path>
-							<path d="M22 2l-7 20-4-9-9-4 20-7z"></path>
-						</svg>
-					</span>
-					<span>Campañas</span>
-				</a>
-				<a class="submenu flex items-center gap-3" href="/recordatorios">
-					<span class="icon" aria-hidden="true">
-						<svg
-							class="icon-svg"
-							viewBox="0 0 24 24"
-							fill="none"
-							stroke="currentColor"
-							stroke-width="1.5"
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							xmlns="http://www.w3.org/2000/svg"
-						>
-							<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-							<path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-						</svg>
-					</span>
-					<span>Recordatorios</span>
-				</a>
 			</div>
-		</div>
+		{/if}
 		<div class="menu-group">
 			<button
 				class="menu-label flex items-center justify-between w-full"
@@ -294,7 +297,8 @@
 				</a>
 			</div>
 		</div>
-		<div class="divider"></div>
+		{#if !isViewer}
+			<div class="divider"></div>
 
 		<a class="menu-item" href="/sounds">
 			<span class="icon" aria-hidden="true">
@@ -345,6 +349,7 @@
 			</span>
 			<span>Config</span>
 		</a>
+		{/if}
 	{/if}
 </section>
 

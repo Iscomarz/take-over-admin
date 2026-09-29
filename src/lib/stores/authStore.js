@@ -6,7 +6,19 @@ export const authStore = writable({
 	profile: null,
 	loading: true,
 	isAdmin: false,
-	isTaquilla: false
+	isTaquilla: false,
+	isViewer: false,
+	can: {
+		createEvents: false,
+		editEvents: false,
+		deleteEvents: false,
+		generateTickets: false,
+		manageTeam: false,
+		accessDifusion: false,
+		accessSound: false,
+		accessGallery: false,
+		accessConfig: false
+	}
 });
 
 export async function obtenerPerfilUsuario(providedUser = null) {
@@ -20,7 +32,19 @@ export async function obtenerPerfilUsuario(providedUser = null) {
 					profile: null,
 					loading: false,
 					isAdmin: false,
-					isTaquilla: false
+					isTaquilla: false,
+					isViewer: false,
+					can: {
+						createEvents: false,
+						editEvents: false,
+						deleteEvents: false,
+						generateTickets: false,
+						manageTeam: false,
+						accessDifusion: false,
+						accessSound: false,
+						accessGallery: false,
+						accessConfig: false
+					}
 				});
 				return null;
 			}
@@ -45,6 +69,22 @@ export async function obtenerPerfilUsuario(providedUser = null) {
 		}
 
 		const rol = perfil?.rol || (user.email === 'validaciones@takeover.com' ? 'taquilla' : 'admin');
+		const isTaquilla = rol === 'taquilla';
+		const isViewer = rol === 'viewer';
+		const isAdmin = rol === 'admin';
+
+		const can = {
+			createEvents: !isViewer && !isTaquilla,
+			editEvents: !isViewer && !isTaquilla,
+			deleteEvents: !isViewer && !isTaquilla,
+			generateTickets: !isViewer,
+			manageTeam: !isViewer && !isTaquilla,
+			accessDifusion: !isViewer && !isTaquilla,
+			accessSound: !isViewer && !isTaquilla,
+			accessGallery: !isViewer && !isTaquilla,
+			accessConfig: !isViewer && !isTaquilla
+		};
+
 		const profileData = perfil || {
 			id: user.id,
 			email: user.email,
@@ -56,8 +96,10 @@ export async function obtenerPerfilUsuario(providedUser = null) {
 			user,
 			profile: profileData,
 			loading: false,
-			isAdmin: rol === 'admin',
-			isTaquilla: rol === 'taquilla'
+			isAdmin,
+			isTaquilla,
+			isViewer,
+			can
 		});
 
 		return profileData;

@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import toast, { Toaster } from 'svelte-french-toast';
+	import { authStore } from '$lib/stores/authStore';
 	import {
 		obtenerMiembrosDelEquipo,
 		crearMiembroDelEquipo,
@@ -69,6 +70,7 @@
 	}
 
 	function abrirModal(miembro = null) {
+		if ($authStore.isViewer) return;
 		if (miembro) {
 			modoEdicion = true;
 			miembroActual = { ...miembro };
@@ -130,6 +132,10 @@
 	}
 
 	async function guardarMiembro() {
+		if ($authStore.isViewer) {
+			toast.error('No tienes permisos para modificar miembros');
+			return;
+		}
 		// Validaciones
 		if (!miembroActual.name || miembroActual.name.length > 50) {
 			toast.error('El nombre es requerido y debe tener máximo 50 caracteres');
@@ -213,12 +219,14 @@
 				<h1 class="text-3xl font-bold mb-2">Miembros del Equipo</h1>
 				<p class="text-stone-400 text-sm">Gestiona la información de tu equipo</p>
 			</div>
-			<button
-				on:click={() => abrirModal()}
-				class="bg-gradient-to-r from-stone-700 to-stone-600 hover:from-stone-600 hover:to-stone-500 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-200 shadow-lg hover:shadow-xl"
-			>
-				+ Agregar Miembro
-			</button>
+			{#if !$authStore.isViewer}
+				<button
+					on:click={() => abrirModal()}
+					class="bg-gradient-to-r from-stone-700 to-stone-600 hover:from-stone-600 hover:to-stone-500 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-200 shadow-lg hover:shadow-xl"
+				>
+					+ Agregar Miembro
+				</button>
+			{/if}
 		</div>
 
 		<!-- Lista de Miembros -->
@@ -226,9 +234,9 @@
 			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 				{#each miembros as miembro}
 					<div
-						class="bg-gradient-to-br {miembro.color} backdrop-blur-sm border {miembro.accent_color} rounded-xl p-6 hover:scale-105 transition-transform duration-200 cursor-pointer"
-						on:click={() => abrirModal(miembro)}
-						on:keydown={(e) => e.key === 'Enter' && abrirModal(miembro)}
+						class="bg-gradient-to-br {miembro.color} backdrop-blur-sm border {miembro.accent_color} rounded-xl p-6 {!$authStore.isViewer ? 'hover:scale-105 transition-transform duration-200 cursor-pointer' : ''}"
+						on:click={() => !$authStore.isViewer && abrirModal(miembro)}
+						on:keydown={(e) => e.key === 'Enter' && !$authStore.isViewer && abrirModal(miembro)}
 						role="button"
 						tabindex="0"
 					>
