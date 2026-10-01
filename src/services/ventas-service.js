@@ -77,9 +77,16 @@ export async function obtenerVentasPorEventoActivo() {
 			(acc, f) => {
 				const cantidad = Number(f.cantidad) || 0;
 				const monto = Number(f.monto) || 0;
+				const precio = Number(f.precio) || 0;
 				acc.totalTickets += cantidad;
 				acc.totalMonto += monto;
-				acc.fases.push({ nombre_fase: f.nombre_fase, cantidad, monto });
+				acc.fases.push({
+					id_fase: f.id_fase,
+					nombre_fase: f.nombre_fase,
+					precio,
+					cantidad,
+					monto
+				});
 				return acc;
 			},
 			{ totalTickets: 0, totalMonto: 0, fases: [] }

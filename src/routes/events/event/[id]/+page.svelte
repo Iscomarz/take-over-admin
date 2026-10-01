@@ -82,16 +82,26 @@
 			let fds = [];
 			for (const f of ventasData) {
 				const cantidad = Number(f.cantidad) || 0;
-				// El monto real se saca del precio local de la db para evitar cuotas de stripe e impuestos
-				const faseVinculada = fases.find((fas) => fas.nombreFace === f.nombre_fase);
-				const montoReal =
+				// El monto real se vincula por idFase exacto para no mezclar fases con mismo nombre
+				const faseVinculada =
+					fases.find((fas) => fas.idFase === f.id_fase) ||
+					fases.find((fas) => fas.nombreFace === f.nombre_fase && Number(fas.precio) === Number(f.precio)) ||
+					fases.find((fas) => fas.nombreFace === f.nombre_fase);
+				const precioReal =
 					faseVinculada && typeof faseVinculada.precio !== 'undefined'
-						? cantidad * Number(faseVinculada.precio)
-						: Number(f.monto) || 0;
+						? Number(faseVinculada.precio)
+						: Number(f.precio) || 0;
+				const montoReal = precioReal > 0 ? cantidad * precioReal : Number(f.monto) || 0;
 
 				tkt += cantidad;
 				mnt += montoReal;
-				fds.push({ nombre_fase: f.nombre_fase, cantidad, monto: montoReal });
+				fds.push({
+					id_fase: f.id_fase,
+					nombre_fase: f.nombre_fase,
+					precio: precioReal,
+					cantidad,
+					monto: montoReal
+				});
 			}
 			estadisticasVentas = { totalTickets: tkt, totalMonto: mnt, fases: fds };
 		}
@@ -853,7 +863,14 @@
 						{#each estadisticasVentas.fases as fase}
 							<div class="bg-stone-800/50 rounded-xl p-4 border border-stone-700">
 								<div class="flex justify-between items-center mb-2">
-									<p class="font-bold text-white">{fase.nombre_fase}</p>
+									<div class="flex items-center gap-2">
+										<p class="font-bold text-white">{fase.nombre_fase}</p>
+										{#if fase.precio}
+											<span class="text-xs font-normal text-stone-400 bg-stone-900/60 px-2 py-0.5 rounded-full border border-stone-700">
+												${fase.precio}
+											</span>
+										{/if}
+									</div>
 									<p class="text-sm text-stone-400">{fase.cantidad} tickets</p>
 								</div>
 								<div class="flex justify-between items-center">
