@@ -1,5 +1,6 @@
 -- =====================================================================
 -- Migración: Agrupar ventas por idFase y precio en vez de solo por nombre
+-- Incluye todas las fases configuradas del evento mediante LEFT JOIN
 -- Fecha: 2026-10-01
 -- =====================================================================
 
@@ -15,11 +16,11 @@ AS $function$
     f."idFase" as id_fase,
     f."nombreFace" as nombre_fase,
     f.precio,
-    sum(v."cantidadTickets") as cantidad,
-    sum(v."cantidadTickets" * f.precio) as monto
-  from "mVenta" v
-  join "cFaseEvento" f on f."idFase" = v."idFaseEvento"
-  where v."idEvento" = evento_id
+    coalesce(sum(v."cantidadTickets"), 0)::bigint as cantidad,
+    coalesce(sum(v."cantidadTickets" * f.precio), 0)::numeric as monto
+  from "cFaseEvento" f
+  left join "mVenta" v on v."idFaseEvento" = f."idFase" and v."idEvento" = evento_id
+  where f."idEvento" = evento_id
   group by f."idFase", f."nombreFace", f.precio
   order by f.precio asc, f."idFase" asc;
 $function$;
