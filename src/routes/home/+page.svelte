@@ -1,4 +1,4 @@
-﻿<script>
+<script>
 	import supabase from '$lib/supabase';
 	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
@@ -515,7 +515,14 @@
 										class="bg-stone-700/30 rounded-lg p-3 border border-stone-600 hover:border-stone-500 transition-colors"
 									>
 										<div class="flex items-center justify-between mb-2">
-											<p class="font-semibold text-sm">{fase.nombre_fase}</p>
+											<div class="flex items-center gap-2">
+												<p class="font-semibold text-sm">{fase.nombre_fase}</p>
+												{#if fase.precio}
+													<span class="text-xs font-normal text-stone-400 bg-stone-800 px-2 py-0.5 rounded-full border border-stone-700">
+														${fase.precio}
+													</span>
+												{/if}
+											</div>
 											<p class="text-xs text-stone-400">{fase.cantidad} tickets</p>
 										</div>
 										<div class="flex items-center justify-between">
