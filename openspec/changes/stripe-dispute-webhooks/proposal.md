@@ -4,16 +4,19 @@
 
 Automate the lifecycle transitions of tickets (`activo`, `suspendido`, `cancelado`, `reembolsado`) in response to Stripe dispute and refund webhook events. This eliminates human latency, guarantees instant door blockage upon chargeback initiation, and safely reinstates access if a dispute is resolved in favor of the business.
 
+In parallel, configure **Stripe Radar Dynamic 3D Secure (3DS)** rules to prevent fraud proactively and achieve automatic **Liability Shift** without creating checkout friction on low-ticket purchases.
+
 ---
 
 ## Background & Motivation
 
-Currently, when a cardholder files a dispute with their bank (e.g., claiming unrecognized purchase / fraud), the admin must manually find the sale and toggle the ticket status in the admin dashboard. 
+Currently, when a cardholder files a dispute with their bank (e.g., claiming unrecognized purchase / friendly fraud), the admin must manually find the sale and toggle the ticket status in the admin dashboard. 
 
 Automating this via Stripe webhooks ensures:
 1. **Zero latency door protection**: The moment Stripe emits `charge.dispute.created`, the tickets are immediately flagged as `suspendido`. If the event is occurring or starts before an admin checks email, the QR code is already blocked at the door scanner.
 2. **Automated resolution handling**: If the merchant submits evidence and wins the dispute (`charge.dispute.closed` with status `won`), the tickets automatically revert to `activo`. If lost, they become `cancelado`.
 3. **Refund consistency**: When a refund is processed directly in Stripe, tickets transition to `reembolsado` without manual double-entry.
+4. **Proactive prevention with Dynamic 3DS**: Forcing 3DS across 100% of checkouts causes a significant drop in conversion (8-15% in Mexico due to SMS OTP friction). By implementing conditional rules via Stripe Radar, we protect high-value and high-risk orders with liability shift while preserving a frictionless checkout for everyday ticket buyers.
 
 ---
 
@@ -36,11 +39,37 @@ Automating this via Stripe webhooks ensures:
     - Mark all linked tickets as `estado = 'reembolsado'` and log refund ID.
 - **Idempotency & Audit Logging**:
   - Store processed webhook event IDs to prevent duplicate processing on Stripe retries.
+- **Stripe Radar Dynamic 3DS Rules**:
+  - Configure conditional rules in Stripe Dashboard to enforce 3DS only when risk or transaction value exceeds defined thresholds.
 
 ### Out of Scope
 
 - Automated evidence submission to Stripe (requires human documentation like signed waivers, IP matching, or email correspondence).
 - Direct bank transfer / SPEI dispute handling (Stripe credit/debit card disputes only).
+
+---
+
+## Preventive Strategy: Dynamic 3D Secure (Stripe Radar)
+
+While webhooks handle disputes reactively, configuring **Dynamic 3D Secure (3DS)** in Stripe Radar protects against "unauthorized purchase / friendly fraud" proactively by enforcing a **Liability Shift** (the issuing bank assumes 100% of the chargeback financial liability if fraud occurs, rather than the merchant).
+
+To avoid killing checkout conversion for everyday single-ticket buyers, 3DS should not be forced blindly on 100% of payments. Instead, configure conditional Radar rules in the Stripe Dashboard:
+
+### Recommended Radar Rules:
+
+1. **High-Value Orders (Multi-ticket purchases)**:
+   - Rule: `Request 3D Secure if :amount_in_usd: > 50.00` (e.g. `> 1,000 MXN`).
+   - Rationale: Single tickets ($250 - $450 MXN) convert with zero friction. Large orders with high exposure require 3DS authentication.
+2. **Elevated Risk Score**:
+   - Rule: `Request 3D Secure if :risk_level: = 'elevated'`.
+   - Rationale: Triggers verification only when Stripe ML detects suspicious IP, device fingerprint, or mismatched card velocity.
+3. **Foreign / Non-Domestic Cards**:
+   - Rule: `Request 3D Secure if :card_country: != :account_country:`.
+   - Rationale: Protects against international card testing or unauthorized cross-border transactions while keeping local buyers frictionless.
+
+### Tradeoff & Benefit:
+- **~90% of buyers** experience frictionless, instant checkout (preserving conversion).
+- **~10% high-risk or high-value orders** obtain 3DS verification, granting automatic chargeback dispute immunity via card network liability shift.
 
 ---
 
@@ -93,11 +122,13 @@ Automating this via Stripe webhooks ensures:
    - Remember SvelteKit raw body requirement: use `request.text()` (not `request.json()`) to verify cryptographic signature.
 3. [ ] **Database Lookup Helper**: Create service function in `src/services/stripe-service.js` or directly in webhook to map `charge_id` -> `mPago` -> `mVenta` -> `ticket`.
 4. [ ] **Stripe Dashboard Configuration**: Add webhook endpoint URL `https://admin.takeover.lat/api/stripe/webhook` with the 4 target dispute/refund events.
-5. [ ] **Testing with Stripe CLI**: Run `stripe listen --forward-to localhost:5173/api/stripe/webhook` and `stripe trigger charge.dispute.created` to verify end-to-end behavior locally.
+5. [ ] **Radar Dynamic 3DS Rules**: Configure the 3 recommended conditional rules in Stripe Dashboard (Radar > Rules) to achieve liability shift on large/risky purchases without checkout conversion drop.
+6. [ ] **Testing with Stripe CLI**: Run `stripe listen --forward-to localhost:5173/api/stripe/webhook` and `stripe trigger charge.dispute.created` to verify end-to-end behavior locally.
 
 ---
 
 ## Rollback Plan
 
 - **Endpoints**: Remove or disable the webhook URL in the Stripe Dashboard.
+- **Radar Rules**: Toggle off the custom 3DS rules in Stripe Dashboard.
 - **Code**: Delete `src/routes/api/stripe/webhook/+server.js`. Manual ticket state management remains 100% operational as implemented.
