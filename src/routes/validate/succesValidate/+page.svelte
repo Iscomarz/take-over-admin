@@ -14,7 +14,8 @@
 		const { data, error } = await supabase
 			.from('ticket')
 			.update({ validado: true, fechaValidacion: new Date() })
-			.eq('referencia', referencia);
+			.eq('referencia', referencia)
+			.eq('estado', 'activo');
 
 		if (error) {
 			toast.error('Error al validar ticket');

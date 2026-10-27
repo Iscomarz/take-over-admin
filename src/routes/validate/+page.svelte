@@ -26,8 +26,9 @@
 
 	// Estados del modal
 	let showModal = false;
-	let modalStatus = 'success'; // 'success', 'already-validated', 'not-found'
+	let modalStatus = 'success'; // 'success', 'already-validated', 'not-found', 'suspended', 'cancelled'
 	let modalClientName = '';
+	let modalReason = '';
 	let eventIdUrl = null;
 
 	onMount(async () => {
@@ -95,28 +96,44 @@
 						// QR no encontrado
 						modalStatus = 'not-found';
 						modalClientName = '';
+						modalReason = '';
 						showModal = true;
-					} else if (qrValido[0].validado === true) {
-						// QR ya validado
-						modalStatus = 'already-validated';
-						modalClientName =
-							qrValido[0].mVenta?.cliente_id?.nombre || qrValido[0].mVenta?.nombre || '';
-						showModal = true;
-					} else if (qrValido[0].validado === false) {
-						// QR válido, proceder a validar
-						const { error: updateError } = await supabase
-							.from('ticket')
-							.update({ validado: true, fechaValidacion: new Date() })
-							.eq('codigoQR', qrCodeMessage);
+					} else {
+						const ticketData = qrValido[0];
+						const clientName =
+							ticketData.mVenta?.cliente_id?.nombre || ticketData.mVenta?.nombre || '';
 
-						if (updateError) {
-							toast.error('Error al validar el ticket');
-							resetScanner();
-						} else {
-							modalStatus = 'success';
-							modalClientName =
-								qrValido[0].mVenta?.cliente_id?.nombre || qrValido[0].mVenta?.nombre || '';
+						if (ticketData.estado === 'suspendido') {
+							modalStatus = 'suspended';
+							modalClientName = clientName;
+							modalReason = ticketData.motivo_cancelacion || '';
 							showModal = true;
+						} else if (ticketData.estado === 'cancelado' || ticketData.estado === 'reembolsado') {
+							modalStatus = 'cancelled';
+							modalClientName = clientName;
+							modalReason = ticketData.motivo_cancelacion || '';
+							showModal = true;
+						} else if (ticketData.validado === true) {
+							modalStatus = 'already-validated';
+							modalClientName = clientName;
+							modalReason = '';
+							showModal = true;
+						} else if (ticketData.validado === false) {
+							const { error: updateError } = await supabase
+								.from('ticket')
+								.update({ validado: true, fechaValidacion: new Date() })
+								.eq('codigoQR', qrCodeMessage)
+								.eq('estado', 'activo');
+
+							if (updateError) {
+								toast.error('Error al validar el ticket');
+								resetScanner();
+							} else {
+								modalStatus = 'success';
+								modalClientName = clientName;
+								modalReason = '';
+								showModal = true;
+							}
 						}
 					}
 				},
@@ -138,11 +155,13 @@
 					`	idTicket,
 						validado,
 						fechaValidacion,
+						estado,
 						mVenta!inner (nombre, idEvento, cliente_id(nombre)),
 						cFaseEvento (nombreFace)
 					`
 				)
 				.eq('mVenta.idEvento', selectedEventoId)
+				.eq('estado', 'activo')
 				.order('idTicket', { asc: true });
 
 			if (error) {
@@ -158,7 +177,8 @@
 		const { data, error } = await supabase
 			.from('ticket')
 			.update({ validado: true, fechaValidacion: new Date() })
-			.eq('idTicket', idTicket);
+			.eq('idTicket', idTicket)
+			.eq('estado', 'activo');
 
 		if (error) {
 			console.error('Error al validar ticket:', error);
@@ -219,6 +239,7 @@
 	function handleModalClose() {
 		showModal = false;
 		modalClientName = '';
+		modalReason = '';
 		resetScanner();
 	}
 
@@ -240,6 +261,7 @@
 	isOpen={showModal}
 	status={modalStatus}
 	clientName={modalClientName}
+	reason={modalReason}
 	on:close={handleModalClose}
 />
 

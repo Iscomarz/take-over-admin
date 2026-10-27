@@ -327,7 +327,8 @@
 							idVenta: dataVenta[0].idventa,
 							idFase: faseSelec.idFase,
 							referencia: referencia,
-							fechaValidacion: null
+							fechaValidacion: null,
+							estado: 'activo'
 						}
 					])
 					.select();
