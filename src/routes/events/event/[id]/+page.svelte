@@ -1012,6 +1012,30 @@
 								<p class="text-xs text-stone-400 mt-1">Reenviar acceso a cliente</p>
 							</div>
 						</a>
+
+						<a
+							href={`/tickets?eventId=${id}`}
+							class="flex items-center gap-3 p-4 bg-stone-800 rounded-xl hover:bg-stone-700 transition-colors border border-stone-700 hover:border-stone-500 group"
+						>
+							<div
+								class="p-2 bg-amber-900/30 rounded-lg text-amber-400 group-hover:bg-amber-500 group-hover:text-black transition-colors"
+							>
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									width="24"
+									height="24"
+									fill="currentColor"
+									viewBox="0 0 256 256"
+									><path
+										d="M232,104a8,8,0,0,0-8-8H200a8,8,0,0,0-8,8v16H64V104a8,8,0,0,0-16,0v48a8,8,0,0,0,16,0V136H192v16a8,8,0,0,0,16,0V120h24A8,8,0,0,0,232,112Z"
+									></path></svg
+								>
+							</div>
+							<div>
+								<p class="font-bold text-white">Gestión de Tickets</p>
+								<p class="text-xs text-stone-400 mt-1">Activar, suspender o cancelar</p>
+							</div>
+						</a>
 					</div>
 				{:else}
 					<div

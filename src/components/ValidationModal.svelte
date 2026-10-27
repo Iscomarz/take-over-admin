@@ -2,8 +2,9 @@
 	import { createEventDispatcher } from 'svelte';
 
 	export let isOpen = false;
-	export let status = 'success'; // 'success', 'already-validated', 'not-found'
+	export let status = 'success'; // 'success', 'already-validated', 'not-found', 'suspended', 'cancelled'
 	export let clientName = '';
+	export let reason = '';
 
 	const dispatch = createEventDispatcher();
 
@@ -41,8 +42,35 @@
 			borderColor: 'border-red-500/50',
 			title: '✗ QR No Válido',
 			message: 'El código QR no se encuentra en el sistema'
+		},
+		suspended: {
+			icon: 'M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm-8,56a8,8,0,0,1,16,0v56a8,8,0,0,1-16,0Zm8,104a12,12,0,1,1,12-12A12,12,0,0,1,128,184Z',
+			color: 'text-amber-400',
+			bgColor: 'bg-amber-900/30',
+			borderColor: 'border-amber-500/60',
+			title: '⛔ Boleto Suspendido / En Disputa',
+			message: clientName
+				? `${clientName} tiene este boleto suspendido. NO PERMITIR ACCESO.`
+				: 'Este boleto está suspendido por aclaración o disputa. NO PERMITIR ACCESO.'
+		},
+		cancelled: {
+			icon: 'M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm37.66,130.34a8,8,0,0,1-11.32,11.32L128,139.31l-26.34,26.35a8,8,0,0,1-11.32-11.32L116.69,128,90.34,101.66a8,8,0,0,1,11.32-11.32L128,116.69l26.34-26.35a8,8,0,0,1,11.32,11.32L139.31,128Z',
+			color: 'text-red-500',
+			bgColor: 'bg-red-950/40',
+			borderColor: 'border-red-500/60',
+			title: '🚫 Boleto Cancelado',
+			message: clientName
+				? `El boleto de ${clientName} fue cancelado o reembolsado.`
+				: 'Este boleto fue cancelado o reembolsado. No tiene validez.'
 		}
-	}[status];
+	}[status] || {
+		icon: 'M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm-8,56a8,8,0,0,1,16,0v56a8,8,0,0,1-16,0Zm8,104a12,12,0,1,1,12-12A12,12,0,0,1,128,184Z',
+		color: 'text-red-400',
+		bgColor: 'bg-red-900/20',
+		borderColor: 'border-red-500/50',
+		title: '✗ No Válido',
+		message: 'No autorizado'
+	};
 </script>
 
 {#if isOpen}
@@ -83,6 +111,11 @@
 					<div class="mb-6 p-4 bg-gray-800/50 rounded-xl border border-gray-700">
 						<p class="text-sm text-gray-400 mb-1">Estado</p>
 						<p class="text-green-400 font-semibold text-lg">Entrada Autorizada</p>
+					</div>
+				{:else if status === 'suspended' || status === 'cancelled'}
+					<div class="mb-6 p-4 bg-red-950/40 rounded-xl border border-red-700/60 text-left">
+						<p class="text-xs uppercase tracking-wider text-red-400 font-bold mb-1">Motivo / Observación</p>
+						<p class="text-sm text-stone-200">{reason || 'Boleto no autorizado por administración/disputa.'}</p>
 					</div>
 				{/if}
 			</div>

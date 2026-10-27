@@ -94,7 +94,16 @@
 			console.error('Error fetching tickets:', error);
 		} else {
 			console.log('Tickets for venta ID:', venta, tickets);
-			// Logic to resend tickets will go here
+			const ticketsInactivos = (tickets || []).filter((t) => t.estado && t.estado !== 'activo');
+			if (ticketsInactivos.length > 0) {
+				const continuar = confirm(
+					`Atención: Esta venta contiene ${ticketsInactivos.length} ticket(s) en estado "${ticketsInactivos[0].estado}". ¿Deseas reenviar los tickets de todas formas?`
+				);
+				if (!continuar) {
+					reenviandoIds[venta.idventa] = false;
+					return;
+				}
+			}
 
 			// Send email with tickets
 			pdfBuffer = await generarTicket(selectedEvento, venta, tickets);
@@ -159,6 +168,12 @@
 			<div class="text-center mb-8">
 				<h1 class="text-3xl font-bold mb-2">Reenviar Tickets</h1>
 				<p class="text-stone-400 text-sm">Mostrando ventas para: {selectedEvento.nombreEvento}</p>
+				<a
+					href={`/tickets?eventId=${selectedEvento.idevento}`}
+					class="inline-flex items-center gap-2 mt-3 text-xs font-semibold text-amber-400 hover:text-amber-300 bg-amber-950/40 border border-amber-700/50 px-3 py-1.5 rounded-lg transition-colors"
+				>
+					Gestionar Estados / Disputas de Tickets →
+				</a>
 			</div>
 		{:else}
 			<!-- Header -->
