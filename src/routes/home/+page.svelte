@@ -91,10 +91,12 @@
 				validado,
 				referencia,
 				fechaValidacion,
+				estado,
 				mVenta!inner (nombre, idEvento, cliente_id(nombre, correo)),
 				cFaseEvento (nombreFace, precio)`
 			)
 			.eq('mVenta.idEvento', idevento)
+			.eq('estado', 'activo')
 			.order('idTicket', { ascending: false });
 
 		if (error) {
@@ -110,7 +112,8 @@
 		const { error } = await supabase
 			.from('ticket')
 			.update({ validado: true, fechaValidacion: new Date() })
-			.eq('idTicket', ticketItem.idTicket);
+			.eq('idTicket', ticketItem.idTicket)
+			.eq('estado', 'activo');
 
 		if (error) {
 			console.error('Error al validar ticket:', error);
@@ -134,6 +137,7 @@
 	}
 
 	$: ticketsFiltrados = ticketsEventoActivo.filter((t) => {
+		if (t.estado && t.estado !== 'activo') return false;
 		const clientName = t.mVenta?.cliente_id?.nombre || t.mVenta?.nombre || '';
 		const clientEmail = t.mVenta?.cliente_id?.correo || '';
 		const ref = t.referencia ? String(t.referencia) : '';
