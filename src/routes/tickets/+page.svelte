@@ -13,6 +13,7 @@
 	let loading = true;
 	let searchTerm = '';
 	let filtroEstado = 'todos'; // 'todos', 'activo', 'suspendido', 'cancelado'
+	let filtroPago = 'todos'; // 'todos', 'stripe', 'efectivo', 'transferencia', 'terminal'
 
 	// Modal de edición de estado
 	let showModalEstado = false;
@@ -22,9 +23,13 @@
 	let aplicarATodaLaVenta = false;
 	let guardando = false;
 
+	// Modal de Reporte de Cierre y Liquidación
+	let showModalReporte = false;
+
 	onMount(async () => {
 		toast.dismiss();
 		const eventIdParam = $page.url.searchParams.get('eventId');
+		const reportParam = $page.url.searchParams.get('report');
 
 		// Cargar eventos
 		const { data: dataEventos, error: errEventos } = await supabase
@@ -52,6 +57,9 @@
 
 		if (selectedEventoId) {
 			await cargarTickets();
+			if (reportParam === 'open') {
+				showModalReporte = true;
+			}
 		} else {
 			loading = false;
 		}
@@ -86,7 +94,18 @@
 					correo,
 					fechaVenta,
 					cantidadTickets,
-					cliente_id (cliente_id, nombre, correo)
+					cliente_id (cliente_id, nombre, correo),
+					mPago (
+						idpago,
+						cantidad,
+						idFormaPago,
+						idTransaccionStripe,
+						checkout_session,
+						cFormaPago (
+							idformapago,
+							nombre
+						)
+					)
 				),
 				cFaseEvento (
 					nombreFace,
@@ -107,7 +126,93 @@
 		loading = false;
 	}
 
-	// Estadísticas
+	// Helper: Identificar método de pago estandarizado
+	function getMetodoPago(t) {
+		const idForma = t?.mVenta?.mPago?.idFormaPago;
+		const nombreRaw = t?.mVenta?.mPago?.cFormaPago?.nombre || '';
+		const nombreLower = nombreRaw.toLowerCase();
+
+		if (idForma === 3 || nombreLower.includes('stripe')) {
+			return {
+				id: 'stripe',
+				nombre: 'Stripe',
+				badgeClass: 'bg-blue-500/10 text-blue-400 border-blue-500/30',
+				icon: '💳',
+				transaccion: t?.mVenta?.mPago?.idTransaccionStripe || t?.mVenta?.mPago?.checkout_session || ''
+			};
+		}
+		if (idForma === 1 || nombreLower.includes('efectivo')) {
+			return {
+				id: 'efectivo',
+				nombre: 'Efectivo',
+				badgeClass: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30',
+				icon: '💵',
+				transaccion: ''
+			};
+		}
+		if (idForma === 2 || nombreLower.includes('transferencia')) {
+			return {
+				id: 'transferencia',
+				nombre: 'Transferencia',
+				badgeClass: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30',
+				icon: '🏦',
+				transaccion: t?.referencia || ''
+			};
+		}
+		if (idForma === 4 || nombreLower.includes('tarjeta')) {
+			return {
+				id: 'terminal',
+				nombre: 'Terminal / Tarjeta',
+				badgeClass: 'bg-purple-500/10 text-purple-400 border-purple-500/30',
+				icon: '📟',
+				transaccion: ''
+			};
+		}
+
+		return {
+			id: 'otro',
+			nombre: nombreRaw || 'No registrado',
+			badgeClass: 'bg-stone-500/10 text-stone-400 border-stone-500/30',
+			icon: '🏷️',
+			transaccion: ''
+		};
+	}
+
+	// Helper: Obtener precio unitario del ticket
+	function getTicketPrecio(t) {
+		if (t?.cFaseEvento?.precio != null) {
+			const cleaned = String(t.cFaseEvento.precio).replace(/[^0-9.-]+/g, '');
+			const n = parseFloat(cleaned);
+			if (!isNaN(n)) return n;
+		}
+		if (t?.mVenta?.mPago?.cantidad != null) {
+			const cleaned = String(t.mVenta.mPago.cantidad).replace(/[^0-9.-]+/g, '');
+			const total = parseFloat(cleaned);
+			const qty = parseInt(t?.mVenta?.cantidadTickets) || 1;
+			if (!isNaN(total) && qty > 0) return Math.round(total / qty);
+		}
+		return 0;
+	}
+
+	// Helper: Formato de moneda MXN
+	function formatearMoneda(monto) {
+		return new Intl.NumberFormat('es-MX', {
+			style: 'currency',
+			currency: 'MXN',
+			maximumFractionDigits: 0
+		}).format(monto || 0);
+	}
+
+	// Helper: Copiar texto al portapapeles
+	function copiarAlPortapapeles(texto, label = 'Texto') {
+		if (!texto) return;
+		if (navigator?.clipboard?.writeText) {
+			navigator.clipboard.writeText(texto);
+			toast.success(`${label} copiado`);
+		}
+	}
+
+	// Estadísticas generales de tickets
 	$: totalTickets = tickets.length;
 	$: totalActivos = tickets.filter((t) => (t.estado || 'activo') === 'activo').length;
 	$: totalSuspendidos = tickets.filter((t) => t.estado === 'suspendido').length;
@@ -116,7 +221,126 @@
 	).length;
 	$: totalValidados = tickets.filter((t) => t.validado === true).length;
 
-	// Filtrado reactivo
+	// Desglose de Caja por Método de Pago
+	$: desglosePagos = (() => {
+		const mapa = {
+			stripe: {
+				id: 'stripe',
+				nombre: 'Stripe (En línea)',
+				icon: '💳',
+				tickets: 0,
+				activos: 0,
+				validados: 0,
+				cancelados: 0,
+				montoNeto: 0,
+				badgeClass: 'bg-blue-500/10 text-blue-400 border-blue-500/30'
+			},
+			efectivo: {
+				id: 'efectivo',
+				nombre: 'Efectivo (Taquilla)',
+				icon: '💵',
+				tickets: 0,
+				activos: 0,
+				validados: 0,
+				cancelados: 0,
+				montoNeto: 0,
+				badgeClass: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+			},
+			transferencia: {
+				id: 'transferencia',
+				nombre: 'Transferencia bancaria',
+				icon: '🏦',
+				tickets: 0,
+				activos: 0,
+				validados: 0,
+				cancelados: 0,
+				montoNeto: 0,
+				badgeClass: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30'
+			},
+			terminal: {
+				id: 'terminal',
+				nombre: 'Terminal / Tarjeta',
+				icon: '📟',
+				tickets: 0,
+				activos: 0,
+				validados: 0,
+				cancelados: 0,
+				montoNeto: 0,
+				badgeClass: 'bg-purple-500/10 text-purple-400 border-purple-500/30'
+			},
+			otro: {
+				id: 'otro',
+				nombre: 'Otro / Sin registrar',
+				icon: '🏷️',
+				tickets: 0,
+				activos: 0,
+				validados: 0,
+				cancelados: 0,
+				montoNeto: 0,
+				badgeClass: 'bg-stone-500/10 text-stone-400 border-stone-500/30'
+			}
+		};
+
+		let totalMontoNeto = 0;
+		let totalMontoBruto = 0;
+
+		tickets.forEach((t) => {
+			const info = getMetodoPago(t);
+			const precio = getTicketPrecio(t);
+			const target = mapa[info.id] || mapa.otro;
+			const esCancelado = t.estado === 'cancelado' || t.estado === 'reembolsado';
+
+			target.tickets += 1;
+			if (!esCancelado) {
+				target.activos += 1;
+				target.montoNeto += precio;
+				totalMontoNeto += precio;
+			} else {
+				target.cancelados += 1;
+			}
+
+			if (t.validado) target.validados += 1;
+			totalMontoBruto += precio;
+		});
+
+		const lista = Object.values(mapa).filter((m) => m.tickets > 0);
+		return { lista, totalMontoNeto, totalMontoBruto };
+	})();
+
+	// Desglose por Fases para el reporte de cierre
+	$: desgloseFases = (() => {
+		const mapa = {};
+		tickets.forEach((t) => {
+			const nombreFase = t.cFaseEvento?.nombreFace || 'General';
+			const precio = getTicketPrecio(t);
+			const esCancelado = t.estado === 'cancelado' || t.estado === 'reembolsado';
+
+			if (!mapa[nombreFase]) {
+				mapa[nombreFase] = {
+					nombre: nombreFase,
+					precio,
+					total: 0,
+					activos: 0,
+					validados: 0,
+					cancelados: 0,
+					montoNeto: 0
+				};
+			}
+
+			mapa[nombreFase].total += 1;
+			if (!esCancelado) {
+				mapa[nombreFase].activos += 1;
+				mapa[nombreFase].montoNeto += precio;
+			} else {
+				mapa[nombreFase].cancelados += 1;
+			}
+
+			if (t.validado) mapa[nombreFase].validados += 1;
+		});
+		return Object.values(mapa);
+	})();
+
+	// Filtrado reactivo combinado (Estado + Método de Pago + Búsqueda libre)
 	$: ticketsFiltrados = tickets.filter((t) => {
 		const estado = t.estado || 'activo';
 		if (filtroEstado !== 'todos') {
@@ -125,6 +349,11 @@
 			} else if (estado !== filtroEstado) {
 				return false;
 			}
+		}
+
+		if (filtroPago !== 'todos') {
+			const info = getMetodoPago(t);
+			if (info.id !== filtroPago) return false;
 		}
 
 		if (!searchTerm.trim()) return true;
@@ -141,9 +370,12 @@
 			''
 		).toLowerCase();
 		const idStr = String(t.idTicket);
-		const refStr = String(t.referencia || '');
+		const refStr = String(t.referencia || '').toLowerCase();
 		const qrStr = String(t.codigoQR || '').toLowerCase();
 		const ventaStr = String(t.idVenta || '');
+		const metodoInfo = getMetodoPago(t);
+		const metodoNombre = metodoInfo.nombre.toLowerCase();
+		const transStr = (metodoInfo.transaccion || '').toLowerCase();
 
 		return (
 			clienteNombre.includes(term) ||
@@ -151,9 +383,81 @@
 			idStr.includes(term) ||
 			refStr.includes(term) ||
 			qrStr.includes(term) ||
-			ventaStr.includes(term)
+			ventaStr.includes(term) ||
+			metodoNombre.includes(term) ||
+			transStr.includes(term)
 		);
 	});
+
+	// Exportar reporte detallado a archivo CSV con UTF-8 BOM
+	function exportarCSV() {
+		if (!tickets || tickets.length === 0) {
+			toast.error('No hay tickets para exportar');
+			return;
+		}
+
+		const headers = [
+			'ID Ticket',
+			'Venta #',
+			'Fecha Venta',
+			'Cliente',
+			'Correo',
+			'Fase',
+			'Precio Unitario ($ MXN)',
+			'Metodo de Pago',
+			'ID Transaccion / Referencia Stripe',
+			'Referencia Ticket',
+			'Estado',
+			'Ingreso al Evento',
+			'Fecha Ingreso',
+			'Motivo Cancelacion / Disputa'
+		];
+
+		const rows = tickets.map((t) => {
+			const metodo = getMetodoPago(t);
+			const precio = getTicketPrecio(t);
+			const clienteNombre = t.mVenta?.cliente_id?.nombre || t.mVenta?.nombre || 'Sin nombre';
+			const clienteCorreo = t.mVenta?.cliente_id?.correo || t.mVenta?.correo || '';
+			const fechaVenta = t.mVenta?.fechaVenta ? new Date(t.mVenta.fechaVenta).toLocaleString('es-MX') : '';
+			const fechaIngreso = t.fechaValidacion ? new Date(t.fechaValidacion).toLocaleString('es-MX') : '';
+			const estado = t.estado || 'activo';
+			const transaccion = metodo.transaccion || t.referencia || '';
+
+			return [
+				t.idTicket,
+				t.idVenta || '',
+				fechaVenta,
+				`"${clienteNombre.replace(/"/g, '""')}"`,
+				`"${clienteCorreo.replace(/"/g, '""')}"`,
+				`"${(t.cFaseEvento?.nombreFace || 'General').replace(/"/g, '""')}"`,
+				precio,
+				`"${metodo.nombre.replace(/"/g, '""')}"`,
+				`"${transaccion.replace(/"/g, '""')}"`,
+				`"${(t.referencia || '').replace(/"/g, '""')}"`,
+				estado,
+				t.validado ? 'SI' : 'NO',
+				fechaIngreso,
+				`"${(t.motivo_cancelacion || '').replace(/"/g, '""')}"`
+			].join(',');
+		});
+
+		// Añadir BOM (\uFEFF) para compatibilidad inmediata con Microsoft Excel
+		const csvContent = '\uFEFF' + [headers.join(','), ...rows].join('\r\n');
+		const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+		const url = URL.createObjectURL(blob);
+		const link = document.createElement('a');
+		const nombreLimpio = (selectedEvento?.nombreEvento || 'Evento').replace(/[^a-zA-Z0-9_-]/g, '_');
+		const fechaHoy = new Date().toISOString().split('T')[0];
+
+		link.setAttribute('href', url);
+		link.setAttribute('download', `Reporte_Tickets_${nombreLimpio}_${fechaHoy}.csv`);
+		document.body.appendChild(link);
+		link.click();
+		document.body.removeChild(link);
+		URL.revokeObjectURL(url);
+
+		toast.success('Reporte exportado correctamente a CSV');
+	}
 
 	function abrirModalEstado(t) {
 		ticketSeleccionado = t;
@@ -229,8 +533,8 @@
 
 <div class="min-h-screen bg-stone-950 text-stone-100 p-4 md:p-8">
 	<div class="max-w-7xl mx-auto space-y-6">
-		<!-- Header -->
-		<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-stone-800 pb-6">
+		<!-- Header Principal -->
+		<div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-stone-800 pb-6">
 			<div>
 				<button
 					on:click={volverAtras}
@@ -239,37 +543,60 @@
 					<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 256 256">
 						<path d="M224,128a8,8,0,0,1-8,8H59.31l58.35,58.34a8,8,0,0,1-11.32,11.32l-72-72a8,8,0,0,1,0-11.32l72-72a8,8,0,0,1,11.32,11.32L59.31,120H216A8,8,0,0,1,224,128Z"></path>
 					</svg>
-					Volver
+					Volver al Evento
 				</button>
 				<h1 class="text-3xl font-black text-white flex items-center gap-3">
-					Gestión de Tickets y Disputas
+					Tickets y Arqueo de Ventas
 				</h1>
 				<p class="text-stone-400 text-sm mt-1">
-					Control de estados en tiempo real (activar, suspender por disputa o cancelar boletos sin borrar registros).
+					Control de tickets vendidos, desglose contable por método de pago y gestión de estados.
 				</p>
 			</div>
 
-			<!-- Selector de Evento -->
-			<div class="w-full md:w-80">
-				<label for="evento-select" class="block text-xs uppercase tracking-wider text-stone-400 font-semibold mb-1">
-					Evento
-				</label>
-				<select
-					id="evento-select"
-					bind:value={selectedEventoId}
-					on:change={cambiarEvento}
-					class="w-full bg-stone-900 border border-stone-700 text-white rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-green-500 focus:outline-none"
+			<!-- Acciones y Selector de Evento -->
+			<div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+				<!-- Botones de Reporte y Exportación -->
+				<button
+					on:click={() => (showModalReporte = true)}
+					class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-green-500 hover:bg-green-400 text-black text-sm font-bold shadow-lg shadow-green-500/20 transition-all hover:scale-[1.02]"
+					title="Ver reporte ejecutivo de cierre de caja"
 				>
-					{#each eventos as ev}
-						<option value={ev.idevento}>
-							{ev.nombreEvento} {ev.activo ? '🟢 (Activo)' : ''}
-						</option>
-					{/each}
-				</select>
+					<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 256 256">
+						<path d="M216,40H40A16,16,0,0,0,24,56V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40ZM40,56H216v32H40ZM216,200H40V104H216v96Zm-88-80a8,8,0,0,1,8,8v48a8,8,0,0,1-16,0V128A8,8,0,0,1,128,120Zm-40,16a8,8,0,0,1,8,8v32a8,8,0,0,1-16,0V144A8,8,0,0,1,88,136Zm80-8a8,8,0,0,1,8,8v40a8,8,0,0,1-16,0V136A8,8,0,0,1,168,128Z"></path>
+					</svg>
+					Reporte de Cierre
+				</button>
+
+				<button
+					on:click={exportarCSV}
+					class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 text-stone-200 hover:text-white border border-stone-700 text-sm font-semibold transition-colors"
+					title="Descargar todos los tickets en archivo CSV para Excel"
+				>
+					<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 256 256">
+						<path d="M224,152v56a16,16,0,0,1-16,16H48a16,16,0,0,1-16-16V152a8,8,0,0,1,16,0v56H208V152a8,8,0,0,1,16,0Zm-101.66,5.66a8,8,0,0,0,11.32,0l40-40a8,8,0,0,0-11.32-11.32L136,132.69V40a8,8,0,0,0-16,0v92.69L93.66,106.34a8,8,0,0,0-11.32,11.32Z"></path>
+					</svg>
+					Exportar CSV
+				</button>
+
+				<!-- Selector de Evento -->
+				<div class="w-full sm:w-64">
+					<select
+						id="evento-select"
+						bind:value={selectedEventoId}
+						on:change={cambiarEvento}
+						class="w-full bg-stone-900 border border-stone-700 text-white rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-green-500 focus:outline-none"
+					>
+						{#each eventos as ev}
+							<option value={ev.idevento}>
+								{ev.nombreEvento} {ev.activo ? '🟢 (Activo)' : ''}
+							</option>
+						{/each}
+					</select>
+				</div>
 			</div>
 		</div>
 
-		<!-- Tarjetas de métricas -->
+		<!-- 1. Tarjetas de métricas de Estado -->
 		<div class="grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-4">
 			<button
 				type="button"
@@ -280,7 +607,7 @@
 			>
 				<p class="text-xs uppercase tracking-wider text-stone-400 font-medium">Total Tickets</p>
 				<p class="text-2xl md:text-3xl font-black text-white mt-1">{totalTickets}</p>
-				<p class="text-[11px] text-stone-500 mt-1">{totalValidados} ya ingresados</p>
+				<p class="text-[11px] text-stone-500 mt-1">{totalValidados} ya ingresados ({totalTickets > 0 ? Math.round((totalValidados / totalTickets) * 100) : 0}%)</p>
 			</button>
 
 			<button
@@ -329,7 +656,58 @@
 			</button>
 		</div>
 
-		<!-- Barra de Búsqueda y Filtros -->
+		<!-- 2. Arqueo y Desglose por Método de Pago -->
+		<section class="bg-stone-900/80 border border-stone-800 rounded-2xl p-5">
+			<div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4">
+				<div>
+					<h2 class="text-base font-bold text-white flex items-center gap-2">
+						<span>💰</span> Desglose de Caja por Método de Pago
+					</h2>
+					<p class="text-xs text-stone-400">
+						Haz clic en cualquier método para filtrar los tickets correspondientes
+					</p>
+				</div>
+
+				<div class="text-right">
+					<span class="text-xs text-stone-400 uppercase tracking-wider block">Recaudación Neta Total</span>
+					<span class="text-2xl font-black text-emerald-400">
+						{formatearMoneda(desglosePagos.totalMontoNeto)}
+					</span>
+				</div>
+			</div>
+
+			<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+				{#each desglosePagos.lista as metodo}
+					{@const seleccionado = filtroPago === metodo.id}
+					<button
+						type="button"
+						on:click={() => (filtroPago = seleccionado ? 'todos' : metodo.id)}
+						class="p-3.5 rounded-xl border text-left transition-all relative {seleccionado
+							? 'bg-stone-800 border-green-500 shadow-lg ring-1 ring-green-500/50'
+							: 'bg-stone-950/70 border-stone-800 hover:border-stone-700'}"
+					>
+						<div class="flex items-center justify-between mb-1.5">
+							<span class="text-lg">{metodo.icon}</span>
+							<span class="text-[11px] font-bold px-2 py-0.5 rounded-full {metodo.badgeClass}">
+								{metodo.tickets} tix
+							</span>
+						</div>
+						<p class="text-xs font-semibold text-white truncate">{metodo.nombre}</p>
+						<p class="text-sm font-bold text-emerald-400 mt-1">
+							{formatearMoneda(metodo.montoNeto)}
+						</p>
+						<p class="text-[10px] text-stone-500 mt-0.5">
+							{metodo.validados} ingresados
+							{#if metodo.cancelados > 0}
+								<span class="text-red-400">· {metodo.cancelados} canc.</span>
+							{/if}
+						</p>
+					</button>
+				{/each}
+			</div>
+		</section>
+
+		<!-- 3. Barra de Búsqueda y Filtros Rápidos -->
 		<div class="bg-stone-900/70 border border-stone-800 rounded-2xl p-4 flex flex-col md:flex-row gap-4 justify-between items-center">
 			<div class="relative w-full md:max-w-md">
 				<svg
@@ -345,7 +723,7 @@
 				<input
 					type="text"
 					bind:value={searchTerm}
-					placeholder="Buscar por cliente, correo, #ticket, venta o referencia..."
+					placeholder="Buscar por cliente, correo, #ticket, Stripe ID, ref o método..."
 					class="w-full bg-stone-950 border border-stone-700 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder-stone-500 focus:outline-none focus:border-green-500"
 				/>
 				{#if searchTerm}
@@ -358,52 +736,74 @@
 				{/if}
 			</div>
 
+			<!-- Filtro por Método de Pago -->
 			<div class="flex items-center gap-2 overflow-x-auto w-full md:w-auto">
+				<span class="text-xs text-stone-500 font-semibold uppercase hidden lg:inline">Pago:</span>
 				<button
-					class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors {filtroEstado === 'todos'
+					class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors shrink-0 {filtroPago === 'todos'
 						? 'bg-stone-700 text-white'
 						: 'bg-stone-950 text-stone-400 hover:text-white'}"
-					on:click={() => (filtroEstado = 'todos')}
+					on:click={() => (filtroPago = 'todos')}
 				>
-					Todos ({tickets.length})
+					Todos
 				</button>
 				<button
-					class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors {filtroEstado === 'activo'
-						? 'bg-green-900/60 text-green-300 border border-green-700/60'
+					class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors shrink-0 {filtroPago === 'stripe'
+						? 'bg-blue-900/60 text-blue-300 border border-blue-700/60'
 						: 'bg-stone-950 text-stone-400 hover:text-white'}"
-					on:click={() => (filtroEstado = 'activo')}
+					on:click={() => (filtroPago = 'stripe')}
 				>
-					Activos ({totalActivos})
+					💳 Stripe
 				</button>
 				<button
-					class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors {filtroEstado === 'suspendido'
-						? 'bg-amber-900/60 text-amber-300 border border-amber-700/60'
+					class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors shrink-0 {filtroPago === 'efectivo'
+						? 'bg-emerald-900/60 text-emerald-300 border border-emerald-700/60'
 						: 'bg-stone-950 text-stone-400 hover:text-white'}"
-					on:click={() => (filtroEstado = 'suspendido')}
+					on:click={() => (filtroPago = 'efectivo')}
 				>
-					Suspendidos ({totalSuspendidos})
+					💵 Efectivo
 				</button>
 				<button
-					class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors {filtroEstado === 'cancelado'
-						? 'bg-red-900/60 text-red-300 border border-red-700/60'
+					class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors shrink-0 {filtroPago === 'transferencia'
+						? 'bg-cyan-900/60 text-cyan-300 border border-cyan-700/60'
 						: 'bg-stone-950 text-stone-400 hover:text-white'}"
-					on:click={() => (filtroEstado = 'cancelado')}
+					on:click={() => (filtroPago = 'transferencia')}
 				>
-					Cancelados ({totalCancelados})
+					🏦 Transf.
+				</button>
+				<button
+					class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors shrink-0 {filtroPago === 'terminal'
+						? 'bg-purple-900/60 text-purple-300 border border-purple-700/60'
+						: 'bg-stone-950 text-stone-400 hover:text-white'}"
+					on:click={() => (filtroPago = 'terminal')}
+				>
+					📟 Terminal
 				</button>
 			</div>
 		</div>
 
-		<!-- Tabla de Tickets -->
+		<!-- 4. Tabla Detallada de Tickets -->
 		{#if loading}
 			<div class="p-12 text-center text-stone-400 bg-stone-900/40 rounded-2xl border border-stone-800">
 				<div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-stone-600 border-t-green-500 mb-3"></div>
-				<p>Cargando tickets...</p>
+				<p>Cargando tickets y registros de pago...</p>
 			</div>
 		{:else if ticketsFiltrados.length === 0}
 			<div class="p-12 text-center text-stone-400 bg-stone-900/40 rounded-2xl border border-stone-800">
 				<p class="text-lg font-medium text-stone-300">No se encontraron tickets</p>
 				<p class="text-sm text-stone-500 mt-1">Prueba cambiando los filtros o el término de búsqueda.</p>
+				{#if filtroPago !== 'todos' || filtroEstado !== 'todos' || searchTerm}
+					<button
+						on:click={() => {
+							filtroPago = 'todos';
+							filtroEstado = 'todos';
+							searchTerm = '';
+						}}
+						class="mt-3 text-xs text-green-400 hover:underline font-semibold"
+					>
+						Limpiar todos los filtros
+					</button>
+				{/if}
 			</div>
 		{:else}
 			<div class="bg-stone-900/70 border border-stone-800 rounded-2xl overflow-hidden shadow-xl">
@@ -413,7 +813,8 @@
 							<tr>
 								<th class="px-4 py-3.5"># Ticket</th>
 								<th class="px-4 py-3.5">Cliente</th>
-								<th class="px-4 py-3.5">Fase</th>
+								<th class="px-4 py-3.5">Fase y Precio</th>
+								<th class="px-4 py-3.5">Método de Pago</th>
 								<th class="px-4 py-3.5">Ingreso</th>
 								<th class="px-4 py-3.5">Estado</th>
 								<th class="px-4 py-3.5">Motivo / Disputa</th>
@@ -425,6 +826,8 @@
 								{@const estado = t.estado || 'activo'}
 								{@const clienteNombre = t.mVenta?.cliente_id?.nombre || t.mVenta?.nombre || 'Sin nombre'}
 								{@const clienteCorreo = t.mVenta?.cliente_id?.correo || t.mVenta?.correo || 'Sin correo'}
+								{@const metodo = getMetodoPago(t)}
+								{@const precio = getTicketPrecio(t)}
 								<tr class="hover:bg-stone-800/30 transition-colors {estado === 'suspendido' ? 'bg-amber-950/10' : estado === 'cancelado' ? 'bg-red-950/10' : ''}">
 									<!-- # Ticket -->
 									<td class="px-4 py-3.5 font-mono text-stone-300">
@@ -441,12 +844,38 @@
 										<p class="text-xs text-stone-400">{clienteCorreo}</p>
 									</td>
 
-									<!-- Fase -->
+									<!-- Fase y Precio -->
 									<td class="px-4 py-3.5 text-stone-300">
-										<p class="font-medium">{t.cFaseEvento?.nombreFace || 'General'}</p>
-										{#if t.cFaseEvento?.precio}
-											<p class="text-xs text-stone-500">${t.cFaseEvento.precio}</p>
-										{/if}
+										<p class="font-medium text-white">{t.cFaseEvento?.nombreFace || 'General'}</p>
+										<p class="text-xs font-bold text-emerald-400">
+											{formatearMoneda(precio)}
+										</p>
+									</td>
+
+									<!-- Método de Pago -->
+									<td class="px-4 py-3.5">
+										<div class="space-y-1">
+											<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-xs font-semibold border {metodo.badgeClass}">
+												{metodo.icon} {metodo.nombre}
+											</span>
+											{#if metodo.transaccion}
+												<div class="flex items-center gap-1 text-[11px] text-stone-400 font-mono">
+													<span class="truncate max-w-[130px]" title={metodo.transaccion}>
+														{metodo.transaccion}
+													</span>
+													<button
+														type="button"
+														on:click={() => copiarAlPortapapeles(metodo.transaccion, 'ID')}
+														class="text-stone-500 hover:text-stone-300 p-0.5"
+														title="Copiar ID de transacción"
+													>
+														<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 256 256">
+															<path d="M216,32H88a8,8,0,0,0-8,8V80H40a8,8,0,0,0-8,8V216a8,8,0,0,0,8,8H168a8,8,0,0,0,8-8V176h40a8,8,0,0,0,8-8V40A8,8,0,0,0,216,32ZM160,208H48V96H160Zm48-48H176V88a8,8,0,0,0-8-8H96V48H208Z"></path>
+														</svg>
+													</button>
+												</div>
+											{/if}
+										</div>
 									</td>
 
 									<!-- Ingreso (Validado) -->
@@ -523,6 +952,191 @@
 		{/if}
 	</div>
 </div>
+
+<!-- Modal de Reporte Final de Cierre y Liquidación -->
+{#if showModalReporte}
+	<div
+		class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm"
+		role="dialog"
+		aria-modal="true"
+	>
+		<div class="bg-stone-900 border border-stone-700 rounded-3xl max-w-3xl w-full p-6 md:p-8 shadow-2xl relative text-left max-h-[92vh] overflow-y-auto">
+			<!-- Encabezado de Reporte -->
+			<div class="flex items-start justify-between pb-4 border-b border-stone-800 gap-4">
+				<div>
+					<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-green-950/60 text-green-400 border border-green-700/50 mb-1.5">
+						✓ Auditoría y Cierre Oficial
+					</span>
+					<h3 class="text-2xl font-black text-white">
+						Reporte de Liquidación de Evento
+					</h3>
+					<p class="text-sm text-stone-300 font-medium mt-0.5">
+						{selectedEvento?.nombreEvento || 'Evento'}
+					</p>
+					<p class="text-xs text-stone-500 mt-0.5">
+						Generado el {new Date().toLocaleDateString('es-MX', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+					</p>
+				</div>
+				<button
+					on:click={() => (showModalReporte = false)}
+					class="text-stone-400 hover:text-white p-1 rounded-lg hover:bg-stone-800 transition-colors"
+					title="Cerrar modal"
+				>
+					<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 256 256">
+						<path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,66.34,200.97a8,8,0,0,1-11.32-11.32L116.69,128,55.03,66.34A8,8,0,0,1,66.34,55.03L128,116.69l61.66-61.66a8,8,0,0,1,11.32,11.32L139.31,128Z"></path>
+					</svg>
+				</button>
+			</div>
+
+			<!-- KPIs Resumen del Cierre -->
+			<div class="grid grid-cols-2 sm:grid-cols-4 gap-3 my-6">
+				<div class="bg-stone-950/80 p-3.5 rounded-xl border border-stone-800">
+					<p class="text-[11px] uppercase tracking-wider text-stone-400 font-semibold">Total Emitidos</p>
+					<p class="text-2xl font-black text-white mt-1">{totalTickets}</p>
+					<p class="text-[10px] text-stone-500 mt-0.5">{totalActivos} válidos activos</p>
+				</div>
+				<div class="bg-stone-950/80 p-3.5 rounded-xl border border-stone-800">
+					<p class="text-[11px] uppercase tracking-wider text-green-400 font-semibold">Ingresados (Puerta)</p>
+					<p class="text-2xl font-black text-green-400 mt-1">{totalValidados}</p>
+					<p class="text-[10px] text-stone-500 mt-0.5">
+						{totalTickets > 0 ? Math.round((totalValidados / totalTickets) * 100) : 0}% asistencia
+					</p>
+				</div>
+				<div class="bg-stone-950/80 p-3.5 rounded-xl border border-stone-800">
+					<p class="text-[11px] uppercase tracking-wider text-red-400 font-semibold">Cancelados / Disp.</p>
+					<p class="text-2xl font-black text-red-400 mt-1">{totalCancelados}</p>
+					<p class="text-[10px] text-stone-500 mt-0.5">Anulados o disputa</p>
+				</div>
+				<div class="bg-stone-950/80 p-3.5 rounded-xl border border-stone-800">
+					<p class="text-[11px] uppercase tracking-wider text-emerald-400 font-semibold">Recaudación Neta</p>
+					<p class="text-xl font-black text-emerald-400 mt-1">
+						{formatearMoneda(desglosePagos.totalMontoNeto)}
+					</p>
+					<p class="text-[10px] text-stone-500 mt-0.5">De boletos activos</p>
+				</div>
+			</div>
+
+			<!-- Desglose Contable por Método de Pago -->
+			<div class="space-y-3 mb-6">
+				<h4 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+					<span>💳</span> Cuadre por Método de Pago
+				</h4>
+				<div class="border border-stone-800 rounded-xl overflow-hidden">
+					<table class="w-full text-left text-xs">
+						<thead class="bg-stone-800 text-stone-400 uppercase font-semibold">
+							<tr>
+								<th class="py-2.5 px-3">Método de Pago</th>
+								<th class="py-2.5 px-3 text-center">Tickets</th>
+								<th class="py-2.5 px-3 text-center">Ingresados</th>
+								<th class="py-2.5 px-3 text-center">Cancelados</th>
+								<th class="py-2.5 px-3 text-right">Recaudación Neta</th>
+								<th class="py-2.5 px-3 text-right">% Recaudado</th>
+							</tr>
+						</thead>
+						<tbody class="divide-y divide-stone-800 bg-stone-950/60">
+							{#each desglosePagos.lista as m}
+								{@const pct = desglosePagos.totalMontoNeto > 0 ? Math.round((m.montoNeto / desglosePagos.totalMontoNeto) * 100) : 0}
+								<tr class="hover:bg-stone-800/40">
+									<td class="py-2.5 px-3 font-semibold text-white flex items-center gap-2">
+										<span>{m.icon}</span>
+										<span>{m.nombre}</span>
+									</td>
+									<td class="py-2.5 px-3 text-center text-stone-200 font-bold">{m.tickets}</td>
+									<td class="py-2.5 px-3 text-center text-green-400">{m.validados}</td>
+									<td class="py-2.5 px-3 text-center text-stone-400">{m.cancelados}</td>
+									<td class="py-2.5 px-3 text-right font-bold text-emerald-400">
+										{formatearMoneda(m.montoNeto)}
+									</td>
+									<td class="py-2.5 px-3 text-right text-stone-400 font-mono">{pct}%</td>
+								</tr>
+							{/each}
+						</tbody>
+						<tfoot class="bg-stone-800/90 font-bold text-white border-t border-stone-700">
+							<tr>
+								<td class="py-2.5 px-3">TOTAL CONSOLIDADO</td>
+								<td class="py-2.5 px-3 text-center">{totalTickets}</td>
+								<td class="py-2.5 px-3 text-center text-green-400">{totalValidados}</td>
+								<td class="py-2.5 px-3 text-center text-red-400">{totalCancelados}</td>
+								<td class="py-2.5 px-3 text-right text-emerald-400">
+									{formatearMoneda(desglosePagos.totalMontoNeto)}
+								</td>
+								<td class="py-2.5 px-3 text-right">100%</td>
+							</tr>
+						</tfoot>
+					</table>
+				</div>
+			</div>
+
+			<!-- Desglose por Fases de Venta -->
+			<div class="space-y-3 mb-6">
+				<h4 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+					<span>🏷️</span> Cuadre por Fases de Venta
+				</h4>
+				<div class="border border-stone-800 rounded-xl overflow-hidden">
+					<table class="w-full text-left text-xs">
+						<thead class="bg-stone-800 text-stone-400 uppercase font-semibold">
+							<tr>
+								<th class="py-2.5 px-3">Fase</th>
+								<th class="py-2.5 px-3 text-right">Precio Unit.</th>
+								<th class="py-2.5 px-3 text-center">Boletos Vendidos</th>
+								<th class="py-2.5 px-3 text-center">Ingresaron</th>
+								<th class="py-2.5 px-3 text-right">Recaudación Neta</th>
+							</tr>
+						</thead>
+						<tbody class="divide-y divide-stone-800 bg-stone-950/60">
+							{#each desgloseFases as f}
+								<tr class="hover:bg-stone-800/40">
+									<td class="py-2.5 px-3 font-semibold text-white">{f.nombre}</td>
+									<td class="py-2.5 px-3 text-right text-stone-300">{formatearMoneda(f.precio)}</td>
+									<td class="py-2.5 px-3 text-center font-bold text-white">{f.total}</td>
+									<td class="py-2.5 px-3 text-center text-green-400">{f.validados}</td>
+									<td class="py-2.5 px-3 text-right font-bold text-emerald-400">
+										{formatearMoneda(f.montoNeto)}
+									</td>
+								</tr>
+							{/each}
+						</tbody>
+					</table>
+				</div>
+			</div>
+
+			<!-- Acciones del Modal -->
+			<div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-stone-800">
+				<button
+					type="button"
+					on:click={() => window.print()}
+					class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-200 text-xs font-semibold flex items-center justify-center gap-2 transition-colors border border-stone-700"
+				>
+					<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
+						<path d="M216,48H184V24a8,8,0,0,0-8-8H80a8,8,0,0,0-8,8V48H40A16,16,0,0,0,24,64V168a16,16,0,0,0,16,16H72v48a8,8,0,0,0,8,8H176a8,8,0,0,0,8-8V184h32a16,16,0,0,0,16-16V64A16,16,0,0,0,216,48ZM96,32h64V48H96ZM160,224H96V168h64ZM216,168H184v-8a8,8,0,0,0-8-8H80a8,8,0,0,0-8,8v8H40V64H216V168Zm-32-80a12,12,0,1,1,12-12A12,12,0,0,1,184,88Z"></path>
+					</svg>
+					Imprimir / Guardar en PDF
+				</button>
+
+				<div class="flex items-center gap-2 w-full sm:w-auto">
+					<button
+						type="button"
+						on:click={exportarCSV}
+						class="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-stone-800 hover:bg-stone-700 text-white text-xs font-semibold flex items-center justify-center gap-2 transition-colors border border-stone-700"
+					>
+						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256">
+							<path d="M224,152v56a16,16,0,0,1-16,16H48a16,16,0,0,1-16-16V152a8,8,0,0,1,16,0v56H208V152a8,8,0,0,1,16,0Zm-101.66,5.66a8,8,0,0,0,11.32,0l40-40a8,8,0,0,0-11.32-11.32L136,132.69V40a8,8,0,0,0-16,0v92.69L93.66,106.34a8,8,0,0,0-11.32,11.32Z"></path>
+						</svg>
+						Descargar CSV
+					</button>
+
+					<button
+						type="button"
+						on:click={() => (showModalReporte = false)}
+						class="flex-1 sm:flex-none px-5 py-2.5 rounded-xl bg-green-500 hover:bg-green-400 text-black text-xs font-bold transition-colors"
+					>
+						Cerrar
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+{/if}
 
 <!-- Modal de Cambio de Estado -->
 {#if showModalEstado && ticketSeleccionado}

@@ -891,6 +891,15 @@
 							</div>
 						{/each}
 					</div>
+					<div class="mt-4 pt-4 border-t border-stone-800">
+						<a
+							href={`/tickets?eventId=${id}&report=open`}
+							class="w-full bg-green-500 hover:bg-green-400 text-black font-bold py-2.5 px-4 rounded-xl text-sm flex items-center justify-center gap-2 transition-colors shadow-lg shadow-green-500/20"
+						>
+							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256"><path d="M216,40H40A16,16,0,0,0,24,56V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40ZM40,56H216v32H40ZM216,200H40V104H216v96Zm-88-80a8,8,0,0,1,8,8v48a8,8,0,0,1-16,0V128A8,8,0,0,1,128,120Zm-40,16a8,8,0,0,1,8,8v32a8,8,0,0,1-16,0V144A8,8,0,0,1,88,136Zm80-8a8,8,0,0,1,8,8v40a8,8,0,0,1-16,0V136A8,8,0,0,1,168,128Z"></path></svg>
+							Ver Reporte Contable y Desglose de Pagos ➔
+						</a>
+					</div>
 				</div>
 			</div>
 		{/if}
